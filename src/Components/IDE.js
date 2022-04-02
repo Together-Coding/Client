@@ -98,12 +98,14 @@ function IDE() {
             width="1559px"
             height="700px"
             theme="vs-dark"
-            language="c"
-            value={examples["c"]}
+            defaultLanguage="c"
+            defaultValue={examples["c"]}
             editorDidMount={handleEditorDidMount}
           />
-          <div className="bottom-bar"><span>터미널</span></div>
-        </div>   
+          <div className="bottom-bar">
+            <span>터미널</span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -150,7 +152,7 @@ function SideExplorer3(props) {
       <p className="side-navbar">
         <span>git</span>
       </p>
-      <div style={{color:"#b9c3dd"}}>연결된 저장소가 없습니다</div>
+      <div style={{ color: "#b9c3dd" }}>연결된 저장소가 없습니다</div>
     </div>
   );
 }
