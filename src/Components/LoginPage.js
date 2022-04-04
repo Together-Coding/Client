@@ -23,14 +23,18 @@ function LoginPage() {
       localStorage.setItem("access_token", token);
     });
     let token = localStorage.getItem("access_token");
-    const authAxios = axios.create({
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    authAxios.get("url...").then((res) => {
-      console.log(res);
-    });
+    if (token && token !== null) {
+      const authAxios = axios.create({
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      authAxios.get("url...").then((res) => {
+        console.log(res);
+      });
+    } else {
+      alert("해당하는 유저가 없습니다.");
+    }
   };
   return (
     <div
