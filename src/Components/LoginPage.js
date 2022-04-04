@@ -18,7 +18,7 @@ function LoginPage() {
       email: email,
       password: pwd,
     };
-    axios.post("/auth/signin", body).then((res) => {
+    axios.post("/auth/login", body).then((res) => {
       let token = res.data;
       localStorage.setItem("access_token", token);
     });

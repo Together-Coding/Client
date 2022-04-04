@@ -35,7 +35,7 @@ function RegisterPage() {
       password: pwd,
       name: name,
     };
-    axios.post("/auth/signup", body).then((res) => console.log(res));
+    axios.post("/auth/user", body).then((res) => console.log(res));
   };
   return (
     <div
