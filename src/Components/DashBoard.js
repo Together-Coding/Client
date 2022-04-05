@@ -9,6 +9,7 @@ let userMockData = [
     stuNum: "12153057",
     질문: "투게더 코딩 화이팅",
     needHelp: true,
+    questionSolved: false,
   },
   {
     id: 2,
@@ -16,6 +17,7 @@ let userMockData = [
     stuNum: "12161527",
     질문: "이 부분 너무 쉽습니다",
     needHelp: true,
+    questionSolved: false,
   },
   {
     id: 3,
@@ -23,50 +25,29 @@ let userMockData = [
     stuNum: "12161665",
     질문: "맞왜틀???",
     needHelp: false,
-  },
-];
-let question = [
-  {
-    id: 1,
-    name: "권순용",
-    stuNum: "12153057",
-    질문: "투게더 코딩 화이팅",
-  },
-  {
-    id: 2,
-    name: "권광민",
-    stuNum: "12161527",
-    질문: "이 부분 너무 쉽습니다",
-  },
-  {
-    id: 3,
-    name: "차선욱",
-    stuNum: "12161665",
-    질문: "맞왜틀???",
+    solved: false,
+    questionSolved: false,
   },
 ];
 
 function DashBoard() {
+  let [question, setQuestion] = useState([]);
+  let [solvedQuestion, setSolvedQuestion] = useState([]);
+
   let [solvedCheckInput, setSolvedCheckInput] = useState(new Set());
   let [bChecked, setChecked] = useState(false);
 
-  let [solvedQuestion, setSolvedQuestion] = useState([]);
-
-  let solvedIndex = [];
-
   let [unsolvedCheckInput, setunSolvedCheckInput] = useState(new Set());
   let [cChecked, setcChecked] = useState(false);
-
-  let [unsolvedQuestion, setunSolvedQuestion] = useState([]);
-
-  let unsolvedIndex = [];
   //-------------------새질문 체크박스 관리
-  solvedQuestion.map((x) => {
-    solvedIndex.push(x.id);
+
+  let questionIdx = [];
+  question.map((x) => {
+    questionIdx.push(x.id);
   });
-  solvedIndex.sort();
-  solvedIndex.map((x) => {
-    delete question[x - 1];
+  questionIdx.sort();
+  questionIdx.map((x) => {
+    userMockData[x - 1].questionSolved = true;
   });
 
   const solvedCheckControl = (id, isChecked) => {
@@ -80,14 +61,26 @@ function DashBoard() {
   };
   const solvedCheckHandler = (e) => {
     setChecked(!bChecked);
-    solvedCheckControl(question[Number(e.target.value) - 1], e.target.checked);
+    solvedCheckControl(
+      userMockData[Number(e.target.value) - 1],
+      e.target.checked
+    );
   };
 
   const solvedClickHandler = () => {
     let copy = [...solvedCheckInput];
-    setSolvedQuestion(copy);
+    setQuestion(copy);
   };
   //-------------------해결된 질문 체크박스 관리
+
+  let solvedQuestionIdx = [];
+  solvedQuestion.map((x) => {
+    solvedQuestionIdx.push(x.id);
+  });
+  solvedQuestionIdx.sort();
+  solvedQuestionIdx.map((x) => {
+    userMockData[x - 1].questionSolved = false;
+  });
 
   const unsolvedCheckControl = (id, isChecked) => {
     if (isChecked) {
@@ -101,20 +94,15 @@ function DashBoard() {
   const unsolvedCheckHandler = (e) => {
     setcChecked(!cChecked);
     unsolvedCheckControl(
-      solvedQuestion[Number(e.target.value) - 1],
+      userMockData[Number(e.target.value) - 1],
       e.target.checked
     );
   };
-  console.log(unsolvedCheckInput);
 
   const unsolvedClickHandler = () => {
     let copy = [...unsolvedCheckInput];
-    setunSolvedQuestion(copy);
-    unsolvedQuestion.map((x) => {
-      question.push(x);
-    });
+    setSolvedQuestion(copy);
   };
-  console.log(unsolvedQuestion);
 
   return (
     <div>
@@ -146,37 +134,42 @@ function DashBoard() {
         <span>새질문</span>
         <button onClick={solvedClickHandler}>해결된 질문으로</button>
       </div>
-      {question.map((x, idx) => {
-        return (
-          <div>
-            <input
-              value={idx + 1}
-              type="checkbox"
-              onChange={solvedCheckHandler}
-            />
-            <span>{x.name}</span>
-            <span>{x.stuNum}</span>
-            <span>{x.질문}</span>
-          </div>
-        );
+      {userMockData.map((x, idx) => {
+        if (x.questionSolved === false) {
+          return (
+            <div>
+              <input
+                value={idx + 1}
+                type="checkbox"
+                onChange={solvedCheckHandler}
+              />
+              <span>{x.name}</span>
+              <span>{x.stuNum}</span>
+              <span>{x.질문}</span>
+            </div>
+          );
+        }
       })}
+
       <div className="new-question-bar">
         <span>해결된 질문</span>
-        <button onClick={unsolvedClickHandler}>새 질문으로 (안됨...)</button>
+        <button onClick={unsolvedClickHandler}>새 질문으로</button>
       </div>
-      {solvedQuestion.map((x, idx) => {
-        return (
-          <div>
-            <input
-              value={idx + 1}
-              type="checkbox"
-              onChange={unsolvedCheckHandler}
-            />
-            <span>{x.name}</span>
-            <span>{x.stuNum}</span>
-            <span>{x.질문}</span>
-          </div>
-        );
+      {userMockData.map((x, idx) => {
+        if (x.questionSolved === true) {
+          return (
+            <div>
+              <input
+                value={idx + 1}
+                type="checkbox"
+                onChange={unsolvedCheckHandler}
+              />
+              <span>{x.name}</span>
+              <span>{x.stuNum}</span>
+              <span>{x.질문}</span>
+            </div>
+          );
+        }
       })}
     </div>
   );
