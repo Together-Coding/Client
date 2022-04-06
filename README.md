@@ -1,5 +1,12 @@
 [LINK](https://together-coding.github.io/IDE-sample/)
 
+## myInfo 페이지
+![유저데이터](https://user-images.githubusercontent.com/86250281/161924788-28fd218d-f3b9-48a9-83b5-25c15c14e16a.png)  
+유저 데이터
+
+![ui](https://user-images.githubusercontent.com/86250281/161924808-ce49bbab-e770-4834-8743-c2e277a8264d.png)  
+유저 데이터에서 학생인수업, 교수자인수업에 따라 개별 대쉬보드로 이동할것입니다.
+
 ## 대쉬보드
 ![대쉬보드](https://user-images.githubusercontent.com/86250281/161906173-4979f75c-95aa-4bc5-bd1a-d33cfefecd13.png)  
 유저 데이터의 questionSovled의 값을 바꿔가며 체크박스 값들을 관리해보려 했습니다.
