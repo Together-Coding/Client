@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import "../IDE.scss";
+import "../styles/IDE.scss";
 import Editor from "@monaco-editor/react";
 import {
   faBriefcase,

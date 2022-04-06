@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import "../myInfo.scss";
+import "../styles/myInfo.scss";
+
 let mockData = {
   id: 1,
   name: "권순용",
@@ -23,7 +24,7 @@ function MyInfo() {
               <span className="class">
                 <Link
                   to={{
-                    pathname: "/dashboard/" + idx,
+                    pathname: "/teacher-dashboard/" + idx,
                     state: {
                       class: x,
                     },
@@ -42,7 +43,7 @@ function MyInfo() {
               <span className="class">
                 <Link
                   to={{
-                    pathname: "/dashboard/" + idx,
+                    pathname: "/student-dashboard/" + idx,
                     state: {
                       class: x,
                     },

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import "../Dashboard.scss";
+import "../styles/TeacherDashboard.scss";
 
 let userMockData = [
   {

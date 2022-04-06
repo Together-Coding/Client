@@ -6,7 +6,8 @@ import Home from "./Components/Home";
 import IDE_HOME from "./Components/IDE";
 import RegisterPage from "./Components/RegisterPage";
 import LoginPage from "./Components/LoginPage";
-import DashBoard from "./Components/DashBoard";
+import TeacherDashBoard from "./Components/TeacherDashBoard";
+import StudentDashBoard from "./Components/StudentDashBoard";
 import MyInfo from "./Components/MyInfo";
 
 function App() {
@@ -28,8 +29,11 @@ function App() {
         <Route exact path="/myInfo">
           <MyInfo />
         </Route>
-        <Route path="/dashboard">
-          <DashBoard />
+        <Route path="/teacher-dashboard">
+          <TeacherDashBoard />
+        </Route>
+        <Route paht="student-dashboard">
+          <StudentDashBoard />
         </Route>
       </Switch>
     </div>
