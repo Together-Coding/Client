@@ -1,0 +1,64 @@
+.Info-nav-bar{
+    background-color: beige;
+    display: flex;
+    justify-content: flex-end;
+    height: 50px;
+    align-items: center;
+}
+.main-box{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+.teacher{
+    width: 30%;
+    height: auto;
+    min-height: 500px;
+    background-color: whitesmoke;
+    margin-top: 50px;
+    p{  
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #1263CE;
+        height: 50px;
+        color: white;
+        font-weight: bold;
+        margin-top: 0;
+    }
+}
+.student{
+    width: 30%;
+    height: auto;
+    min-height: 500px;
+    background-color: whitesmoke;
+    margin-top: 50px;
+    p{  
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #1263CE;
+        height: 50px;
+        color: white;
+        margin-top: 0;
+        font-weight: bold;
+    }
+}
+.class{
+    display: flex;
+    flex-direction: column;
+    a{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-decoration: none;
+        margin-bottom: 10px;
+        height: 40px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        color: black;
+    }
+    a:hover{
+        background-color: #89B2E9;
+    }
+}

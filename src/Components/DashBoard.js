@@ -1,5 +1,5 @@
-import { fas } from "@fortawesome/free-solid-svg-icons";
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import "../Dashboard.scss";
 
 let userMockData = [
@@ -31,6 +31,8 @@ let userMockData = [
 ];
 
 function DashBoard() {
+  const location = useLocation();
+  
   let [question, setQuestion] = useState([]);
   let [solvedQuestion, setSolvedQuestion] = useState([]);
 
@@ -49,6 +51,9 @@ function DashBoard() {
   questionIdx.map((x) => {
     userMockData[x - 1].questionSolved = true;
   });
+  if (question.length > 0) {
+    setQuestion([]);
+  }
 
   const solvedCheckControl = (id, isChecked) => {
     if (isChecked) {
@@ -70,6 +75,7 @@ function DashBoard() {
   const solvedClickHandler = () => {
     let copy = [...solvedCheckInput];
     setQuestion(copy);
+    setSolvedCheckInput(new Set());
   };
   //-------------------해결된 질문 체크박스 관리
 
@@ -102,12 +108,15 @@ function DashBoard() {
   const unsolvedClickHandler = () => {
     let copy = [...unsolvedCheckInput];
     setSolvedQuestion(copy);
+    if (solvedQuestion.length > 0) {
+      setSolvedQuestion([]);
+    }
   };
 
   return (
     <div>
       <div className="dash-board-nav">
-        <p>nav-bar</p>
+        <p>{location.state.class}</p>
       </div>
       <div className="dash-side-bar">
         sideBar

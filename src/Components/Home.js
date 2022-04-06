@@ -17,7 +17,7 @@ function Home() {
         <Link to="/IDE">IDE 껍다구 링크</Link>
       </h2>
       <h2>
-        <Link to="/dashboard">대쉬보드 링크</Link>
+        <Link to="/myInfo">로그인 했을시 내정보</Link>
       </h2>
       <button>
         <Link to="/login">로그인</Link>

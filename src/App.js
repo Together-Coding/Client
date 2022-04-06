@@ -7,6 +7,7 @@ import IDE_HOME from "./Components/IDE";
 import RegisterPage from "./Components/RegisterPage";
 import LoginPage from "./Components/LoginPage";
 import DashBoard from "./Components/DashBoard";
+import MyInfo from "./Components/MyInfo";
 
 function App() {
   return (
@@ -24,7 +25,10 @@ function App() {
         <Route exact path="/login">
           <LoginPage />
         </Route>
-        <Route exact path="/dashboard">
+        <Route exact path="/myInfo">
+          <MyInfo />
+        </Route>
+        <Route path="/dashboard">
           <DashBoard />
         </Route>
       </Switch>
