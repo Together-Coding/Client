@@ -2,13 +2,9 @@ import React from "react";
 import { useState } from "react";
 import "../styles/IDE.scss";
 import Editor from "@monaco-editor/react";
-import {
-  faBriefcase,
-  faKeyboard,
-  faCodeBranch,
-  faBug,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {faBriefcase, faBug, faCodeBranch, faKeyboard,} from "@fortawesome/free-solid-svg-icons";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {Terminal} from "./Terminal";
 
 function IDE() {
   let examples = {
@@ -102,8 +98,8 @@ function IDE() {
             defaultValue={examples["c"]}
             editorDidMount={handleEditorDidMount}
           />
-          <div className="bottom-bar">
-            <span>터미널</span>
+          <div className="terminal-container">
+              <Terminal></Terminal>
           </div>
         </div>
       </div>
