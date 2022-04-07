@@ -5,6 +5,7 @@ import "../styles/StudentDashBoard.scss";
 function StudentDashBoard() {
   let lessons = [1, 2, 3, 4, 5, 6];
   const location = useLocation();
+  console.log(location);
   return (
     <div>
       <div className="stu-nav-bar">{location.state.class}</div>

@@ -1,7 +1,7 @@
-import {useRef, useEffect, useState} from "react";
-import {SSHClient} from "../utils/websocket";
-import {XTerm} from 'xterm-for-react';
-import {FitAddon} from "xterm-addon-fit";
+import { useRef, useEffect, useState } from "react";
+import { SSHClient } from "../utils/websocket";
+import { XTerm } from "xterm-for-react";
+import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
 
 /**
@@ -11,7 +11,7 @@ import "xterm/css/xterm.css";
  * @constructor
  */
 export function TerminalMenu() {
-  let token = localStorage.getItem('access_token')
+  let token = localStorage.getItem("access_token");
 
   // xterm Terminal
   // FitAddon: xtermRef 를 부모 요소 크기에 맞게 조정
@@ -20,15 +20,15 @@ export function TerminalMenu() {
   // Terminal options
   let [ptyCols, setPtyCols] = useState(0);
   let [ptyRows, setPtyRows] = useState(0);
-  let [width, setWidth] = useState(800);
-  let [height, setHeight] = useState(10);
+  let [width, setWidth] = useState("0");
+  let [height, setHeight] = useState("0");
   const xtermOptions = {
     cursorBlink: true,
     theme: {
-      background: '#2f3336',
-      foreground: '#ffffff',
-    }
-  }
+      background: "#2f3336",
+      foreground: "#ffffff",
+    },
+  };
 
   let sshClient = useRef();
   useEffect(() => {
@@ -36,19 +36,36 @@ export function TerminalMenu() {
     fitAddon.fit();
 
     // FIXME Bridge 서버로부터 컨테이너 URL 을 받아서 사용
-    sshClient.current = new SSHClient('http://127.0.0.1:8000/', token)
+    sshClient.current = new SSHClient("http://127.0.0.1:8000/", token);
 
-    sshClient.current.on('AUTHENTICATE', (data) => {
-      if (data === 'AUTHENTICATE') {
-        sshClient.current.emit('SSH_CONNECT', 'SSH_CONNECT');
+    sshClient.current.on("AUTHENTICATE", (data) => {
+      if (data === "AUTHENTICATE") {
+        sshClient.current.emit("SSH_CONNECT", "SSH_CONNECT");
       }
     });
 
     // 'SSH' 이벤트로 보낸 입력값을 되돌려 받고, 이를 터미널에 보여줍니다.
-    sshClient.current.on('SSH_RELAY', (data) => {
-      xtermRef.current.terminal.write(decodeText(data))
-    })
-  }, [])
+    sshClient.current.on("SSH_RELAY", (data) => {
+      xtermRef.current.terminal.write(decodeText(data));
+    });
+    xtermRef.current.terminal.writeln("Hello, World!!!");
+    xtermRef.current.terminal.writeln("Hello, World!");
+    xtermRef.current.terminal.writeln("Hello, World!");
+    xtermRef.current.terminal.writeln("Hello, World!");
+    xtermRef.current.terminal.writeln("Hello, World!");
+    xtermRef.current.terminal.writeln("Hello, World!");
+    xtermRef.current.terminal.writeln("Hello, World!");
+    xtermRef.current.terminal.writeln("Hello, World!");
+    xtermRef.current.terminal.writeln("Hello, World!");
+    xtermRef.current.terminal.writeln("Hello, World!");
+    xtermRef.current.terminal.writeln("Hello, World!");
+    xtermRef.current.terminal.writeln("Hello, World!");
+    xtermRef.current.terminal.writeln("Hello, World!");
+    xtermRef.current.terminal.writeln("Hello, World!");
+    xtermRef.current.terminal.writeln("Hello, World!");
+    xtermRef.current.terminal.writeln("Hello, World!!!!!!!!!!!!!!!");
+
+  }, []);
 
   /**
    * SSH 서버에 보내기 전, 데이터를 인코딩
@@ -56,8 +73,8 @@ export function TerminalMenu() {
    * @return {*}
    */
   let encodeText = (text) => {
-    return text
-  }
+    return text;
+  };
 
   /**
    *
@@ -66,21 +83,21 @@ export function TerminalMenu() {
    */
   let decodeText = (text) => {
     // Promise 방식으로 디코딩하여 터미널에 보여주면 좋을 것 같음
-    return String.fromCharCode.apply(null, new Uint8Array(text))
-  }
+    return String.fromCharCode.apply(null, new Uint8Array(text));
+  };
 
   /**
    * 유저가 xterm 에 입력을 하면, 이를 SSH relay 서버로 전송합니다.
    * @param data
    */
   let onData = (data) => {
-    sshClient.current.emit('SSH', encodeText(data));
-  }
+    sshClient.current.emit("SSH", encodeText(data));
+  };
 
   let onScroll = (newPos) => {
     // TODO
-    console.log('onScroll', newPos)
-  }
+    console.log("onScroll", newPos);
+  };
 
   /**
    * window.onresize 이벤트
@@ -90,33 +107,37 @@ export function TerminalMenu() {
     fitAddon.fit();
 
     // 새로운 pty 크기 계산
-    let cols = parseInt(window.innerWidth / xtermRef.current.terminal._core._renderService._renderer.dimensions.actualCellWidth)
-    let rows = parseInt(window.innerHeight / xtermRef.current.terminal._core._renderService._renderer.dimensions.actualCellHeight)
+    let cols = parseInt(
+      window.innerWidth /
+        xtermRef.current.terminal._core._renderService._renderer.dimensions
+          .actualCellWidth
+    );
+    let rows = parseInt(
+      window.innerHeight /
+        xtermRef.current.terminal._core._renderService._renderer.dimensions
+          .actualCellHeight
+    );
 
     if (ptyCols === cols && ptyRows === rows) return;
-    onResize({cols, rows})
-    setPtyCols(cols)
-    setPtyRows(rows)
-  }
+    onResize({ cols, rows });
+    setPtyCols(cols);
+    setPtyRows(rows);
+  };
 
   /**
    * pty 크기 조정
    * @param cols pty width
    * @param rows pty height
    */
-  let onResize = ({cols, rows}) => {
-    xtermRef.current.terminal.resize(cols, rows)
+  let onResize = ({ cols, rows }) => {
+    xtermRef.current.terminal.resize(cols, rows);
     if (sshClient.current) {
-      sshClient.current.emit('SSH_RESIZE', {cols, rows});
+      sshClient.current.emit("SSH_RESIZE", { cols, rows });
     }
-  }
+  };
 
   return (
-    <div
-      style={{
-        width,
-        height,
-      }}>
+    <>
       <XTerm
         ref={xtermRef}
         className={"xterm-terminal"}
@@ -124,7 +145,8 @@ export function TerminalMenu() {
         addons={[fitAddon]}
         onData={onData}
         onResize={onResize}
+        onScroll={onScroll}
       />
-    </div>
-  )
+    </>
+  );
 }

@@ -2,9 +2,14 @@ import React from "react";
 import { useState } from "react";
 import "../styles/IDE.scss";
 import Editor from "@monaco-editor/react";
-import {faBriefcase, faBug, faCodeBranch, faKeyboard,} from "@fortawesome/free-solid-svg-icons";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {Terminal} from "./Terminal";
+import {
+  faBriefcase,
+  faBug,
+  faCodeBranch,
+  faKeyboard,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Terminal } from "./Terminal";
 
 function IDE() {
   let examples = {
@@ -91,16 +96,14 @@ function IDE() {
         {/*-----------code input and terminal-----------*/}
         <div className="terminal">
           <Editor
-            width="1559px"
-            height="700px"
+            height="600px"
             theme="vs-dark"
             defaultLanguage="c"
             defaultValue={examples["c"]}
             editorDidMount={handleEditorDidMount}
           />
-          <div className="terminal-container">
-              <Terminal></Terminal>
-          </div>
+
+          <Terminal></Terminal>
         </div>
       </div>
     </div>

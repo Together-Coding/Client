@@ -103,6 +103,7 @@
 }
 .side-explorer{
     width: 308px;
+    height: 93.6vh;
     flex-shrink: 0;
     background-color: #202427
 }
@@ -130,9 +131,16 @@
     background-color: #373e4e;
     cursor: pointer;
 }
+.terminal{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: hidden;
+}
 .bottom-bar{
     display: flex;
     align-items: center;
+    width: 100%;
     background-color: #2f3336;
     height: 30px;
     span{
@@ -150,7 +158,12 @@
 
 .content-wrapper {
     background-color: #2f3336;
-    min-height: 300px; // FIXME
+    width: 100%;
+    height: 200px;
     color: #efefef;
+    overflow: scroll;
     padding: 10px;
+}
+.xterm-scroll-area {
+    visibility: hidden;
 }
