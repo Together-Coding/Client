@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import {API_URL} from "../constants";
 
 function LoginPage() {
   let [email, setEmail] = useState("");
@@ -18,7 +19,7 @@ function LoginPage() {
       email: email,
       password: pwd,
     };
-    axios.post("/auth/login", body).then((res) => {
+    axios.post(`${API_URL}/auth/login`, body).then((res) => {
       let token = res.data;
       localStorage.setItem("access_token", token);
     });
