@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
+import {API_URL} from "../constants";
+
 // POST /auth/signup
 function RegisterPage() {
   let [email, setEmail] = useState("");
@@ -35,7 +37,7 @@ function RegisterPage() {
       password: pwd,
       name: name,
     };
-    axios.post("/auth/user", body).then((res) => console.log(res));
+    axios.post(`${API_URL}/auth/user`, body).then((res) => console.log(res));
   };
   return (
     <div
