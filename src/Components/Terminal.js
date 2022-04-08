@@ -12,7 +12,7 @@ export function Terminal() {
           <FontAwesomeIcon icon={faPlay} color="#00912c" />
         </span>
       </div>
-      <div className="content-wrapper">
+      <div className="terminal-wrapper">
         <TerminalMenu />
       </div>
     </div>

@@ -14,14 +14,13 @@ export function TerminalMenu() {
   let token = localStorage.getItem("access_token");
 
   // xterm Terminal
-  // FitAddon: xtermRef 를 부모 요소 크기에 맞게 조정
   let xtermRef = useRef();
+  let terminalWrapper = useRef();
+  // FitAddon: xtermRef 를 부모 요소 크기에 맞게 조정
   const fitAddon = new FitAddon();
   // Terminal options
   let [ptyCols, setPtyCols] = useState(0);
   let [ptyRows, setPtyRows] = useState(0);
-  let [width, setWidth] = useState("0");
-  let [height, setHeight] = useState("0");
   const xtermOptions = {
     cursorBlink: true,
     theme: {
@@ -32,6 +31,7 @@ export function TerminalMenu() {
 
   let sshClient = useRef();
   useEffect(() => {
+    terminalWrapper.current = document.getElementsByClassName('terminal-wrapper')[0];
     window.onresize = resizeTerminal;
     fitAddon.fit();
 
@@ -48,23 +48,6 @@ export function TerminalMenu() {
     sshClient.current.on("SSH_RELAY", (data) => {
       xtermRef.current.terminal.write(decodeText(data));
     });
-    xtermRef.current.terminal.writeln("Hello, World!!!");
-    xtermRef.current.terminal.writeln("Hello, World!");
-    xtermRef.current.terminal.writeln("Hello, World!");
-    xtermRef.current.terminal.writeln("Hello, World!");
-    xtermRef.current.terminal.writeln("Hello, World!");
-    xtermRef.current.terminal.writeln("Hello, World!");
-    xtermRef.current.terminal.writeln("Hello, World!");
-    xtermRef.current.terminal.writeln("Hello, World!");
-    xtermRef.current.terminal.writeln("Hello, World!");
-    xtermRef.current.terminal.writeln("Hello, World!");
-    xtermRef.current.terminal.writeln("Hello, World!");
-    xtermRef.current.terminal.writeln("Hello, World!");
-    xtermRef.current.terminal.writeln("Hello, World!");
-    xtermRef.current.terminal.writeln("Hello, World!");
-    xtermRef.current.terminal.writeln("Hello, World!");
-    xtermRef.current.terminal.writeln("Hello, World!!!!!!!!!!!!!!!");
-
   }, []);
 
   /**
@@ -108,12 +91,12 @@ export function TerminalMenu() {
 
     // 새로운 pty 크기 계산
     let cols = parseInt(
-      window.innerWidth /
+      terminalWrapper.current.clientWidth /
         xtermRef.current.terminal._core._renderService._renderer.dimensions
           .actualCellWidth
     );
     let rows = parseInt(
-      window.innerHeight /
+      terminalWrapper.current.clientHeight /
         xtermRef.current.terminal._core._renderService._renderer.dimensions
           .actualCellHeight
     );
