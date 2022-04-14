@@ -14,6 +14,6 @@
 
 ![교수 대쉬보드](https://user-images.githubusercontent.com/86250281/163343985-8aa0479d-2d9a-4a1e-936d-b92bd2ff0e29.png)  
 
-각각의 질문을 클릭시 해당 코드페이지로 이동합니다. 
+각각의 질문을 클릭시 각각의 해당 코드페이지로 이동합니다. 
 
 ![질문코드](https://user-images.githubusercontent.com/86250281/163344149-1167ba0d-97e7-4bf8-9e36-3f9122c66bf0.png)  
