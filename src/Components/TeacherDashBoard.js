@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import "../styles/TeacherDashboard.scss";
-
+import { Link } from "react-router-dom";
 let userMockData = [
   {
     id: 1,
     name: "권순용",
     stuNum: "12153057",
-    질문: "투게더 코딩 화이팅",
+    질문: [
+      {
+        content: "투게더 코딩 화이팅",
+        code: "code1",
+        line: "10-24",
+      },
+    ],
     needHelp: true,
     questionSolved: false,
   },
@@ -15,7 +21,18 @@ let userMockData = [
     id: 2,
     name: "권광민",
     stuNum: "12161527",
-    질문: "이 부분 너무 쉽습니다",
+    질문: [
+      {
+        content: "이부분 너무 쉽습니다",
+        code: "code2",
+        line: "1-2",
+      },
+      {
+        content: "이부분도 개쉽습니다",
+        code: "code3",
+        line: "3-10",
+      },
+    ],
     needHelp: true,
     questionSolved: false,
   },
@@ -23,16 +40,17 @@ let userMockData = [
     id: 3,
     name: "차선욱",
     stuNum: "12161665",
-    질문: "맞왜틀???",
+    질문: [{ content: "맞왜틀???", code: "code4", line: "5-30" }],
     needHelp: false,
     solved: false,
     questionSolved: false,
   },
 ];
 
+console.log(userMockData);
 function DashBoard() {
   const location = useLocation();
-  
+
   let [question, setQuestion] = useState([]);
   let [solvedQuestion, setSolvedQuestion] = useState([]);
 
@@ -41,6 +59,7 @@ function DashBoard() {
 
   let [unsolvedCheckInput, setunSolvedCheckInput] = useState(new Set());
   let [cChecked, setcChecked] = useState(false);
+
   //-------------------새질문 체크박스 관리
 
   let questionIdx = [];
@@ -51,9 +70,7 @@ function DashBoard() {
   questionIdx.map((x) => {
     userMockData[x - 1].questionSolved = true;
   });
-  if (question.length > 0) {
-    setQuestion([]);
-  }
+  console.log(questionIdx);
 
   const solvedCheckControl = (id, isChecked) => {
     if (isChecked) {
@@ -65,6 +82,7 @@ function DashBoard() {
     }
   };
   const solvedCheckHandler = (e) => {
+    console.log(e.target.value);
     setChecked(!bChecked);
     solvedCheckControl(
       userMockData[Number(e.target.value) - 1],
@@ -75,10 +93,12 @@ function DashBoard() {
   const solvedClickHandler = () => {
     let copy = [...solvedCheckInput];
     setQuestion(copy);
+    console.log(question);
     setSolvedCheckInput(new Set());
   };
+  console.log(solvedCheckInput);
   //-------------------해결된 질문 체크박스 관리
-
+  /*
   let solvedQuestionIdx = [];
   solvedQuestion.map((x) => {
     solvedQuestionIdx.push(x.id);
@@ -111,7 +131,7 @@ function DashBoard() {
     if (solvedQuestion.length > 0) {
       setSolvedQuestion([]);
     }
-  };
+  };*/
 
   return (
     <div>
@@ -146,7 +166,7 @@ function DashBoard() {
       {userMockData.map((x, idx) => {
         if (x.questionSolved === false) {
           return (
-            <div>
+            <div className="stu-name">
               <input
                 value={idx + 1}
                 type="checkbox"
@@ -154,7 +174,24 @@ function DashBoard() {
               />
               <span>{x.name}</span>
               <span>{x.stuNum}</span>
-              <span>{x.질문}</span>
+              {x.질문.map((item, idx) => {
+                return (
+                  <div className="question">
+                    <Link
+                      to={{
+                        pathname: "/code/" + x.name + "/" + idx,
+                        state: {
+                          code: item.code,
+                        },
+                      }}
+                    >
+                      <div>
+                        Line : {item.line} / {item.content}
+                      </div>
+                    </Link>
+                  </div>
+                );
+              })}
             </div>
           );
         }
@@ -162,20 +199,33 @@ function DashBoard() {
 
       <div className="new-question-bar">
         <span>해결된 질문</span>
-        <button onClick={unsolvedClickHandler}>새 질문으로</button>
+        <button>전체 삭제</button>
       </div>
       {userMockData.map((x, idx) => {
         if (x.questionSolved === true) {
           return (
             <div>
-              <input
-                value={idx + 1}
-                type="checkbox"
-                onChange={unsolvedCheckHandler}
-              />
+              <input value={idx + 1} type="checkbox" />
               <span>{x.name}</span>
               <span>{x.stuNum}</span>
-              <span>{x.질문}</span>
+              {x.질문.map((item) => {
+                return (
+                  <>
+                    <Link
+                      to={{
+                        pathname: "/code/" + x.name + "/" + idx,
+                        state: {
+                          code: item.code,
+                        },
+                      }}
+                    >
+                      <div>
+                        Line : {item.line} / {item.content}
+                      </div>
+                    </Link>
+                  </>
+                );
+              })}
             </div>
           );
         }

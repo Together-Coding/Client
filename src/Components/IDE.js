@@ -95,14 +95,15 @@ function IDE() {
         ) : null}
         {/*-----------code input and terminal-----------*/}
         <div className="terminal">
-          <Editor
-            height="600px"
-            theme="vs-dark"
-            defaultLanguage="c"
-            defaultValue={examples["c"]}
-            editorDidMount={handleEditorDidMount}
-          />
-
+          <div className="editor">
+            <Editor
+              height="70vh"
+              theme="vs-dark"
+              defaultLanguage="c"
+              defaultValue={examples["c"]}
+              editorDidMount={handleEditorDidMount}
+            />
+          </div>
           <Terminal></Terminal>
         </div>
       </div>

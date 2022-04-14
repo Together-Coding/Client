@@ -1,4 +1,4 @@
-.dash-board-nav{
+.dash-board-nav {
     display: flex;
     background-color: whitesmoke;
     height: 50px;
@@ -6,21 +6,25 @@
     align-items: center;
     border-bottom: 1px solid black;
 }
-.dash-side-bar{
+
+.dash-side-bar {
     width: 200px;
     background-color: whitesmoke;
     height: 95vh;
-    float:left;
+    float: left;
     border-right: 1px solid black;
 }
-.dash-main{
-   display: flex;
+
+.dash-main {
+    display: flex;
 }
-.dash-list{
+
+.dash-list {
     display: flex;
     flex-wrap: wrap;
 }
-.stu-info{
+
+.stu-info {
     background-color: gray;
     width: 200px;
     height: 200px;
@@ -32,12 +36,22 @@
     flex-direction: column;
     justify-content: space-between
 }
-.new-question-bar{
+
+.new-question-bar {
     display: flex;
     align-items: center;
     background-color: whitesmoke;
     height: 50px;
-    button{
+
+    button {
         margin-left: 20px;
     }
+}
+
+.stu-name {
+    border-bottom: 1px solid lightgrey;
+}
+
+.question:hover {
+    background-color: #89B2E9;
 }

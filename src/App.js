@@ -9,6 +9,7 @@ import LoginPage from "./Components/LoginPage";
 import TeacherDashBoard from "./Components/TeacherDashBoard";
 import StudentDashBoard from "./Components/StudentDashBoard";
 import MyInfo from "./Components/MyInfo";
+import CodeModal from "./Components/CodeModal";
 
 function App() {
   return (
@@ -32,8 +33,11 @@ function App() {
         <Route path="/teacher-dashboard">
           <TeacherDashBoard />
         </Route>
-        <Route paht="student-dashboard">
+        <Route path="/student-dashboard">
           <StudentDashBoard />
+        </Route>
+        <Route path="/code">
+          <CodeModal />
         </Route>
       </Switch>
     </div>
