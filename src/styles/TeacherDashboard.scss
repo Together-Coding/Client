@@ -50,8 +50,35 @@
 
 .stu-name {
     border-bottom: 1px solid lightgrey;
+    padding-bottom: 5px;
 }
-
+.question{
+    a{
+        text-decoration: none;
+        color: black;
+    }
+}
 .question:hover {
     background-color: #89B2E9;
+}
+
+.solved-question {
+    div {
+        color: gray;
+    }
+
+    span {
+        color: gray;
+    }
+    a{
+        text-decoration: none;
+    }
+}
+.line-box:hover{
+    background-color:beige;
+}
+.line-box{
+    div{
+        font-size: 14px;
+    }
 }

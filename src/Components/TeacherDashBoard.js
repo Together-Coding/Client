@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import "../styles/TeacherDashboard.scss";
 import { Link } from "react-router-dom";
-let userMockData = [
+/*let userMockData = [
   {
     id: 1,
     name: "권순용",
@@ -45,12 +45,57 @@ let userMockData = [
     solved: false,
     questionSolved: false,
   },
-];
+];*/
 
-console.log(userMockData);
+//console.log(userMockData);
+
 function DashBoard() {
   const location = useLocation();
   console.log(location);
+  let [userMockData, setMockData] = useState([
+    {
+      id: 1,
+      name: "권순용",
+      stuNum: "12153057",
+      질문: [
+        {
+          content: "투게더 코딩 화이팅",
+          code: "code1",
+          line: "10-24",
+        },
+      ],
+      needHelp: true,
+      questionSolved: false,
+    },
+    {
+      id: 2,
+      name: "권광민",
+      stuNum: "12161527",
+      질문: [
+        {
+          content: "이부분 너무 쉽습니다",
+          code: "code2",
+          line: "1-2",
+        },
+        {
+          content: "이부분도 개쉽습니다",
+          code: "code3",
+          line: "3-10",
+        },
+      ],
+      needHelp: true,
+      questionSolved: false,
+    },
+    {
+      id: 3,
+      name: "차선욱",
+      stuNum: "12161665",
+      질문: [{ content: "맞왜틀???", code: "code4", line: "5-30" }],
+      needHelp: false,
+      solved: false,
+      questionSolved: false,
+    },
+  ]);
 
   let [question, setQuestion] = useState([]);
   let [solvedQuestion, setSolvedQuestion] = useState([]);
@@ -133,6 +178,12 @@ function DashBoard() {
       setSolvedQuestion([]);
     }
   };*/
+  const deleteControl = (e) => {
+    let deleteID = e.target.value;
+    let copy = [...userMockData];
+    copy[deleteID - 1] = { ...copy[deleteID - 1], 질문: [] };
+    setMockData(copy);
+  };
 
   return (
     <div>
@@ -167,7 +218,7 @@ function DashBoard() {
         <button onClick={solvedClickHandler}>해결된 질문으로</button>
       </div>
       {userMockData.map((x, idx) => {
-        if (x.questionSolved === false) {
+        if (x.questionSolved === false && x.질문.length > 0) {
           return (
             <div className="stu-name">
               <input
@@ -175,11 +226,11 @@ function DashBoard() {
                 type="checkbox"
                 onChange={solvedCheckHandler}
               />
-              <span>{x.name}</span>
+              <span style={{ fontWeight: "bold" }}>{x.name} </span>
               <span>{x.stuNum}</span>
               {x.질문.map((item, idx) => {
                 return (
-                  <div className="question">
+                  <div className="question" style={{ fontSize: "14px" }}>
                     <Link
                       to={{
                         pathname: "/code/" + x.name + "/" + idx,
@@ -202,18 +253,21 @@ function DashBoard() {
 
       <div className="new-question-bar">
         <span>해결된 질문</span>
-        <button>전체 삭제</button>
       </div>
       {userMockData.map((x, idx) => {
-        if (x.questionSolved === true) {
+        if (x.questionSolved === true && x.질문.length > 0) {
           return (
-            <div>
-              <input value={idx + 1} type="checkbox" />
-              <span>{x.name}</span>
-              <span>{x.stuNum}</span>
+            <div className="solved-question">
+              <span style={{ fontWeight: "bold" }}>{x.name} </span>
+              <span>
+                {x.stuNum}{" "}
+                <button value={x.id} onClick={deleteControl}>
+                  X
+                </button>
+              </span>
               {x.질문.map((item) => {
                 return (
-                  <>
+                  <div className="line-box">
                     <Link
                       to={{
                         pathname: "/code/" + x.name + "/" + idx,
@@ -226,7 +280,7 @@ function DashBoard() {
                         Line : {item.line} / {item.content}
                       </div>
                     </Link>
-                  </>
+                  </div>
                 );
               })}
             </div>
