@@ -50,6 +50,7 @@ let userMockData = [
 console.log(userMockData);
 function DashBoard() {
   const location = useLocation();
+  console.log(location);
 
   let [question, setQuestion] = useState([]);
   let [solvedQuestion, setSolvedQuestion] = useState([]);
@@ -136,7 +137,9 @@ function DashBoard() {
   return (
     <div>
       <div className="dash-board-nav">
-        <p>{location.state.class}</p>
+        <p>
+          {location.state.class} ({location.state.week}주차)
+        </p>
       </div>
       <div className="dash-side-bar">
         sideBar

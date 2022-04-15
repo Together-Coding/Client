@@ -6,7 +6,7 @@ let mockData = {
   id: 1,
   name: "권순용",
   classAsStudent: ["자료구조", "객체지향프로그래밍2"],
-  classAsTeacher: ["알고리즘"],
+  classAsTeacher: ["알고리즘", "인터넷 프로그래밍", "통계학"],
 };
 
 function MyInfo() {
@@ -24,7 +24,7 @@ function MyInfo() {
               <span className="class">
                 <Link
                   to={{
-                    pathname: "/teacher-dashboard/" + x,
+                    pathname: "/teacher-main/" + x,
                     state: {
                       class: x,
                     },

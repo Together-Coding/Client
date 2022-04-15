@@ -10,7 +10,7 @@ import TeacherDashBoard from "./Components/TeacherDashBoard";
 import StudentDashBoard from "./Components/StudentDashBoard";
 import MyInfo from "./Components/MyInfo";
 import CodeModal from "./Components/CodeModal";
-
+import AsTeacherMain from "./Components/AsTeacherMain";
 function App() {
   return (
     <div className="App">
@@ -38,6 +38,9 @@ function App() {
         </Route>
         <Route path="/code">
           <CodeModal />
+        </Route>
+        <Route path="/teacher-main">
+          <AsTeacherMain />
         </Route>
       </Switch>
     </div>
