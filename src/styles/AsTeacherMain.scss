@@ -27,3 +27,14 @@
 .class-box:hover{
     text-decoration: underline;
 }
+.class-participants{
+    border-bottom: 1px solid gray;
+    p{
+        font-size: 20px;
+        margin-bottom: 0;
+    }
+    span{
+        color: gray;
+        font-size: 15px;
+    }
+}

@@ -11,6 +11,7 @@ import StudentDashBoard from "./Components/StudentDashBoard";
 import MyInfo from "./Components/MyInfo";
 import CodeModal from "./Components/CodeModal";
 import AsTeacherMain from "./Components/AsTeacherMain";
+import Modal from "react-modal";
 function App() {
   return (
     <div className="App">
@@ -46,5 +47,6 @@ function App() {
     </div>
   );
 }
+Modal.setAppElement('#root')
 
 export default App;

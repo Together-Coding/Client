@@ -177,7 +177,8 @@ function DashBoard() {
     if (solvedQuestion.length > 0) {
       setSolvedQuestion([]);
     }
-  };*/
+  };
+  */
   const deleteControl = (e) => {
     let deleteID = e.target.value;
     let copy = [...userMockData];

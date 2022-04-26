@@ -1,22 +1,25 @@
-.Info-nav-bar{
+.Info-nav-bar {
     background-color: beige;
     display: flex;
     justify-content: flex-end;
     height: 50px;
     align-items: center;
 }
-.main-box{
+
+.main-box {
     display: flex;
     justify-content: space-around;
     align-items: center;
 }
-.teacher{
+
+.teacher {
     width: 30%;
     height: auto;
     min-height: 500px;
     background-color: whitesmoke;
     margin-top: 50px;
-    p{  
+
+    p {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -27,13 +30,15 @@
         margin-top: 0;
     }
 }
-.student{
+
+.student {
     width: 30%;
     height: auto;
     min-height: 500px;
     background-color: whitesmoke;
     margin-top: 50px;
-    p{  
+
+    p {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -44,10 +49,12 @@
         font-weight: bold;
     }
 }
-.class{
+
+.class {
     display: flex;
     flex-direction: column;
-    a{
+
+    a {
         display: flex;
         justify-content: center;
         align-items: center;
@@ -58,7 +65,16 @@
         padding-bottom: 10px;
         color: black;
     }
-    a:hover{
+
+    a:hover {
         background-color: #89B2E9;
+    }
+}
+
+.modal-nav {
+    display: flex;
+
+    button {
+        margin-left: auto;
     }
 }
