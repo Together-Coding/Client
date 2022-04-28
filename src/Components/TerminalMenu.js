@@ -119,7 +119,7 @@ export function TerminalMenu() {
    * SSH relay 서버 연결
    * 코드 실행 환경을 생성하도록 브릿지 서버에 요청을 보냅니다.
    */
-  async function initRuntime(mock=false) {
+  async function initRuntime() {
     let contInfo = {}
 
     // FIXME headers, payload 를 상황에 맞게 보내줘야 함
@@ -155,9 +155,6 @@ export function TerminalMenu() {
     <>
       <button onClick={initRuntime}>
         [임시] 컨테이너 시작하기
-      </button>
-      <button onClick={_ => initRuntime(true)}>
-        [임시] "로컬" SSH 연결
       </button>
       <XTerm
         ref={xtermRef}
