@@ -1,8 +1,12 @@
+import axios from "axios";
 import { useRef, useEffect, useState } from "react";
 import { SSHClient } from "../utils/websocket";
 import { XTerm } from "xterm-for-react";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
+import {API_URL, RUNTIME_BRIDGE_URL} from "../constants";
+
+
 
 /**
  * 터미널 메뉴
@@ -31,24 +35,16 @@ export function TerminalMenu() {
 
   let sshClient = useRef();
   useEffect(() => {
+    initTerminal();
+  }, []);
+
+  let initTerminal= () => {
+    // xterm 초기화
     terminalWrapper.current = document.getElementsByClassName('terminal-wrapper')[0];
     window.onresize = resizeTerminal;
     fitAddon.fit();
+  }
 
-    // FIXME Bridge 서버로부터 컨테이너 URL 을 받아서 사용
-    sshClient.current = new SSHClient("http://127.0.0.1:8000/", token);
-
-    sshClient.current.on("AUTHENTICATE", (data) => {
-      if (data === "AUTHENTICATE") {
-        sshClient.current.emit("SSH_CONNECT", "SSH_CONNECT");
-      }
-    });
-
-    // 'SSH' 이벤트로 보낸 입력값을 되돌려 받고, 이를 터미널에 보여줍니다.
-    sshClient.current.on("SSH_RELAY", (data) => {
-      xtermRef.current.terminal.write(decodeText(data));
-    });
-  }, []);
 
   /**
    * SSH 서버에 보내기 전, 데이터를 인코딩
@@ -119,8 +115,47 @@ export function TerminalMenu() {
     }
   };
 
+  /**
+   * SSH relay 서버 연결
+   * 코드 실행 환경을 생성하도록 브릿지 서버에 요청을 보냅니다.
+   */
+  async function initRuntime() {
+    let contInfo = {}
+
+    // FIXME headers, payload 를 상황에 맞게 보내줘야 함
+    let headers = {Authorization: "Bearer " + localStorage.getItem("access_token") || ""}
+    let payload = {
+      name: "C (gcc11)",
+      lang: "C",
+    }
+    let res = await axios.post(`${RUNTIME_BRIDGE_URL}/api/containers/launch`, payload, {headers})
+    contInfo.url = res.data.url;
+    contInfo.port = res.data.port;
+
+    if (!contInfo.url || !contInfo.port) {
+      return;
+    }
+    sshClient.current = new SSHClient(`${contInfo.url}:${contInfo.port}`, token);
+
+    // 웹소켓 연결 상태에서 추가적인 인증 정보를 전송합니다.
+    sshClient.current.on("AUTHENTICATE", (data) => {
+      if (data === "AUTHENTICATE") {
+        sshClient.current.emit("SSH_CONNECT", "SSH_CONNECT");
+      }
+    });
+
+    // 'SSH' 이벤트로 보낸 입력값을 되돌려 받고, 이를 터미널에 보여줍니다.
+    sshClient.current.on("SSH_RELAY", (data) => {
+      xtermRef.current.terminal.write(decodeText(data));
+    });
+  }
+
+
   return (
     <>
+      <button onClick={initRuntime}>
+        [임시] 컨테이너 시작하기
+      </button>
       <XTerm
         ref={xtermRef}
         className={"xterm-terminal"}
