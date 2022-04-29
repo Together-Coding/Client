@@ -1,12 +1,17 @@
+.teacher-main-nav{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .teacher-main-container{
     display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
-
+    justify-content:flex-start;
+    flex-wrap: wrap;
 }
 .class-box{
-    width: 70%;
+    width: 200px;
+    margin-right: 40px;
     border: 1px solid gray;
     margin-bottom: 3%;
     a{
@@ -24,7 +29,17 @@
         color: gray;
     }
 }
-.class-box:hover{
+.class-box-nav{
+    border-bottom: 1px solid gray;
+}
+.class-box-bottom{
+    p{
+        color: gray;
+        margin-left: 10px;
+        font-size: 13px;
+    }
+}
+.class-box a:hover{
     text-decoration: underline;
 }
 .class-participants{

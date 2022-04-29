@@ -53,68 +53,87 @@ function AsTeacherMain() {
   const [modalIsOpen, setModalIsOpen] = useState(false);
 
   return (
-    <div className="teacher-main-container">
-      <h2>
+    <div style={{ marginRight: 30, marginLeft: 30 }}>
+      <h2 className="teacher-main-nav">
         {location.state.class}{" "}
         <button onClick={() => setModalIsOpen(true)}>참여자 목록</button>
       </h2>
-      {lesson.map((x) => {
-        return (
-          <div className="class-box">
-            <Link
-              to={{
-                pathname:
-                  "/teacher-dashboard/" + location.state.class + "/" + x.week,
-                state: {
-                  class: location.state.class,
-                  week: x.week,
-                },
-              }}
-            >
-              <h3>{x.week}주차</h3>
-              <h4>{x.date}</h4>
-            </Link>
-          </div>
-        );
-      })}
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={() => setModalIsOpen(false)}
-        style={{
-          overlay: {
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(15, 15, 15, 0.79)",
-          },
-          content: {
-            position: "absolute",
-            top: "60px",
-            left: "35%",
-            width: "30%",
-            height: "80%",
-            border: "1px solid #ccc",
-            background: "#fff",
-            overflow: "auto",
-            WebkitOverflowScrolling: "touch",
-            borderRadius: "4px",
-            outline: "none",
-            padding: "20px",
-          },
-        }}
-      >
-        <div>
-          <h2>참여자 목록</h2>
-          {mockUpParticipants.map((x) => (
-            <div className="class-participants">
-              <p>{x.name}</p>
-              <span>{x.email}</span>
+      <div className="teacher-main-container">
+        {lesson.map((x) => {
+          return (
+            <div className="class-box">
+              <div className="class-box-nav">
+                <Link
+                  to={{
+                    pathname:
+                      "/teacher-dashboard/" +
+                      location.state.class +
+                      "/" +
+                      x.week +
+                      "week",
+                    state: {
+                      class: location.state.class,
+                      week: x.week,
+                    },
+                  }}
+                >
+                  <h3>{x.week}주차</h3>
+                  <h4>{x.date}</h4>
+                </Link>
+              </div>
+              <div className="class-box-bottom">
+                <p>세션 시간: </p>
+                <p>학생수: </p>
+                <p>질문수 :</p>
+                <p>전체 피드백 수</p>
+
+                <div style={{ borderTop: "1px solid gray" }}>
+                  <p>과제 개수: </p>
+                  <p>과제 완료 학생: </p>
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
-      </Modal>
+          );
+        })}
+        <Modal
+          isOpen={modalIsOpen}
+          onRequestClose={() => setModalIsOpen(false)}
+          style={{
+            overlay: {
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(15, 15, 15, 0.79)",
+            },
+            content: {
+              position: "absolute",
+              top: "60px",
+              left: "35%",
+              width: "30%",
+              height: "80%",
+              border: "1px solid #ccc",
+              background: "#fff",
+              overflow: "auto",
+              WebkitOverflowScrolling: "touch",
+              borderRadius: "4px",
+              outline: "none",
+              padding: "20px",
+            },
+          }}
+        >
+          <div>
+            <h2>참여자 목록</h2>
+            {mockUpParticipants.map((x) => (
+              <div className="class-participants">
+                <p>{x.name}</p>
+                <span>{x.email}</span>
+              </div>
+            ))}
+          </div>
+        </Modal>
+      </div>
     </div>
   );
 }

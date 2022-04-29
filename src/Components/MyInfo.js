@@ -102,7 +102,7 @@ function MyInfo() {
               <span className="class">
                 <Link
                   to={{
-                    pathname: "/student-dashboard/" + x,
+                    pathname: "/student-main/" + x,
                     state: {
                       class: x,
                     },

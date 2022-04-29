@@ -11,6 +11,8 @@ import StudentDashBoard from "./Components/StudentDashBoard";
 import MyInfo from "./Components/MyInfo";
 import CodeModal from "./Components/CodeModal";
 import AsTeacherMain from "./Components/AsTeacherMain";
+import AsStudentMain from "./Components/AsStudentMain";
+
 import Modal from "react-modal";
 function App() {
   return (
@@ -43,10 +45,13 @@ function App() {
         <Route path="/teacher-main">
           <AsTeacherMain />
         </Route>
+        <Route path="/student-main">
+          <AsStudentMain />
+        </Route>
       </Switch>
     </div>
   );
 }
-Modal.setAppElement('#root')
+Modal.setAppElement("#root");
 
 export default App;
