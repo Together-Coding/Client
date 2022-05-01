@@ -10,6 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
+import ResizePanel from "react-resize-panel";
 
 function IDE() {
   let examples = {
@@ -95,16 +96,16 @@ function IDE() {
         ) : null}
         {/*-----------code input and terminal-----------*/}
         <div className="terminal">
-          <div className="editor">
-            <Editor
-              height="70vh"
-              theme="vs-dark"
-              defaultLanguage="c"
-              defaultValue={examples["c"]}
-              editorDidMount={handleEditorDidMount}
-            />
-          </div>
-          <Terminal></Terminal>
+            <div className="editor">
+              <Editor
+                height="70vh"
+                theme="vs-dark"
+                defaultLanguage="c"
+                defaultValue={examples["c"]}
+                editorDidMount={handleEditorDidMount}
+              />
+            </div>
+          <Terminal />
         </div>
       </div>
     </div>

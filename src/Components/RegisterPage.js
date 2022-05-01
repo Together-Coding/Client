@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
-import {API_URL} from "../constants";
+import { API_URL } from "../constants";
+import { useHistory } from "react-router-dom";
 
 // POST /auth/signup
 function RegisterPage() {
+  let history = useHistory();
   let [email, setEmail] = useState("");
   let [pwd, setPwd] = useState("");
   let [checkPwd, setCheckPwd] = useState("");
@@ -32,12 +34,33 @@ function RegisterPage() {
     if (pwd !== checkPwd) {
       return alert("비밀번호 확인이 틀립니다.");
     }
+    if (email === "") {
+      return alert("이메일 정보를 입력하세요");
+    }
+    if (pwd === "") {
+      return alert("비밀번호 값을 입력하세요");
+    }
+    if (pwd === "") {
+      return alert("비밀번호 확인 값을 입력하세요");
+    }
+    if (name === "") {
+      return alert("이름을 입력하세요");
+    }
+
     let body = {
       email: email,
       password: pwd,
       name: name,
     };
-    axios.post(`${API_URL}/auth/user`, body).then((res) => console.log(res));
+    axios
+      .post(`${API_URL}/auth/user`, body)
+      .then((res) => {
+        if (res.status === 200) {
+          alert("회원가입 완료!");
+          history.push("/");
+        }
+      })
+      .catch((error) => console.log(error));
   };
   return (
     <div

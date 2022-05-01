@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import axios from "axios";
-import {API_URL} from "../constants";
+import { API_URL } from "../constants";
+import { useHistory } from "react-router-dom";
 
 function LoginPage() {
+  let history = useHistory();
   let [email, setEmail] = useState("");
   let [pwd, setPwd] = useState("");
 
@@ -19,23 +21,24 @@ function LoginPage() {
       email: email,
       password: pwd,
     };
-    axios.post(`${API_URL}/auth/login`, body).then((res) => {
-      let token = res.data;
-      localStorage.setItem("access_token", token);
-    });
-    let token = localStorage.getItem("access_token");
-    if (token && token !== null) {
-      const authAxios = axios.create({
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      authAxios.get("url...").then((res) => {
+    /*
+    let headers = {
+      Authorization: "Bearer " + localStorage.getItem("access_token") || "",
+    };*/
+    axios
+      .post(`${API_URL}/auth/login`, body)
+      .then((res) => {
+        let token = res.data;
+        localStorage.setItem("access_token", token);
+        if (res.status === 200) {
+          history.push("/myInfo");
+        } else {
+          alert("아이디, 비밀번호를 확인 하세요");
+        }
+      })
+      .catch((res) => {
         console.log(res);
       });
-    } else {
-      alert("해당하는 유저가 없습니다.");
-    }
   };
   return (
     <div

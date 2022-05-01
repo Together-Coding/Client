@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
 import { Link } from "react-router-dom";
 import "../styles/myInfo.scss";
 import axios from "axios";
-
+import { API_URL } from "../constants.js";
+import { useHistory } from "react-router-dom";
 let mockData = {
   id: 1,
   name: "권순용",
@@ -12,7 +13,19 @@ let mockData = {
 };
 
 function MyInfo() {
-  console.log(mockData);
+  useEffect(() => {
+    let body = {
+      token: localStorage.getItem("access_token"),
+    };
+    axios.post(`${API_URL}/auth/token`, body).then((res) => {
+      console.log(res);
+      setEmail(res.data.email);
+    });
+  }, []);
+  //**********임시 회원정보 (이메일)
+  const [userEmail, setEmail] = useState("");
+  //***********************
+  let history = useHistory();
   const [modalIsOpen, setModalIsOpen] = useState(false);
 
   const [courseName, setCourseName] = useState("");
@@ -45,12 +58,9 @@ function MyInfo() {
       description: courseDescription,
       participant: participants,
     };
-    axios.post(`$/api/course`, body).then((res) => {});
-    /* 수업 개설 성공시
-    if(body){
-      alert("수업 개설 완료");
-    }
-    */
+    axios.post(`${API_URL}/api/course`, body).then((res) => {
+      console.log(res);
+    });
   };
 
   const inputPlus = () => {
@@ -68,11 +78,15 @@ function MyInfo() {
     }
   };
   console.log(participants);
+  const logOutCtrl = () => {
+    localStorage.removeItem("access_token");
+    history.push("/");
+  };
 
   return (
     <div>
       <div className="Info-nav-bar">
-        {mockData.name} 님 안녕하세요 <button>로그아웃</button>
+        {userEmail} 님 안녕하세요 <button onClick={logOutCtrl}>로그아웃</button>
       </div>
       <button onClick={() => setModalIsOpen(true)}>수업 개설</button>
       <div className="main-box">
