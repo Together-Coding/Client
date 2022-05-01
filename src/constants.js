@@ -4,4 +4,4 @@
 const DEBUG = false;
 
 export const API_URL = 'http://api.together-coding.com'
-export const RUNTIME_BRIDGE_URL = DEBUG ? 'http://localhost:8080' : 'https://bridge.together-coding.com'
+export const RUNTIME_BRIDGE_URL = DEBUG ? 'https://dev-bridge.together-coding.com' : 'https://bridge.together-coding.com'
