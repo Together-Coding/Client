@@ -1,32 +1,37 @@
 import React from "react";
 import { Link, Switch, Route } from "react-router-dom";
-
+import "../styles/Home.scss";
 function Home() {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        flexDirection: "column",
-        justifyContent: "center",
-        height: "100vh",
-      }}
-    >
-      <h1>어서오세요</h1>
-      <h2>
-        <Link to="/IDE">IDE 껍다구 링크</Link>
-      </h2>
-      <h2>
-        <Link to="/myInfo">로그인 했을시 내정보</Link>
-      </h2>
-      <button>
-        <Link to="/login">로그인</Link>
-      </button>
-      <label>아직 회원이 아니시라면</label>
-      <button>
-        <Link to="/register">회원가입</Link>
-      </button>
-    </div>
+    <>
+      <div className="Info-nav-bar">
+        <p>Together Coding</p>
+        <div>
+        <span>
+          <Link to="/login">로그인</Link>
+          </span>
+        <span>
+          <Link to="/register">회원가입</Link>
+        </span>
+        </div>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          flexDirection: "column",
+          justifyContent: "center",
+          height: "auto",
+        }}
+      >
+        <h2>
+          <Link to="/IDE">IDE 껍다구 링크</Link>
+        </h2>
+        <h2>
+          <Link to="/myInfo">로그인 했을시 내정보</Link>
+        </h2>
+      </div>
+    </>
   );
 }
 

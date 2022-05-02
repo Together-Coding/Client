@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { API_URL } from "../constants";
 import { useHistory } from "react-router-dom";
+import "../styles/Login.scss";
 
 function LoginPage() {
   let history = useHistory();
@@ -41,24 +42,27 @@ function LoginPage() {
       });
   };
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <form
-        onSubmit={submitEvent}
-        style={{ display: "flex", flexDirection: "column" }}
-      >
-        <label>이메일(아이디)</label>
-        <input type="email" value={email} onChange={emailEvent}></input>
-        <label>비밀번호</label>
-        <input type="password" value={pwd} onChange={pwdEvent} />
-        <button>로그인</button>
-      </form>
-    </div>
+    <>
+      <div className="Info-nav-bar">
+        <p>Together Coding</p>
+      </div>
+      <div className="login-container">
+        <div className="login-form">
+          <form onSubmit={submitEvent}>
+            <label>이메일(아이디)</label>
+            <input
+              type="email"
+              value={email}
+              onChange={emailEvent}
+              required
+            ></input>
+            <label>비밀번호</label>
+            <input type="password" value={pwd} onChange={pwdEvent} required />
+            <button>로그인</button>
+          </form>
+        </div>
+      </div>
+    </>
   );
 }
 

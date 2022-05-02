@@ -4,9 +4,7 @@ import { SSHClient } from "../utils/websocket";
 import { XTerm } from "xterm-for-react";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
-import {API_URL, RUNTIME_BRIDGE_URL} from "../constants";
-
-
+import { API_URL, RUNTIME_BRIDGE_URL } from "../constants";
 
 /**
  * 터미널 메뉴
@@ -38,13 +36,13 @@ export function TerminalMenu() {
     initTerminal();
   }, []);
 
-  let initTerminal= () => {
+  let initTerminal = () => {
     // xterm 초기화
-    terminalWrapper.current = document.getElementsByClassName('terminal-wrapper')[0];
+    terminalWrapper.current =
+      document.getElementsByClassName("terminal-wrapper")[0];
     window.onresize = resizeTerminal;
     fitAddon.fit();
-  }
-
+  };
 
   /**
    * SSH 서버에 보내기 전, 데이터를 인코딩
@@ -120,22 +118,31 @@ export function TerminalMenu() {
    * 코드 실행 환경을 생성하도록 브릿지 서버에 요청을 보냅니다.
    */
   async function initRuntime() {
-    let contInfo = {}
+    let contInfo = {};
 
     // FIXME headers, payload 를 상황에 맞게 보내줘야 함
-    let headers = {Authorization: "Bearer " + localStorage.getItem("access_token") || ""}
+    let headers = {
+      Authorization: "Bearer " + localStorage.getItem("access_token") || "",
+    };
     let payload = {
       name: "C (gcc11)",
       lang: "C",
-    }
-    let res = await axios.post(`${RUNTIME_BRIDGE_URL}/api/containers/launch`, payload, {headers})
+    };
+    let res = await axios.post(
+      `${RUNTIME_BRIDGE_URL}/api/containers/launch`,
+      payload,
+      { headers }
+    );
     contInfo.url = res.data.url;
     contInfo.port = res.data.port;
 
     if (!contInfo.url || !contInfo.port) {
       return;
     }
-    sshClient.current = new SSHClient(`${contInfo.url}:${contInfo.port}`, token);
+    sshClient.current = new SSHClient(
+      `${contInfo.url}:${contInfo.port}`,
+      token
+    );
 
     // 웹소켓 연결 상태에서 추가적인 인증 정보를 전송합니다.
     sshClient.current.on("AUTHENTICATE", (data) => {
@@ -150,12 +157,9 @@ export function TerminalMenu() {
     });
   }
 
-
   return (
     <>
-      <button onClick={initRuntime}>
-        [임시] 컨테이너 시작하기
-      </button>
+      <button onClick={initRuntime}>[임시] 컨테이너 시작하기</button>
       <XTerm
         ref={xtermRef}
         className={"xterm-terminal"}

@@ -1,55 +1,125 @@
-.teacher-main-nav{
+.teacher-main-nav {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.teacher-main-container{
-    display: flex;
-    justify-content:flex-start;
-    flex-wrap: wrap;
-}
-.class-box{
-    width: 200px;
-    margin-right: 40px;
-    border: 1px solid gray;
-    margin-bottom: 3%;
-    a{
-        color: black;
-        text-decoration: none;
-    }
-    h3{
-        margin-left: 10px;
-        margin-bottom: 0;
-    }
-    h4{
-        margin-left: 10px;
-        margin-top: 0;
+    span {
         font-size: 15px;
         color: gray;
     }
 }
-.class-box-nav{
-    border-bottom: 1px solid gray;
+
+.teacher-main-container {
+    display: flex;
+    margin: 0;
+    justify-content: space-between;
 }
-.class-box-bottom{
-    p{
+
+.class-box-contain {
+    display: flex;
+    flex-direction: column;
+    width: 75%;
+}
+
+.add-class-btn {
+    border: none;
+    background-color: #EAAE78;
+    color: white;
+    padding: 10px 30px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 20px;
+    font-weight: bold;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5%;
+}
+
+.class-box-teacher {
+    margin-right: 40px;
+    margin-bottom: 3%;
+
+    a {
+        color: black;
+        text-decoration: none;
+    }
+
+}
+
+.class-box-nav-teacher {
+    display: flex;
+    align-items: center;
+    height: 70px;
+    background-color: #DDE5F0;
+    h3 {
+        font-weight: bold;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    span{
+        font-size: 15px;
+        color:gray;
+    }
+}
+
+.class-box-bottom {
+    p {
         color: gray;
         margin-left: 10px;
         font-size: 13px;
     }
 }
-.class-box a:hover{
+
+.class-box-teacher a:hover {
     text-decoration: underline;
 }
-.class-participants{
+
+.class-participants {
     border-bottom: 1px solid gray;
-    p{
+
+    p {
         font-size: 20px;
         margin-bottom: 0;
     }
-    span{
+
+    span {
         color: gray;
         font-size: 15px;
     }
+}
+
+.class-participants-box {
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+    height: 50%;
+
+    p {
+        display: flex;
+        align-items: center;
+        background-color: #0d6efd;
+        height: 50px;
+        color: white;
+        font-weight: bold;
+        margin-top: 0;
+        padding-left: 5px;
+        font-size: 20px;
+        justify-content: space-between;
+    }
+
+    button {
+        background-color: transparent;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+    }
+}
+
+.stu-boxs {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid black;
+    margin-bottom: 20px;
 }

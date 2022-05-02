@@ -21,7 +21,7 @@ function App() {
         <Route exact path="/">
           <Home />
         </Route>
-        <Route exact path="/IDE">
+        <Route path="/IDE">
           <IDE_HOME />
         </Route>
         <Route exact path="/register">

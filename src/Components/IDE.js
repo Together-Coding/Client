@@ -3,14 +3,13 @@ import { useState } from "react";
 import "../styles/IDE.scss";
 import Editor from "@monaco-editor/react";
 import {
-  faBriefcase,
-  faBug,
-  faCodeBranch,
-  faKeyboard,
+  faWindowMaximize,
+  faFolderOpen,
+  faChalkboardUser,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
-import ResizePanel from "react-resize-panel";
+import TeacherDashBoard from "./TeacherDashBoard";
 
 function IDE() {
   let examples = {
@@ -18,15 +17,19 @@ function IDE() {
     c: '#include <stdio.h>\nint main(int argc, char* argv[])\n{\n    printf("Hello World");\n    return 0;\n}\n',
     python: 'print("hello python")',
   };
-  let [sidebarBtn, setSidebarBtn] = useState("프로젝트");
+  let [sidebarBtn, setSidebarBtn] = useState("IDE");
+  let [dirBtn, setDirBtn] = useState(false);
   let [editorReady, setEditerReady] = useState(false);
   let [user, setUser] = useState("권순용");
-  let [file, setFile] = useState(false);
+
   function handleEditorDidMount() {
     setEditerReady(true);
   }
   const clickHandler = (e) => {
     setSidebarBtn(e.currentTarget.value);
+  };
+  const DirBtnHandler = () => {
+    setDirBtn(!dirBtn);
   };
 
   return (
@@ -62,40 +65,28 @@ function IDE() {
       <div className="main">
         <div className="side-bar">
           <div className="side-btn">
-            <button value="프로젝트" onClick={clickHandler}>
-              <FontAwesomeIcon icon={faBriefcase} />
+            <button value="IDE" onClick={clickHandler}>
+              <FontAwesomeIcon icon={faWindowMaximize} />
             </button>
-            <span>프로젝트</span>
-            <button value="명령어" onClick={clickHandler}>
-              <FontAwesomeIcon icon={faKeyboard} />
+            <span>IDE</span>
+            <button value="대쉬보드" onClick={clickHandler}>
+              <FontAwesomeIcon icon={faChalkboardUser} />
             </button>
-            <span>명령어</span>
+            <span>대쉬보드</span>
 
-            <button onClick={clickHandler} value="git">
-              <FontAwesomeIcon icon={faCodeBranch} />
+            <button
+              onClick={DirBtnHandler}
+              value="디렉토리"
+            >
+              <FontAwesomeIcon icon={faFolderOpen} />
             </button>
-            <span>git</span>
-
-            <button onClick={clickHandler} value="디버그">
-              <FontAwesomeIcon icon={faBug} />
-            </button>
-            <span>디버그</span>
+            <span>디렉토리</span>
           </div>
         </div>
-        {sidebarBtn === "프로젝트" ? (
-          <SideExplorer setFile={setFile} file={file} />
-        ) : null}
-        {sidebarBtn === "명령어" ? (
-          <SideExplorer2 setFile={setFile} file={file} />
-        ) : null}
-        {sidebarBtn === "git" ? (
-          <SideExplorer3 setFile={setFile} file={file} />
-        ) : null}
-        {sidebarBtn === "디버그" ? (
-          <SideExplorer4 setFile={setFile} file={file} />
-        ) : null}
         {/*-----------code input and terminal-----------*/}
-        <div className="terminal">
+        {dirBtn ? <SideExplorer /> : null}
+        {sidebarBtn === "IDE" ? (
+          <div className="terminal">
             <div className="editor">
               <Editor
                 height="70vh"
@@ -105,29 +96,26 @@ function IDE() {
                 editorDidMount={handleEditorDidMount}
               />
             </div>
-          <Terminal />
-        </div>
+            <Terminal />
+          </div>
+        ) : (
+          <TeacherDashBoard />
+        )}
       </div>
     </div>
   );
 }
-function SideExplorer(props) {
+
+function SideExplorer() {
   return (
     <div className="side-explorer">
       <p className="side-navbar">
-        <span>프로젝트</span>
+        <span>디렉토리</span>
       </p>
-      <div
-        className="files"
-        onClick={() => {
-          props.setFile(!props.file);
-        }}
-      >
-        test2
-      </div>
-      {props.file ? <div className="files"> &gt; 파일들</div> : null}
     </div>
   );
+}
+/*
 }
 function SideExplorer2(props) {
   return (
@@ -174,6 +162,6 @@ function SideExplorer4(props) {
       {props.file ? <div className="files"> &gt; 파일들</div> : null}
     </div>
   );
-}
+}*/
 
 export default IDE;

@@ -5,12 +5,64 @@ import "../styles/myInfo.scss";
 import axios from "axios";
 import { API_URL } from "../constants.js";
 import { useHistory } from "react-router-dom";
-let mockData = {
-  id: 1,
-  name: "권순용",
-  classAsStudent: ["자료구조", "객체지향프로그래밍2"],
-  classAsTeacher: ["알고리즘", "인터넷 프로그래밍", "통계학"],
-};
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCirclePlus } from "@fortawesome/free-solid-svg-icons";
+// api/course/teacher 에서 가져온 데이터
+let mockmyClass = [
+  {
+    id: 1,
+    name: "컴퓨터 공학 종합 설계",
+    description: "팀플 과목",
+    lesson_num: 14,
+    student_num: 32,
+    last_lesson: "2016-10-27T17:13:40+00:00",
+    accessible: true,
+    active: true,
+  },
+  {
+    id: 2,
+    name: "시스템 분석",
+    description: "뭐하는지 모르겠는 과목",
+    lesson_num: 14,
+    student_num: 32,
+    last_lesson: "2016-10-27T17:13:40+00:00",
+    accessible: true,
+    active: true,
+  },
+  {
+    id: 3,
+    name: "자료구조",
+    description: "좋은과목",
+    lesson_num: 14,
+    student_num: 32,
+    last_lesson: "2016-10-27T17:13:40+00:00",
+    accessible: true,
+    active: true,
+  },
+  {
+    id: 4,
+    name: "알고리즘",
+    description: "재밌는 과목",
+    lesson_num: 14,
+    student_num: 32,
+    last_lesson: "2016-10-27T17:13:40+00:00",
+    accessible: true,
+    active: true,
+  },
+];
+
+let mockPartpaticipantClass = [
+  {
+    id: 5,
+    name: "기계학습",
+    description: "재밌는 과목"
+  },
+  {
+    id: 6,
+    name: "인공지능",
+    description: "재밌는 과목"
+  },
+];
 
 function MyInfo() {
   useEffect(() => {
@@ -22,10 +74,29 @@ function MyInfo() {
       setEmail(res.data.email);
     });
   }, []);
+  /* api 구축되면 확인해보기
+  useEffect(() => {
+    axios.all([
+      axios.get(`${API_URL}/api/course/teacher`),
+      axios.get(`${API_URL}/api/course/student`),
+    ]).then((res1,res2)=>{
+      setMyClass(res1);
+      setParticipantClass(res2);
+    })
+  },[]);
+  */
   //**********임시 회원정보 (이메일)
   const [userEmail, setEmail] = useState("");
   //***********************
   let history = useHistory();
+  //*********임시 수업개설 완료 데이터
+  const [수업개설, set수업개설] = useState([]);
+  //********************
+
+  // 내 강의, 참여중 강의 저장용
+  const [myClass, setMyClass] = useState([]);
+  const [participantClass, setParticipantClass] = useState([]);
+  //
   const [modalIsOpen, setModalIsOpen] = useState(false);
 
   const [courseName, setCourseName] = useState("");
@@ -50,7 +121,9 @@ function MyInfo() {
 
   const submitEvent = (e) => {
     e.preventDefault();
-
+    let headers = {
+      Authorization: "Bearer " + localStorage.getItem("access_token") || "",
+    };
     let body = {
       name: courseName,
       password: coursePwd,
@@ -58,7 +131,7 @@ function MyInfo() {
       description: courseDescription,
       participant: participants,
     };
-    axios.post(`${API_URL}/api/course`, body).then((res) => {
+    axios.post(`${API_URL}/api/course`, body, { headers }).then((res) => {
       console.log(res);
     });
   };
@@ -79,52 +152,82 @@ function MyInfo() {
   };
   console.log(participants);
   const logOutCtrl = () => {
-    localStorage.removeItem("access_token");
-    history.push("/");
+    if (window.confirm("로그아웃 하시겠습니까?")) {
+      localStorage.removeItem("access_token");
+      history.push("/");
+    } else {
+      return false;
+    }
   };
 
   return (
     <div>
       <div className="Info-nav-bar">
-        {userEmail} 님 안녕하세요 <button onClick={logOutCtrl}>로그아웃</button>
+        <p>Together Coding</p>
+        <div>
+          <span>{userEmail} | </span>
+          <button onClick={logOutCtrl}>로그아웃</button>
+        </div>
       </div>
-      <button onClick={() => setModalIsOpen(true)}>수업 개설</button>
       <div className="main-box">
         <div className="teacher">
-          <p>내가 교수자인 수업</p>
-          {mockData.classAsTeacher.map((x, idx) => {
+          <p>
+            <span>나의 강의</span>
+            <button onClick={() => setModalIsOpen(true)}>
+              <FontAwesomeIcon icon={faCirclePlus} />
+            </button>
+          </p>
+          {mockmyClass.map((x, idx) => {
             return (
-              <span className="class">
-                <Link
-                  to={{
-                    pathname: "/teacher-main/" + x,
-                    state: {
-                      class: x,
-                    },
-                  }}
-                >
-                  {x}
-                </Link>
-              </span>
+              <div className="myinfo-class-box">
+                <div className="des-left">
+                  <Link
+                    to={{
+                      pathname: "/teacher-main/" + x.id,
+                      state: {
+                        class: x.name,
+                        description:x.description
+                      },
+                    }}
+                  >
+                    {x.name}
+                  </Link>
+                  <span>{x.description}</span>
+                  <span>마지막 수업 {x.last_lesson.substring(0, 10)}</span>
+                </div>
+                <div className="des-right">
+                  <span>{x.lesson_num}개 수업</span>
+                  <span>{x.student_num}명 참여</span>
+                </div>
+              </div>
             );
           })}
         </div>
         <div className="student">
-          <p>내가 학생인 수업</p>
-          {mockData.classAsStudent.map((x, idx) => {
+          <p>참여 중인 강의</p>
+          {mockPartpaticipantClass.map((x, idx) => {
             return (
-              <span className="class">
-                <Link
-                  to={{
-                    pathname: "/student-main/" + x,
-                    state: {
-                      class: x,
-                    },
-                  }}
-                >
-                  {x}
-                </Link>
-              </span>
+              <div className="myinfo-class-box">
+                <div className="des-left">
+                  <Link
+                    to={{
+                      pathname: "/student-main/" + x.id,
+                      state: {
+                        class: x.name,
+                        description:x.description
+                      },
+                    }}
+                  >
+                    {x.name}
+                  </Link>
+                  <span>description</span>
+                  <span>마지막 수업</span>
+                </div>
+                <div className="des-right">
+                  <span>개 수업</span>
+                  <span>명 참여</span>
+                </div>
+              </div>
             );
           })}
         </div>
@@ -158,7 +261,7 @@ function MyInfo() {
         }}
       >
         <div className="modal-nav">
-          <button onClick={() => setModalIsOpen(false)}>X</button>
+        
         </div>
         <div
           style={{
@@ -188,7 +291,10 @@ function MyInfo() {
             <label>코스 설명</label>
             <input value={courseDescription} onChange={courseDesEvent} />
             <label>
-              참여자 이메일 <button onClick={inputPlus}>추가</button>
+              참여자 이메일{" "}
+              <button type="button" onClick={inputPlus}>
+                추가
+              </button>
             </label>
             <input
               value={participantsInput}
