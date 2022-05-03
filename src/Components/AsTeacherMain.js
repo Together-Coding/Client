@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import "../styles/AsTeacherMain.scss";
 import Modal from "react-modal";
@@ -9,15 +10,17 @@ import { faCirclePlus } from "@fortawesome/free-solid-svg-icons";
 
 function AsTeacherMain() {
   const location = useLocation();
+  const courseID = useParams();
+  console.log(courseID.id);
   const lesson = [
-    { week: 1, classOpen: true, date: "04-15 ~ 04-22" },
-    { week: 2, classOpen: true, date: "04-15 ~ 04-22" },
-    { week: 3, classOpen: true, date: "04-15 ~ 04-22" },
-    { week: 4, classOpen: true, date: "04-15 ~ 04-22" },
-    { week: 5, classOpen: true, date: "04-15 ~ 04-22" },
-    { week: 6, classOpen: false, date: "04-15 ~ 04-22" },
-    { week: 7, classOpen: false, date: "04-15 ~ 04-22" },
-    { week: 8, classOpen: false, date: "04-15 ~ 04-22" },
+    { lessonId: 1, week: 1, classOpen: true, date: "04-15 ~ 04-22" },
+    { lessonId: 2, week: 2, classOpen: true, date: "04-15 ~ 04-22" },
+    { lessonId: 3, week: 3, classOpen: true, date: "04-15 ~ 04-22" },
+    { lessonId: 4, week: 4, classOpen: true, date: "04-15 ~ 04-22" },
+    { lessonId: 5, week: 5, classOpen: true, date: "04-15 ~ 04-22" },
+    { lessonId: 6, week: 6, classOpen: false, date: "04-15 ~ 04-22" },
+    { lessonId: 7, week: 7, classOpen: false, date: "04-15 ~ 04-22" },
+    { lessonId: 8, week: 8, classOpen: false, date: "04-15 ~ 04-22" },
   ];
   const mockUpParticipants = [
     {
@@ -71,10 +74,11 @@ function AsTeacherMain() {
                   <Link
                     to={{
                       pathname:
-                        "/IDE/" + location.state.class + "/" + x.week + "week",
+                        "/course/" + courseID.id + "/lesson/" + x.lessonId,
                       state: {
                         class: location.state.class,
                         week: x.week,
+                        lessonId: x.lessonId,
                       },
                     }}
                   >

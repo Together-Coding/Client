@@ -183,7 +183,7 @@ function MyInfo() {
                 <div className="des-left">
                   <Link
                     to={{
-                      pathname: "/teacher-main/" + x.id,
+                      pathname: "/teacher/" + x.id,
                       state: {
                         class: x.name,
                         description:x.description
@@ -211,7 +211,7 @@ function MyInfo() {
                 <div className="des-left">
                   <Link
                     to={{
-                      pathname: "/student-main/" + x.id,
+                      pathname: "/student/" + x.id,
                       state: {
                         class: x.name,
                         description:x.description

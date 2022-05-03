@@ -8,10 +8,10 @@ function Home() {
         <p>Together Coding</p>
         <div>
         <span>
-          <Link to="/login">로그인</Link>
+          <Link to="/user/login">로그인</Link>
           </span>
         <span>
-          <Link to="/register">회원가입</Link>
+          <Link to="/user/register">회원가입</Link>
         </span>
         </div>
       </div>
@@ -28,7 +28,7 @@ function Home() {
           <Link to="/IDE">IDE 껍다구 링크</Link>
         </h2>
         <h2>
-          <Link to="/myInfo">로그인 했을시 내정보</Link>
+          <Link to="/me">로그인 했을시 내정보</Link>
         </h2>
       </div>
     </>

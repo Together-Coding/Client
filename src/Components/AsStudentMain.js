@@ -1,20 +1,22 @@
 import React from "react";
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import "../styles/AsStudentMain.scss";
 
 function AsStudentMain() {
   const location = useLocation();
+  const courseID = useParams();
   const lesson = [
-    { week: 1, classOpen: true, date: "04-15 ~ 04-22" },
-    { week: 2, classOpen: true, date: "04-15 ~ 04-22" },
-    { week: 3, classOpen: true, date: "04-15 ~ 04-22" },
-    { week: 4, classOpen: true, date: "04-15 ~ 04-22" },
-    { week: 5, classOpen: true, date: "04-15 ~ 04-22" },
-    { week: 6, classOpen: false, date: "04-15 ~ 04-22" },
-    { week: 7, classOpen: false, date: "04-15 ~ 04-22" },
-    { week: 8, classOpen: false, date: "04-15 ~ 04-22" },
+    { lessonId: 1, week: 1, classOpen: true, date: "04-15 ~ 04-22" },
+    { lessonId: 2, week: 2, classOpen: true, date: "04-15 ~ 04-22" },
+    { lessonId: 3, week: 3, classOpen: true, date: "04-15 ~ 04-22" },
+    { lessonId: 4, week: 4, classOpen: true, date: "04-15 ~ 04-22" },
+    { lessonId: 5, week: 5, classOpen: true, date: "04-15 ~ 04-22" },
+    { lessonId: 6, week: 6, classOpen: false, date: "04-15 ~ 04-22" },
+    { lessonId: 7, week: 7, classOpen: false, date: "04-15 ~ 04-22" },
+    { lessonId: 8, week: 8, classOpen: false, date: "04-15 ~ 04-22" },
   ];
   const mockUpParticipants = [
     {
@@ -51,7 +53,12 @@ function AsStudentMain() {
 
   return (
     <div style={{ marginRight: 30, marginLeft: 30 }}>
-      <h2 className="stu-main-nav">{location.state.class} <span style={{fontSize:15, color:"gray"}}>({location.state.description})</span></h2>
+      <h2 className="stu-main-nav">
+        {location.state.class}{" "}
+        <span style={{ fontSize: 15, color: "gray" }}>
+          ({location.state.description})
+        </span>
+      </h2>
       <div className="student-main-container">
         <div className="class-box-contain">
           {lesson.map((x) => {
@@ -60,12 +67,9 @@ function AsStudentMain() {
                 <Link
                   to={{
                     pathname:
-                      "/student-dashboard/" +
-                      location.state.class +
-                      "/" +
-                      x.week +
-                      "week",
+                      "/course/" + courseID.id + "/lesson/" + x.lessonId,
                     state: {
+                      class: location.state.class,
                       week: x.week,
                     },
                   }}

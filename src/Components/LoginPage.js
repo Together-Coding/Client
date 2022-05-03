@@ -32,7 +32,7 @@ function LoginPage() {
         let token = res.data;
         localStorage.setItem("access_token", token);
         if (res.status === 200) {
-          history.push("/myInfo");
+          history.push("/me");
         } else {
           alert("아이디, 비밀번호를 확인 하세요");
         }

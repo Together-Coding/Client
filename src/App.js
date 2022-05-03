@@ -21,16 +21,16 @@ function App() {
         <Route exact path="/">
           <Home />
         </Route>
-        <Route path="/IDE">
+        <Route path="/course">
           <IDE_HOME />
         </Route>
-        <Route exact path="/register">
+        <Route path="/user/register">
           <RegisterPage />
         </Route>
-        <Route exact path="/login">
+        <Route path="/user/login">
           <LoginPage />
         </Route>
-        <Route exact path="/myInfo">
+        <Route path="/me">
           <MyInfo />
         </Route>
         <Route path="/teacher-dashboard">
@@ -42,10 +42,10 @@ function App() {
         <Route path="/code">
           <CodeModal />
         </Route>
-        <Route path="/teacher-main">
+        <Route path="/teacher/:id">
           <AsTeacherMain />
         </Route>
-        <Route path="/student-main">
+        <Route path="/student/:id">
           <AsStudentMain />
         </Route>
       </Switch>

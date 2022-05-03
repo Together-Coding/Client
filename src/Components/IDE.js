@@ -9,9 +9,12 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
+import { useLocation } from "react-router-dom";
 import TeacherDashBoard from "./TeacherDashBoard";
 
 function IDE() {
+  let location=useLocation();
+  console.log(location);
   let examples = {
     javascript: 'console.log("hello javascript")',
     c: '#include <stdio.h>\nint main(int argc, char* argv[])\n{\n    printf("Hello World");\n    return 0;\n}\n',
@@ -51,7 +54,7 @@ function IDE() {
           <span className="user">{user}</span>
         </div>
         <div className="second-nav">
-          <span>workspace / test / src / main. c</span>{" "}
+          <span>{location.state.class} / {location.state.week}</span>{" "}
           <div className="second-toolbar">
             <button>저장</button>
             <button>다른 이름으로 저장</button>
