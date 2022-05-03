@@ -46,7 +46,7 @@ function RegisterPage() {
       .then((res) => {
         if (res.status === 200) {
           alert("회원가입 완료!");
-          history.push("/login");
+          history.push("/user/login");
         }
       })
       .catch((error) => console.log(error));

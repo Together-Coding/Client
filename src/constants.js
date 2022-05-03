@@ -3,5 +3,5 @@
 
 const DEBUG = true;
 
-export const API_URL = 'http://api.together-coding.com'
+export const API_URL = 'https://api.together-coding.com'
 export const RUNTIME_BRIDGE_URL = DEBUG ? 'https://dev-bridge.together-coding.com' : 'https://bridge.together-coding.com'
