@@ -2,6 +2,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+
     span {
         font-size: 15px;
         color: gray;
@@ -22,7 +23,7 @@
 
 .add-class-btn {
     border: none;
-    background-color: #EAAE78;
+    background-color: #0d6efd;
     color: white;
     padding: 10px 30px;
     text-align: center;
@@ -30,9 +31,9 @@
     display: inline-block;
     font-size: 20px;
     font-weight: bold;
-    margin: 4px 2px;
+    margin-bottom: 15px;
     cursor: pointer;
-    border-radius: 5%;
+    border-radius: 10px;
 }
 
 .class-box-teacher {
@@ -51,15 +52,19 @@
     align-items: center;
     height: 70px;
     background-color: #DDE5F0;
+    border-radius: 15px;
+
     h3 {
         font-weight: bold;
         display: flex;
         flex-direction: column;
         justify-content: center;
+        margin-left: 10px;
     }
-    span{
+
+    span {
         font-size: 15px;
-        color:gray;
+        color: gray;
     }
 }
 
@@ -106,6 +111,7 @@
         padding-left: 5px;
         font-size: 20px;
         justify-content: space-between;
+        border-radius: 10px;
     }
 
     button {
@@ -114,6 +120,7 @@
         color: white;
         font-size: 20px;
         cursor: pointer;
+        margin-right: 7px;
     }
 }
 
@@ -122,4 +129,50 @@
     flex-direction: column;
     border-bottom: 1px solid black;
     margin-bottom: 20px;
+}
+
+.add-stu-modal {
+    display: flex;
+    flex-direction: column;
+
+    button {
+        border: none;
+        margin-top: 20px;
+        border-radius: 12px;
+        background-color: #0d6efd;
+        color: white;
+        height: 35px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    input {
+        height: 25px;
+        margin-bottom: 15px;
+    }
+}
+
+.add-lesson-modal {
+    display: flex;
+    flex-direction: column;
+
+    input {
+        height: 25px;
+        margin-bottom: 15px;
+    }
+
+    select {
+        height: 30px;
+    }
+}
+
+.add-lesson-btn {
+    border: none;
+    margin-top: 20px;
+    border-radius: 12px;
+    background-color: #0d6efd;
+    color: white;
+    height: 35px;
+    cursor: pointer;
+    font-weight: bold;
 }

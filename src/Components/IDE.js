@@ -11,9 +11,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
 import { useLocation } from "react-router-dom";
 import TeacherDashBoard from "./TeacherDashBoard";
+import StudentDashBoard from "./StudentDashBoard";
 
 function IDE() {
-  let location=useLocation();
+  let location = useLocation();
   console.log(location);
   let examples = {
     javascript: 'console.log("hello javascript")',
@@ -54,7 +55,10 @@ function IDE() {
           <span className="user">{user}</span>
         </div>
         <div className="second-nav">
-          <span>{location.state.class} / {location.state.week}</span>{" "}
+          <span>
+            {location.state.class} / {location.state.week}
+          </span>{" "}
+          {/*
           <div className="second-toolbar">
             <button>저장</button>
             <button>다른 이름으로 저장</button>
@@ -62,6 +66,7 @@ function IDE() {
             <div className="toolbar-divider"> </div>
             <button>more.....</button>
           </div>
+  */}
         </div>
       </div>
       {/*-------------side bar--------------*/}
@@ -77,10 +82,7 @@ function IDE() {
             </button>
             <span>대쉬보드</span>
 
-            <button
-              onClick={DirBtnHandler}
-              value="디렉토리"
-            >
+            <button onClick={DirBtnHandler} value="디렉토리">
               <FontAwesomeIcon icon={faFolderOpen} />
             </button>
             <span>디렉토리</span>
@@ -101,8 +103,10 @@ function IDE() {
             </div>
             <Terminal />
           </div>
-        ) : (
+        ) : location.state.asTeacher ? (
           <TeacherDashBoard />
+        ) : (
+          <StudentDashBoard />
         )}
       </div>
     </div>

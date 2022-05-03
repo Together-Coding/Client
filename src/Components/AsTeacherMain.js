@@ -11,7 +11,7 @@ import { faCirclePlus } from "@fortawesome/free-solid-svg-icons";
 function AsTeacherMain() {
   const location = useLocation();
   const courseID = useParams();
-  console.log(courseID.id);
+  console.log(location);
   const lesson = [
     { lessonId: 1, week: 1, classOpen: true, date: "04-15 ~ 04-22" },
     { lessonId: 2, week: 2, classOpen: true, date: "04-15 ~ 04-22" },
@@ -54,6 +54,64 @@ function AsTeacherMain() {
       name: "student15",
     },
   ];
+  const addStudentBtn = () => {
+    if (addStu === "") {
+      alert("빈값을 입력하세요");
+      return false;
+    }
+    let body = {
+      courseID: courseID.id,
+      student: addStu,
+    };
+    if (window.confirm(addStu + " 학생을 등록하시겠습니까?")) {
+      console.log(body);
+      setAddStuIsOpen(false);
+    } else {
+      return false;
+    }
+  };
+
+  const addLessonBtn = () => {
+    if (addlessonName === "" || addlessonDes==="" || addlessonLang==="") {
+      alert("빈값을 입력하세요");
+      return false;
+    }
+    let body = {
+      lessonName:addlessonName,
+      lessonDes:addlessonDes,
+      courseID: courseID.id,
+      lang: addlessonLang,
+    };
+    if (window.confirm(addlessonName + " 수업을 등록하시겠습니까?")) {
+      console.log(body);
+      setModalIsOpen(false);
+    } else {
+      return false;
+    }
+  };
+  
+  // 참여자 추가 저장 state
+  //let [addCourseID, setCourseID] = useState("");
+  let [addStu, setAddStu] = useState("");
+
+  const addStuInput = (e) => {
+    setAddStu(e.target.value);
+  };
+
+  // 레슨 추가 저장 state
+  let [addlessonName, setLessonName]=useState("")
+  let [addlessonDes, setLessonDes]=useState("")
+  let [addlessonLang, setLessonLang]=useState("")
+
+  const addLessonInput=(e)=>{
+    setLessonName(e.target.value);
+  }
+  const addlessonDesInput=(e)=>{
+    setLessonDes(e.target.value);
+  }
+  const addLessonLangSelect=(e)=>{
+    setLessonLang(e.target.value);
+  }
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [addStuIsOpen, setAddStuIsOpen] = useState(false);
@@ -79,6 +137,7 @@ function AsTeacherMain() {
                         class: location.state.class,
                         week: x.week,
                         lessonId: x.lessonId,
+                        asTeacher: location.state.asTeacher,
                       },
                     }}
                   >
@@ -137,10 +196,10 @@ function AsTeacherMain() {
             },
             content: {
               position: "absolute",
-              top: "60px",
-              left: "35%",
-              width: "30%",
-              height: "80%",
+              top: "40px",
+              left: "25%",
+              width: "50%",
+              height: "90%",
               border: "1px solid #ccc",
               background: "#fff",
               overflow: "auto",
@@ -151,8 +210,21 @@ function AsTeacherMain() {
             },
           }}
         >
-          <div>
-            <p>수업 추가 TODO</p>
+          <div className="add-lesson-modal">
+            <h3>레슨 추가 하기</h3>
+            <label>레슨 이름</label>
+            <input required onChange={addLessonInput}/>
+            <label>레슨 설명</label>
+            <input required onChange={addlessonDesInput}/>
+            <label>Course ID</label>
+            <input value={courseID.id} readOnly/>
+            <label>사용 언어</label>
+            <select required onChange={addLessonLangSelect}>
+              <option>1</option>
+              <option>2</option>
+              <option>3</option>
+            </select>
+            <button className="add-lesson-btn" onClick={addLessonBtn}>레슨 등록</button>
           </div>
         </Modal>
         {/*참여자 추가 모달-----------*/}
@@ -184,8 +256,13 @@ function AsTeacherMain() {
             },
           }}
         >
-          <div>
-            <p>참여자 추가 TODO</p>
+          <div className="add-stu-modal">
+            <h3>참여자 추가</h3>
+            <label>코스 ID</label>
+            <input required value={courseID.id} readOnly/>
+            <label>추가할 학생(이메일)</label>
+            <input onChange={addStuInput} required />
+            <button onClick={addStudentBtn}>추가 하기</button>
           </div>
         </Modal>
       </div>

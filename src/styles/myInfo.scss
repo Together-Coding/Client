@@ -47,13 +47,15 @@
         display: flex;
         align-items: center;
         background-color: #0d6efd;
-        height: 70px;
+        height: 85px;
         color: white;
         font-weight: bold;
         margin-top: 0;
-        padding-left: 5px;
+        padding-left: 15px;
+        padding-right: 20px;
         font-size: 25px;
         justify-content: space-between;
+        border-radius: 5px;
     }
     button{
         background-color: transparent;
@@ -69,19 +71,22 @@
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid lightgray;
+    padding-top: 10px;
+    padding-bottom: 10px;
     a{
         text-decoration: none;
         color: black;
     }
 }
 .myinfo-class-box:hover{
-    background-color: #E5F4FA;
+    background-color: #f8f9fb;
 }
 .des-left{
     display: flex;
     flex-direction: column;
     margin-top: 10px;
     margin-bottom: 10px;
+    padding-left: 15px;
     a{
         font-size: 20px;
         font-weight: bold;
@@ -99,10 +104,11 @@
 .des-right{
     display: flex;
     flex-direction: column;
+    padding-right: 15px;
     span{
         font-size: 17px;
         padding-right: 5px;
-        font-weight: bold;
+        color:gray;
     }
 }
 
@@ -110,10 +116,38 @@
     @extend .teacher
 }
 
-.modal-nav {
+.add-class-madal{
     display: flex;
-
-    button {
-        margin-left: auto;
+    flex-direction: column;
+}
+.add-class-form{
+    input{
+        height: 25px;
+        margin-bottom: 10px;
+        margin-top: 5px;
+    }
+}
+.add-stu-btn{
+    background-color: #6c757e;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    height: 25px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.add-class-btn1{
+    @extend .add-stu-btn;
+    border-radius: 12px;
+    background-color: #0d6efd;
+    margin-top: 30px;
+    height: 35px;
+}
+.stu-to-be-add{
+    p{
+        margin-top: 5px;
+        padding-bottom: 7px;
+        margin-bottom: 3px;
+        border-bottom: 1px solid gray;
     }
 }

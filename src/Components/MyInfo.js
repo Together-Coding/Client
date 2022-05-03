@@ -16,8 +16,7 @@ let mockmyClass = [
     lesson_num: 14,
     student_num: 32,
     last_lesson: "2016-10-27T17:13:40+00:00",
-    accessible: true,
-    active: true,
+    asTeacher: true,
   },
   {
     id: 2,
@@ -26,8 +25,7 @@ let mockmyClass = [
     lesson_num: 14,
     student_num: 32,
     last_lesson: "2016-10-27T17:13:40+00:00",
-    accessible: true,
-    active: true,
+    asTeacher: true,
   },
   {
     id: 3,
@@ -36,8 +34,7 @@ let mockmyClass = [
     lesson_num: 14,
     student_num: 32,
     last_lesson: "2016-10-27T17:13:40+00:00",
-    accessible: true,
-    active: true,
+    asTeacher: true,
   },
   {
     id: 4,
@@ -46,8 +43,7 @@ let mockmyClass = [
     lesson_num: 14,
     student_num: 32,
     last_lesson: "2016-10-27T17:13:40+00:00",
-    accessible: true,
-    active: true,
+    asTeacher: true,
   },
 ];
 
@@ -55,12 +51,14 @@ let mockPartpaticipantClass = [
   {
     id: 5,
     name: "기계학습",
-    description: "재밌는 과목"
+    description: "재밌는 과목",
+    asTeacher: false,
   },
   {
     id: 6,
     name: "인공지능",
-    description: "재밌는 과목"
+    description: "재밌는 과목",
+    asTeacher: false,
   },
 ];
 
@@ -98,7 +96,7 @@ function MyInfo() {
   const [participantClass, setParticipantClass] = useState([]);
   //
   const [modalIsOpen, setModalIsOpen] = useState(false);
-
+  const [addBtnMouseOver, setaddBtnMouseOver] = useState();
   const [courseName, setCourseName] = useState("");
   const [coursePwd, setCoursePwd] = useState("");
   const [teacherEmail, setTeacherEmail] = useState("");
@@ -120,20 +118,25 @@ function MyInfo() {
   };
 
   const submitEvent = (e) => {
-    e.preventDefault();
-    let headers = {
-      Authorization: "Bearer " + localStorage.getItem("access_token") || "",
-    };
-    let body = {
-      name: courseName,
-      password: coursePwd,
-      teacherName: teacherEmail,
-      description: courseDescription,
-      participant: participants,
-    };
-    axios.post(`${API_URL}/api/course`, body, { headers }).then((res) => {
-      console.log(res);
-    });
+    if (window.confirm(courseName + " 수업을 등록하시겠습니까?")) {
+      e.preventDefault();
+      let headers = {
+        Authorization: "Bearer " + localStorage.getItem("access_token") || "",
+      };
+      let body = {
+        name: courseName,
+        password: coursePwd,
+        teacherName: teacherEmail,
+        description: courseDescription,
+        participant: participants,
+      };
+      axios.post(`${API_URL}/api/course`, body, { headers }).then((res) => {
+        console.log(res);
+      });
+      setModalIsOpen(false);
+    } else {
+      return false;
+    }
   };
 
   const inputPlus = () => {
@@ -150,7 +153,7 @@ function MyInfo() {
       return false;
     }
   };
-  console.log(participants);
+
   const logOutCtrl = () => {
     if (window.confirm("로그아웃 하시겠습니까?")) {
       localStorage.removeItem("access_token");
@@ -173,9 +176,18 @@ function MyInfo() {
         <div className="teacher">
           <p>
             <span>나의 강의</span>
-            <button onClick={() => setModalIsOpen(true)}>
-              <FontAwesomeIcon icon={faCirclePlus} />
-            </button>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <button
+                onClick={() => setModalIsOpen(true)}
+                onMouseOver={() => setaddBtnMouseOver(true)}
+                onMouseOut={() => setaddBtnMouseOver(false)}
+              >
+                <FontAwesomeIcon icon={faCirclePlus} />
+              </button>
+              {addBtnMouseOver ? (
+                <span style={{ fontSize: 10 }}>강의 개설</span>
+              ) : null}
+            </div>
           </p>
           {mockmyClass.map((x, idx) => {
             return (
@@ -186,7 +198,8 @@ function MyInfo() {
                       pathname: "/teacher/" + x.id,
                       state: {
                         class: x.name,
-                        description:x.description
+                        description: x.description,
+                        asTeacher: x.asTeacher,
                       },
                     }}
                   >
@@ -214,7 +227,8 @@ function MyInfo() {
                       pathname: "/student/" + x.id,
                       state: {
                         class: x.name,
-                        description:x.description
+                        description: x.description,
+                        asTeacher: x.asTeacher,
                       },
                     }}
                   >
@@ -246,10 +260,10 @@ function MyInfo() {
           },
           content: {
             position: "absolute",
-            top: "60px",
-            left: "35%",
-            width: "30%",
-            height: "80%",
+            top: "40px",
+            left: "15%",
+            width: "65%",
+            height: "90%",
             border: "1px solid #ccc",
             background: "#fff",
             overflow: "auto",
@@ -260,39 +274,42 @@ function MyInfo() {
           },
         }}
       >
-        <div className="modal-nav">
-        
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
+        <div className="add-class-modal">
+          <h3>강의 개설</h3>
           <form
             onSubmit={submitEvent}
             style={{ display: "flex", flexDirection: "column" }}
+            className="add-class-form"
           >
             <label>수업 이름</label>
-            <input value={courseName} onChange={courseNameEvent}></input>
+            <input
+              value={courseName}
+              onChange={courseNameEvent}
+              required
+            ></input>
             <label>수업 비밀번호</label>
             <input
               type="password"
               value={coursePwd}
               onChange={coursePwdEvent}
+              required
             />
             <label>강사 이메일</label>
             <input
               type="email"
               value={teacherEmail}
               onChange={teacherEmailEvent}
+              required
             />
             <label>코스 설명</label>
-            <input value={courseDescription} onChange={courseDesEvent} />
+            <input
+              value={courseDescription}
+              onChange={courseDesEvent}
+              required
+            />
             <label>
               참여자 이메일{" "}
-              <button type="button" onClick={inputPlus}>
+              <button className="add-stu-btn" type="button" onClick={inputPlus}>
                 추가
               </button>
             </label>
@@ -302,7 +319,15 @@ function MyInfo() {
                 setParticipantsInput(e.target.value);
               }}
             />
-            <button>수업 개설</button>
+            <div className="stu-to-be-add">
+              <p>등록할 학생</p>
+              {participants.map((item) => (
+                <>
+                  <span>{item} | </span>
+                </>
+              ))}
+            </div>
+            <button className="add-class-btn1">수업 개설</button>
           </form>
         </div>
       </Modal>

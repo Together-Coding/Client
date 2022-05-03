@@ -8,6 +8,7 @@ import "../styles/AsStudentMain.scss";
 function AsStudentMain() {
   const location = useLocation();
   const courseID = useParams();
+  console.log(location);
   const lesson = [
     { lessonId: 1, week: 1, classOpen: true, date: "04-15 ~ 04-22" },
     { lessonId: 2, week: 2, classOpen: true, date: "04-15 ~ 04-22" },
