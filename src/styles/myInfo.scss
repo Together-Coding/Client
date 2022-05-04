@@ -2,28 +2,33 @@
     background-color: beige;
     display: flex;
     height: 70px;
-    background-color:#78B3EA;
+    background-color: #78B3EA;
     justify-content: space-between;
     align-items: center;
-    p{
+
+    p {
         color: white;
         margin-left: 10px;
         font-size: 30px;
         font-weight: bold;
     }
-    span{
+
+    span {
         color: white;
         font-size: 17px;
         margin-right: 10px;
         font-weight: bold;
     }
-    button{
+
+    button {
         color: white;
         border: none;
         background-color: transparent;
         font-weight: bold;
+        margin-right: 20px;
     }
-    button:hover{
+
+    button:hover {
         cursor: pointer;
         text-decoration: underline;
     }
@@ -52,12 +57,13 @@
         font-weight: bold;
         margin-top: 0;
         padding-left: 15px;
-        padding-right: 20px;
+        padding-right: 15px;
         font-size: 25px;
         justify-content: space-between;
         border-radius: 5px;
     }
-    button{
+
+    button {
         background-color: transparent;
         border: none;
         font-size: 30px;
@@ -66,49 +72,58 @@
         cursor: pointer;
     }
 }
-.myinfo-class-box{
+
+.myinfo-class-box {
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid lightgray;
     padding-top: 10px;
     padding-bottom: 10px;
-    a{
+
+    a {
         text-decoration: none;
         color: black;
     }
 }
-.myinfo-class-box:hover{
+
+.myinfo-class-box:hover {
     background-color: #f8f9fb;
 }
-.des-left{
+
+.des-left {
     display: flex;
     flex-direction: column;
     margin-top: 10px;
     margin-bottom: 10px;
     padding-left: 15px;
-    a{
+
+    a {
         font-size: 20px;
         font-weight: bold;
     }
-    span{
+
+    span {
         font-size: 15px;
         margin-top: 6px;
         color: gray;
         padding-top: 0;
     }
 }
-.des-left a:hover{
+
+.des-left a:hover {
     text-decoration: underline;
 }
-.des-right{
+
+.des-right {
     display: flex;
     flex-direction: column;
     padding-right: 15px;
-    span{
+
+    span {
         font-size: 17px;
         padding-right: 5px;
-        color:gray;
+        color: gray;
     }
 }
 
@@ -116,18 +131,20 @@
     @extend .teacher
 }
 
-.add-class-madal{
+.add-class-madal {
     display: flex;
     flex-direction: column;
 }
-.add-class-form{
-    input{
+
+.add-class-form {
+    input {
         height: 25px;
         margin-bottom: 10px;
         margin-top: 5px;
     }
 }
-.add-stu-btn{
+
+.add-stu-btn {
     background-color: #6c757e;
     color: white;
     border: none;
@@ -136,15 +153,17 @@
     cursor: pointer;
     font-weight: bold;
 }
-.add-class-btn1{
+
+.add-class-btn1 {
     @extend .add-stu-btn;
     border-radius: 12px;
     background-color: #0d6efd;
     margin-top: 30px;
     height: 35px;
 }
-.stu-to-be-add{
-    p{
+
+.stu-to-be-add {
+    p {
         margin-top: 5px;
         padding-bottom: 7px;
         margin-bottom: 3px;

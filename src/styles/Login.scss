@@ -19,6 +19,8 @@
 
     input {
         height: 30px;
+        margin-top: 5px;
+        margin-bottom: 5px;
     }
 
     button {
@@ -31,5 +33,10 @@
         cursor: pointer;
         font-weight: bold;
         font-size: 20px;
+        margin-bottom: 50px;
+    }
+    a{
+        text-decoration: none;
+        color: white;
     }
 }

@@ -66,7 +66,8 @@ function RegisterPage() {
               onChange={emailEvent}
               required
             ></input>
-            <label>비밀번호 (영어,숫자포함 8~20자리)</label>
+            <label>비밀번호 (영어, 숫자포함 8~20자리)</label>
+            <input style={{marginBottom:5}} type="password" value={pwd} onChange={pwdEvent} required />
             <span>
               {pwdLength ? null : (
                 <span style={{ color: "red", fontSize: "10px" }}>
@@ -74,7 +75,6 @@ function RegisterPage() {
                 </span>
               )}
             </span>
-            <input type="password" value={pwd} onChange={pwdEvent} required />
             <label>비밀번호 확인</label>
             <input
               type="password"

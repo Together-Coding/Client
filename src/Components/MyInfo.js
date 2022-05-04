@@ -168,7 +168,7 @@ function MyInfo() {
       <div className="Info-nav-bar">
         <p>Together Coding</p>
         <div>
-          <span>{userEmail} | </span>
+          <span>{userEmail} &nbsp; &nbsp;|</span>
           <button onClick={logOutCtrl}>로그아웃</button>
         </div>
       </div>
@@ -281,13 +281,13 @@ function MyInfo() {
             style={{ display: "flex", flexDirection: "column" }}
             className="add-class-form"
           >
-            <label>수업 이름</label>
+            <label>강의 이름</label>
             <input
               value={courseName}
               onChange={courseNameEvent}
               required
             ></input>
-            <label>수업 비밀번호</label>
+            <label>강의 비밀번호</label>
             <input
               type="password"
               value={coursePwd}
@@ -327,7 +327,7 @@ function MyInfo() {
                 </>
               ))}
             </div>
-            <button className="add-class-btn1">수업 개설</button>
+            <button className="add-class-btn1">강의 개설</button>
           </form>
         </div>
       </Modal>

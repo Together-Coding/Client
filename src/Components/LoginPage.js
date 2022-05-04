@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { API_URL } from "../constants";
-import { useHistory } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import "../styles/Login.scss";
 
 function LoginPage() {
@@ -59,6 +59,8 @@ function LoginPage() {
             <label>비밀번호</label>
             <input type="password" value={pwd} onChange={pwdEvent} required />
             <button>로그인</button>
+            <label style={{fontSize:16}}>아직 Together Coding의 회원이 아니시라면</label>
+            <button style={{marginTop:5}}><Link to="/user/register">회원 가입</Link></button>
           </form>
         </div>
       </div>
