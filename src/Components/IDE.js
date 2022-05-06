@@ -56,7 +56,7 @@ function IDE() {
         </div>
         <div className="second-nav">
           <span>
-            {location.state.class} / {location.state.week}
+            {location.state.class} / {location.state.classDes}
           </span>{" "}
           {/*
           <div className="second-toolbar">

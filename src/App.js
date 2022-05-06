@@ -12,7 +12,7 @@ import MyInfo from "./Components/MyInfo";
 import CodeModal from "./Components/CodeModal";
 import AsTeacherMain from "./Components/AsTeacherMain";
 import AsStudentMain from "./Components/AsStudentMain";
-
+import MyInfoFix from "./Components/MyInfoFix";
 import Modal from "react-modal";
 function App() {
   return (
@@ -47,6 +47,9 @@ function App() {
         </Route>
         <Route path="/student/:id">
           <AsStudentMain />
+        </Route>
+        <Route path="/fix-info">
+          <MyInfoFix />
         </Route>
       </Switch>
     </div>

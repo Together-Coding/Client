@@ -1,0 +1,62 @@
+.fix-info-box{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 80vh;
+    margin-left: 30%;
+    margin-right: 30%;
+}
+.change-name-box{
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid lightgrey;
+    margin-top: 50px;
+    label{
+        color: gray;
+        font-size: 20px;
+    }
+    input{
+        height: 30px;
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+    button {
+        border: none;
+        margin-top: 20px;
+        border-radius: 12px;
+        background-color: #78b4ea;
+        color: white;
+        height: 35px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+}
+.change-pwd-box{
+    display: flex;
+    flex-direction: column;
+    h3{
+        margin-top: 100px;
+    }
+    label{
+        color: gray;
+        font-size: 20px;
+    }
+    input{
+        height: 30px;
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+    button {
+        border: none;
+        margin-top: 20px;
+        border-radius: 12px;
+        background-color: #78b4ea;
+        color: white;
+        height: 35px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 20px;
+    }
+}

@@ -94,16 +94,20 @@ function MyInfo() {
   // 내 강의, 참여중 강의 저장용
   const [myClass, setMyClass] = useState([]);
   const [participantClass, setParticipantClass] = useState([]);
-  //
+  // 모달창 열고 닫기 컨트롤
   const [modalIsOpen, setModalIsOpen] = useState(false);
+
   const [addBtnMouseOver, setaddBtnMouseOver] = useState();
+
   const [courseName, setCourseName] = useState("");
   const [coursePwd, setCoursePwd] = useState("");
   const [teacherEmail, setTeacherEmail] = useState("");
   const [courseDescription, setCourseDescription] = useState("");
+  // 참가자 저장 state
   const [participants, setParticipants] = useState([]);
 
   let [participantsInput, setParticipantsInput] = useState("");
+
   const courseNameEvent = (e) => {
     setCourseName(e.target.value);
   };
@@ -116,7 +120,7 @@ function MyInfo() {
   const courseDesEvent = (e) => {
     setCourseDescription(e.target.value);
   };
-
+  // 강의 추가 함수
   const submitEvent = (e) => {
     if (window.confirm(courseName + " 수업을 등록하시겠습니까?")) {
       e.preventDefault();
@@ -138,7 +142,7 @@ function MyInfo() {
       return false;
     }
   };
-
+  // 참여자 추가 모달 내의 참여자 추가 함수
   const inputPlus = () => {
     if (participantsInput === "") {
       alert("참여자 이메일을 입력하세요!");
@@ -153,7 +157,7 @@ function MyInfo() {
       return false;
     }
   };
-
+  // 로그아웃 컨트롤: 토큰 지워주기
   const logOutCtrl = () => {
     if (window.confirm("로그아웃 하시겠습니까?")) {
       localStorage.removeItem("access_token");
@@ -168,7 +172,7 @@ function MyInfo() {
       <div className="Info-nav-bar">
         <p>Together Coding</p>
         <div>
-          <span>{userEmail} &nbsp; &nbsp;|</span>
+          <Link to="/fix-info"><span>{userEmail}</span></Link>
           <button onClick={logOutCtrl}>로그아웃</button>
         </div>
       </div>
