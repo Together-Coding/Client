@@ -1,11 +1,32 @@
 .teacher-main-nav {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    background-color: #3f51b5;
+    height: 80px;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-bottom: 50px;
+    div{
+        font-size: 30px;
+        color: white;
+        font-weight: bold;
+    }
 
     span {
         font-size: 15px;
-        color: gray;
+        color: whitesmoke;
+    }
+    button{
+        background-color: transparent;
+        border: none;
+        color: white;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    button:hover{
+        text-decoration: underline;
     }
 }
 

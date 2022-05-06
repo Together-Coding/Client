@@ -64,9 +64,9 @@ function LoginPage() {
             <label style={{ fontSize: 16 }}>
               아직 Together Coding의 회원이 아니시라면
             </label>
-            <button style={{ marginTop: 5 }}>
-              <Link to="/user/register">회원 가입</Link>
-            </button>
+            <Link to="/user/register">
+              <button style={{ marginTop: 5 }}>회원 가입</button>
+            </Link>
           </div>
         </div>
       </div>

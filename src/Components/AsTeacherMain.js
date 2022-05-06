@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation,useHistory } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import "../styles/AsTeacherMain.scss";
@@ -11,8 +11,9 @@ import axios from "axios";
 import { API_URL } from "../constants";
 function AsTeacherMain() {
   const location = useLocation();
+  const history=useHistory();
   const courseID = useParams();
-  console.log(location);
+  
   const lesson = [
     {
       id: 102,
@@ -166,279 +167,296 @@ function AsTeacherMain() {
         console.log(res);
       });
   };
+
+  const logoutBtn = () => {
+    if (window.confirm("로그아웃 하시겠습니까?")) {
+      localStorage.removeItem("access_token");
+      history.push("/");
+    } else {
+      return false;
+    }
+  };
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [addStuIsOpen, setAddStuIsOpen] = useState(false);
 
   const [modalchangeLessonName, setModalChangeLessonName] = useState(false);
   const [moadlchangeLessonDes, setModalChangeLessonDes] = useState(false);
   return (
-    <div style={{ marginRight: 30, marginLeft: 30 }}>
-      <h2 className="teacher-main-nav">
-        {location.state.class} <span>({location.state.description})</span>
-      </h2>
-      <div className="teacher-main-btn-box">
-        <button className="add-class-btn" onClick={() => setModalIsOpen(true)}>
-          수업 추가
-        </button>
-        <div className="class-fix-btn">
-          <button>코스 수정</button>
-          <button
-            className="close-class-btn"
-            style={{ backgroundColor: "#6c757e" }}
-            onClick={closeClassBtn}
-          >
-            코스 종료
-          </button>
-        </div>
+    <>
+      <div
+        className="teacher-main-nav"
+      >
+        <div>{location.state.class} <span>({location.state.description})</span></div><button onClick={logoutBtn}>로그아웃</button>
       </div>
-      <div className="teacher-main-container">
-        <div className="class-box-contain">
-          {lesson.map((x) => {
-            return (
-              <div className="class-box-teacher">
-                <div className="class-box-nav-teacher">
-                  <p>
-                    <Link
-                      to={{
-                        pathname: "/course/" + courseID.id + "/lesson/" + x.id,
-                        state: {
-                          class: x.name,
-                          classDes: x.description,
-                          lessonId: x.id,
-                          asTeacher: location.state.asTeacher,
-                        },
-                      }}
-                    >
-                      {x.name}
-                    </Link>
-                    <button
-                      value={x.id}
-                      onClick={() => {
-                        setModalChangeLessonName(true);
-                        setLessonID(x.id);
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faPenToSquare} />
-                    </button>
-                  </p>{" "}
-                  <span>
-                    {x.description}{" "}
-                    <button
-                      value={x.id}
-                      onClick={() => {
-                        setModalChangeLessonDes(true);
-                        setLessonID(x.id);
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faPenToSquare} />
-                    </button>
-                  </span>
-                </div>
-                <div className="class-box-bottom">
-                  <p>세션 시간: </p>
-                  <p>학생수: </p>
-                  <p>질문수 :</p>
-                  <p>전체 피드백 수</p>
+      <div style={{ marginRight: 30, marginLeft: 30 }}>
+        <div className="teacher-main-btn-box">
+          <button
+            className="add-class-btn"
+            onClick={() => setModalIsOpen(true)}
+          >
+            수업 추가
+          </button>
+          <div className="class-fix-btn">
+            <button>코스 수정</button>
+            <button
+              className="close-class-btn"
+              style={{ backgroundColor: "#6c757e" }}
+              onClick={closeClassBtn}
+            >
+              코스 종료
+            </button>
+          </div>
+        </div>
+        <div className="teacher-main-container">
+          <div className="class-box-contain">
+            {lesson.map((x) => {
+              return (
+                <div className="class-box-teacher">
+                  <div className="class-box-nav-teacher">
+                    <p>
+                      <Link
+                        to={{
+                          pathname:
+                            "/course/" + courseID.id + "/lesson/" + x.id,
+                          state: {
+                            class: x.name,
+                            classDes: x.description,
+                            lessonId: x.id,
+                            asTeacher: location.state.asTeacher,
+                          },
+                        }}
+                      >
+                        {x.name}
+                      </Link>
+                      <button
+                        value={x.id}
+                        onClick={() => {
+                          setModalChangeLessonName(true);
+                          setLessonID(x.id);
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faPenToSquare} />
+                      </button>
+                    </p>{" "}
+                    <span>
+                      {x.description}{" "}
+                      <button
+                        value={x.id}
+                        onClick={() => {
+                          setModalChangeLessonDes(true);
+                          setLessonID(x.id);
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faPenToSquare} />
+                      </button>
+                    </span>
+                  </div>
+                  <div className="class-box-bottom">
+                    <p>세션 시간: </p>
+                    <p>학생수: </p>
+                    <p>질문수 :</p>
+                    <p>전체 피드백 수</p>
 
-                  <div style={{ borderTop: "1px solid gray" }}>
-                    <p>과제 개수: </p>
-                    <p>과제 완료 학생: </p>
+                    <div style={{ borderTop: "1px solid gray" }}>
+                      <p>과제 개수: </p>
+                      <p>과제 완료 학생: </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+          <div className="class-participants-box">
+            <p>
+              참여자 목록{" "}
+              <button onClick={() => setAddStuIsOpen(true)}>
+                <FontAwesomeIcon icon={faCirclePlus} />
+              </button>
+            </p>
+            {mockUpParticipants.map((item) => {
+              return (
+                <div className="stu-boxs">
+                  <span style={{ fontWeight: "bold", fontSize: 20 }}>
+                    {item.name}
+                  </span>
+                  <span style={{ color: "gray", fontSize: 13 }}>
+                    {item.email}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          {/*수업 추가 모달-----------*/}
+          <Modal
+            isOpen={modalIsOpen}
+            onRequestClose={() => setModalIsOpen(false)}
+            style={{
+              overlay: {
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(15, 15, 15, 0.79)",
+              },
+              content: {
+                position: "absolute",
+                top: "40px",
+                left: "25%",
+                width: "50%",
+                height: "90%",
+                border: "1px solid #ccc",
+                background: "#fff",
+                overflow: "auto",
+                WebkitOverflowScrolling: "touch",
+                borderRadius: "4px",
+                outline: "none",
+                padding: "20px",
+              },
+            }}
+          >
+            <div className="add-lesson-modal">
+              <h3>레슨 추가 하기</h3>
+              <label>레슨 이름</label>
+              <input required onChange={addLessonInput} />
+              <label>레슨 설명</label>
+              <input required onChange={addlessonDesInput} />
+              <label>Course ID</label>
+              <input value={courseID.id} readOnly />
+              <label>사용 언어</label>
+              <select required onChange={addLessonLangSelect}>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+              </select>
+              <button className="add-lesson-btn" onClick={addLessonBtn}>
+                레슨 등록
+              </button>
+            </div>
+          </Modal>
+          {/*참여자 추가 모달-----------*/}
+          <Modal
+            isOpen={addStuIsOpen}
+            onRequestClose={() => setAddStuIsOpen(false)}
+            style={{
+              overlay: {
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(15, 15, 15, 0.79)",
+              },
+              content: {
+                position: "absolute",
+                top: "60px",
+                left: "35%",
+                width: "30%",
+                height: "80%",
+                border: "1px solid #ccc",
+                background: "#fff",
+                overflow: "auto",
+                WebkitOverflowScrolling: "touch",
+                borderRadius: "4px",
+                outline: "none",
+                padding: "20px",
+              },
+            }}
+          >
+            <div className="add-stu-modal">
+              <h3>참여자 추가</h3>
+              <label>코스 ID</label>
+              <input required value={courseID.id} readOnly />
+              <label>추가할 학생(이메일)</label>
+              <input onChange={addStuInput} required />
+              <button onClick={addStudentBtn}>추가 하기</button>
+            </div>
+          </Modal>
+          {/*레슨 이름 변경 모달*/}
+          <Modal
+            isOpen={modalchangeLessonName}
+            onRequestClose={() => setModalChangeLessonName(false)}
+            style={{
+              overlay: {
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(15, 15, 15, 0.79)",
+              },
+              content: {
+                position: "absolute",
+                top: "40px",
+                left: "35%",
+                width: "30%",
+                height: "50%",
+                border: "1px solid #ccc",
+                background: "#fff",
+                overflow: "auto",
+                WebkitOverflowScrolling: "touch",
+                borderRadius: "4px",
+                outline: "none",
+                padding: "20px",
+              },
+            }}
+          >
+            <div className="change-lesson-name-modal">
+              <h3>레슨 이름 변경</h3>
+              <label>변경할 이름</label>
+              <input required onChange={changeLessonNameInput} />
+              <button
+                className="change-lesson-name-btn"
+                onClick={changeLessonNameBtn}
+              >
+                변경
+              </button>
+            </div>
+          </Modal>
+          {/*레슨 설명 변경 모달*/}
+          <Modal
+            isOpen={moadlchangeLessonDes}
+            onRequestClose={() => setModalChangeLessonDes(false)}
+            style={{
+              overlay: {
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(15, 15, 15, 0.79)",
+              },
+              content: {
+                position: "absolute",
+                top: "40px",
+                left: "35%",
+                width: "30%",
+                height: "50%",
+                border: "1px solid #ccc",
+                background: "#fff",
+                overflow: "auto",
+                WebkitOverflowScrolling: "touch",
+                borderRadius: "4px",
+                outline: "none",
+                padding: "20px",
+              },
+            }}
+          >
+            <div className="change-lesson-des-modal">
+              <h3>레슨 설명 변경</h3>
+              <label>변경할 설명</label>
+              <input required onChange={changeLessonDesInput} />
+              <button
+                className="change-lesson-des-btn"
+                onClick={changeLessonDesBtn}
+              >
+                변경
+              </button>
+            </div>
+          </Modal>
         </div>
-        <div className="class-participants-box">
-          <p>
-            참여자 목록{" "}
-            <button onClick={() => setAddStuIsOpen(true)}>
-              <FontAwesomeIcon icon={faCirclePlus} />
-            </button>
-          </p>
-          {mockUpParticipants.map((item) => {
-            return (
-              <div className="stu-boxs">
-                <span style={{ fontWeight: "bold", fontSize: 20 }}>
-                  {item.name}
-                </span>
-                <span style={{ color: "gray", fontSize: 13 }}>
-                  {item.email}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-        {/*수업 추가 모달-----------*/}
-        <Modal
-          isOpen={modalIsOpen}
-          onRequestClose={() => setModalIsOpen(false)}
-          style={{
-            overlay: {
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(15, 15, 15, 0.79)",
-            },
-            content: {
-              position: "absolute",
-              top: "40px",
-              left: "25%",
-              width: "50%",
-              height: "90%",
-              border: "1px solid #ccc",
-              background: "#fff",
-              overflow: "auto",
-              WebkitOverflowScrolling: "touch",
-              borderRadius: "4px",
-              outline: "none",
-              padding: "20px",
-            },
-          }}
-        >
-          <div className="add-lesson-modal">
-            <h3>레슨 추가 하기</h3>
-            <label>레슨 이름</label>
-            <input required onChange={addLessonInput} />
-            <label>레슨 설명</label>
-            <input required onChange={addlessonDesInput} />
-            <label>Course ID</label>
-            <input value={courseID.id} readOnly />
-            <label>사용 언어</label>
-            <select required onChange={addLessonLangSelect}>
-              <option>1</option>
-              <option>2</option>
-              <option>3</option>
-            </select>
-            <button className="add-lesson-btn" onClick={addLessonBtn}>
-              레슨 등록
-            </button>
-          </div>
-        </Modal>
-        {/*참여자 추가 모달-----------*/}
-        <Modal
-          isOpen={addStuIsOpen}
-          onRequestClose={() => setAddStuIsOpen(false)}
-          style={{
-            overlay: {
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(15, 15, 15, 0.79)",
-            },
-            content: {
-              position: "absolute",
-              top: "60px",
-              left: "35%",
-              width: "30%",
-              height: "80%",
-              border: "1px solid #ccc",
-              background: "#fff",
-              overflow: "auto",
-              WebkitOverflowScrolling: "touch",
-              borderRadius: "4px",
-              outline: "none",
-              padding: "20px",
-            },
-          }}
-        >
-          <div className="add-stu-modal">
-            <h3>참여자 추가</h3>
-            <label>코스 ID</label>
-            <input required value={courseID.id} readOnly />
-            <label>추가할 학생(이메일)</label>
-            <input onChange={addStuInput} required />
-            <button onClick={addStudentBtn}>추가 하기</button>
-          </div>
-        </Modal>
-        {/*레슨 이름 변경 모달*/}
-        <Modal
-          isOpen={modalchangeLessonName}
-          onRequestClose={() => setModalChangeLessonName(false)}
-          style={{
-            overlay: {
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(15, 15, 15, 0.79)",
-            },
-            content: {
-              position: "absolute",
-              top: "40px",
-              left: "35%",
-              width: "30%",
-              height: "50%",
-              border: "1px solid #ccc",
-              background: "#fff",
-              overflow: "auto",
-              WebkitOverflowScrolling: "touch",
-              borderRadius: "4px",
-              outline: "none",
-              padding: "20px",
-            },
-          }}
-        >
-          <div className="change-lesson-name-modal">
-            <h3>레슨 이름 변경</h3>
-            <label>변경할 이름</label>
-            <input required onChange={changeLessonNameInput} />
-            <button
-              className="change-lesson-name-btn"
-              onClick={changeLessonNameBtn}
-            >
-              변경
-            </button>
-          </div>
-        </Modal>
-        {/*레슨 설명 변경 모달*/}
-        <Modal
-          isOpen={moadlchangeLessonDes}
-          onRequestClose={() => setModalChangeLessonDes(false)}
-          style={{
-            overlay: {
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(15, 15, 15, 0.79)",
-            },
-            content: {
-              position: "absolute",
-              top: "40px",
-              left: "35%",
-              width: "30%",
-              height: "50%",
-              border: "1px solid #ccc",
-              background: "#fff",
-              overflow: "auto",
-              WebkitOverflowScrolling: "touch",
-              borderRadius: "4px",
-              outline: "none",
-              padding: "20px",
-            },
-          }}
-        >
-          <div className="change-lesson-des-modal">
-            <h3>레슨 설명 변경</h3>
-            <label>변경할 설명</label>
-            <input required onChange={changeLessonDesInput} />
-            <button
-              className="change-lesson-des-btn"
-              onClick={changeLessonDesBtn}
-            >
-              변경
-            </button>
-          </div>
-        </Modal>
       </div>
-    </div>
+    </>
   );
 }
 
