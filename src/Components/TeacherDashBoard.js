@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import "../styles/TeacherDashboard.scss";
 import { Link } from "react-router-dom";
+import CodeModal from "./CodeModal";
 /*let userMockData = [
   {
     id: 1,
@@ -187,19 +188,8 @@ function DashBoard() {
   };
 
   return (
-    <div>
-      <div className="dash-board-nav">
-        <p>
-          {location.state.class} ({location.state.week}주차)
-        </p>
-      </div>
-      <div className="dash-side-bar">
-        sideBar
-        <button>필요시</button>
-        <button>기능</button>
-        <button>추가</button>
-        <button>!!!</button>
-      </div>
+    <div className="teacher-dashboard-main-container">
+      <div className="dash-side-bar">sideBar</div>
       <div className="dash-main">
         <div className="dash-list">
           {userMockData.map((x) => {

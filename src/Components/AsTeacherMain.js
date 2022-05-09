@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
-import { useLocation,useHistory } from "react-router-dom";
+import { useLocation, useHistory } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import "../styles/AsTeacherMain.scss";
@@ -11,9 +11,9 @@ import axios from "axios";
 import { API_URL } from "../constants";
 function AsTeacherMain() {
   const location = useLocation();
-  const history=useHistory();
+  const history = useHistory();
   const courseID = useParams();
-  
+
   const lesson = [
     {
       id: 102,
@@ -68,6 +68,19 @@ function AsTeacherMain() {
       name: "student15",
     },
   ];
+  const [Lang, setLang] = useState([]);
+  const [availableLang, setavailableLang] = useState([]);
+
+  // 사용 가능 언어 get 요청
+  useEffect(() => {
+    axios
+      .get("https://dev-bridge.together-coding.com/api/runtimes/available")
+      .then((res) => {
+        setLang(res.data.language);
+      });
+  }, []);
+  console.log(Lang);
+
   const addStudentBtn = () => {
     if (addStu === "") {
       alert("빈값을 입력하세요");
@@ -126,7 +139,7 @@ function AsTeacherMain() {
   const addLessonLangSelect = (e) => {
     setLessonLang(e.target.value);
   };
-
+  // 코스 삭제 컨트롤
   const closeClassBtn = () => {
     if (window.confirm("정말 코스를 종료 시키겠습니까?")) {
       return;
@@ -176,6 +189,36 @@ function AsTeacherMain() {
       return false;
     }
   };
+  //레슨 삭제 컨트롤
+  const delLessonBtn = (e) => {
+    let lessonID = e.target.value;
+    if (window.confirm("해당 레슨을 정말 종료 시키겠습니까?")) {
+      axios.delete(`${API_URL}/api/lesson/${lessonID}`).then((res) => {
+        console.log(res);
+      });
+    } else {
+      return false;
+    }
+    console.log(`${API_URL}/api/lesson/${lessonID}`);
+  };
+  // 템플릿 업로드
+  const templateUploadCtrl = (e) => {
+    e.preventDefault();
+
+    if (e.target.files) {
+      const uploadFile = e.target.files[0];
+      const formData = new FormData();
+      formData.append("files", uploadFile);
+      //디버깅용 for문
+      for (let value of formData.values()) {
+        console.log(value);
+      }
+
+      axios.post(`${API_URL}/`, formData).then((res) => {
+        console.log(res);
+      });
+    }
+  };
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [addStuIsOpen, setAddStuIsOpen] = useState(false);
 
@@ -183,10 +226,11 @@ function AsTeacherMain() {
   const [moadlchangeLessonDes, setModalChangeLessonDes] = useState(false);
   return (
     <>
-      <div
-        className="teacher-main-nav"
-      >
-        <div>{location.state.class} <span>({location.state.description})</span></div><button onClick={logoutBtn}>로그아웃</button>
+      <div className="teacher-main-nav">
+        <div>
+          {location.state.class} <span>({location.state.description})</span>
+        </div>
+        <button onClick={logoutBtn}>로그아웃</button>
       </div>
       <div style={{ marginRight: 30, marginLeft: 30 }}>
         <div className="teacher-main-btn-box">
@@ -260,6 +304,33 @@ function AsTeacherMain() {
                     <div style={{ borderTop: "1px solid gray" }}>
                       <p>과제 개수: </p>
                       <p>과제 완료 학생: </p>
+                      <div className="class-box-btns">
+                        <form style={{ marginBottom: 5 }}>
+                          <label
+                            className="template-label"
+                            htmlFor="file-upload"
+                          >
+                            템플릿 업로드
+                          </label>
+                          <input
+                            type="file"
+                            id="file-upload"
+                            style={{ display: "none" }}
+                            accept="zip,application/octet-stream,application/zip,application/x-zip,application/x-zip-compressed"
+                            onChange={templateUploadCtrl}
+                          />
+                        </form>
+                        <button className="template-btn">
+                          템플릿 다운로드
+                        </button>
+                        <button
+                          value={x.id}
+                          className="del-class-btn"
+                          onClick={delLessonBtn}
+                        >
+                          레슨 삭제
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -325,9 +396,13 @@ function AsTeacherMain() {
               <input value={courseID.id} readOnly />
               <label>사용 언어</label>
               <select required onChange={addLessonLangSelect}>
-                <option>1</option>
-                <option>2</option>
-                <option>3</option>
+                {Lang.map((x) => {
+                  return (
+                    <>
+                      <option>{x.name}</option>
+                    </>
+                  );
+                })}
               </select>
               <button className="add-lesson-btn" onClick={addLessonBtn}>
                 레슨 등록

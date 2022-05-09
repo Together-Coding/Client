@@ -44,7 +44,9 @@ function LoginPage() {
   return (
     <>
       <div className="Info-nav-bar">
-        <p>Together Coding</p>
+        <p>
+          <Link to="/">Together Coding</Link>
+        </p>
       </div>
       <div className="login-container">
         <div className="login-form">

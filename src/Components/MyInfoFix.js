@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "../styles/MyInfoFix.scss";
 import { API_URL } from "../constants";
 import axios from "axios";
+import {Link} from "react-router-dom";
 
 function MyInfoFix() {
   let [changeName, setChangeName] = useState("");
@@ -53,7 +54,9 @@ function MyInfoFix() {
   return (
     <>
       <div className="Info-nav-bar">
-        <p>Together Coding</p>
+      <p>
+          <Link to="/">Together Coding</Link>
+        </p>
       </div>
       <div className="fix-info-box">
         <div className="change-name-box">

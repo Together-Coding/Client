@@ -14,8 +14,9 @@
         color: white;
         text-decoration: none;
     }
-    a:hover{
-        text-decoration: underline;
-    }
     
+}
+.home-container{
+    display: flex;
+    justify-content: center;
 }

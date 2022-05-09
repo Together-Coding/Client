@@ -1,5 +1,10 @@
+.teacher-dashboard-main-container{
+    width: 100%;
+    height: 95vh;
+}
 .dash-board-nav {
     display: flex;
+    width: 100%;
     background-color: whitesmoke;
     height: 50px;
     justify-content: center;
@@ -10,9 +15,9 @@
 .dash-side-bar {
     width: 200px;
     background-color: whitesmoke;
-    height: 95vh;
+    height: 100%;
     float: left;
-    border-right: 1px solid black;
+    border-right: 1px solid lightblue;
 }
 
 .dash-main {

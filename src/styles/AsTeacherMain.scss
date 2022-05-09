@@ -7,7 +7,8 @@
     padding-left: 20px;
     padding-right: 20px;
     margin-bottom: 50px;
-    div{
+
+    div {
         font-size: 30px;
         color: white;
         font-weight: bold;
@@ -17,7 +18,8 @@
         font-size: 15px;
         color: whitesmoke;
     }
-    button{
+
+    button {
         background-color: transparent;
         border: none;
         color: white;
@@ -25,7 +27,8 @@
         font-weight: bold;
         cursor: pointer;
     }
-    button:hover{
+
+    button:hover {
         text-decoration: underline;
     }
 }
@@ -238,4 +241,43 @@
 
 .change-lesson-des-modal {
     @extend .add-stu-modal;
+}
+
+.class-box-btns {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-bottom: 1px solid gray;
+
+    button {
+        margin-top: 5px;
+        margin-bottom: 10px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
+
+.template-btn {
+    background-color: #3f51b5;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    height: 27px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.del-class-btn {
+    @extend.template-btn;
+    background-color: #6c757e;
+}
+.template-label{
+    padding: 5px 20px;
+    font-size: 13px;
+    font-weight: bold;
+    background-color: #3f51b5;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    
 }

@@ -170,9 +170,13 @@ function MyInfo() {
   return (
     <div>
       <div className="Info-nav-bar">
-        <p>Together Coding</p>
+        <p>
+          <Link to="/">Together Coding</Link>
+        </p>
         <div>
-          <Link to="/fix-info"><span>{userEmail}</span></Link>
+          <Link to="/fix-info">
+            <span className="user-name">{userEmail}</span>
+          </Link>
           <button onClick={logOutCtrl}>로그아웃</button>
         </div>
       </div>

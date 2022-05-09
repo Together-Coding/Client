@@ -12,6 +12,7 @@ import { Terminal } from "./Terminal";
 import { useLocation } from "react-router-dom";
 import TeacherDashBoard from "./TeacherDashBoard";
 import StudentDashBoard from "./StudentDashBoard";
+import CodeModal from "react-modal";
 
 function IDE() {
   let location = useLocation();
@@ -104,7 +105,7 @@ function IDE() {
             <Terminal />
           </div>
         ) : location.state.asTeacher ? (
-          <TeacherDashBoard />
+          <TeacherDashBoard/>
         ) : (
           <StudentDashBoard />
         )}

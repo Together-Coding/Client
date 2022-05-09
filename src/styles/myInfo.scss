@@ -1,5 +1,4 @@
 .Info-nav-bar {
-    background-color: beige;
     display: flex;
     height: 80px;
     background-color: #78B3EA;
@@ -11,6 +10,10 @@
         margin-left: 10px;
         font-size: 30px;
         font-weight: bold;
+        text-decoration: none;
+    }
+    a{
+        text-decoration: none;
     }
 
     span {
@@ -32,8 +35,11 @@
         cursor: pointer;
         text-decoration: underline;
     }
+    
 }
-
+.user-name:hover{
+    text-decoration: underline; 
+}
 .main-box {
     display: flex;
     justify-content: space-between;
@@ -170,3 +176,4 @@
         border-bottom: 1px solid gray;
     }
 }
+

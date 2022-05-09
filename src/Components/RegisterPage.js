@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 import { API_URL } from "../constants";
 import { useHistory } from "react-router-dom";
 import "../styles/Register.scss";
@@ -54,7 +55,9 @@ function RegisterPage() {
   return (
     <>
       <div className="Info-nav-bar">
-        <p>Together Coding</p>
+        <p>
+          <Link to="/">Together Coding</Link>
+        </p>
       </div>
       <div className="register-container">
         <div className="register-form">
@@ -67,7 +70,13 @@ function RegisterPage() {
               required
             ></input>
             <label>비밀번호 (영어, 숫자포함 8~20자리)</label>
-            <input style={{marginBottom:5}} type="password" value={pwd} onChange={pwdEvent} required />
+            <input
+              style={{ marginBottom: 5 }}
+              type="password"
+              value={pwd}
+              onChange={pwdEvent}
+              required
+            />
             <span>
               {pwdLength ? null : (
                 <span style={{ color: "red", fontSize: "10px" }}>
