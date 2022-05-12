@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import "../styles/IDE.scss";
 import Editor from "@monaco-editor/react";
@@ -12,7 +12,8 @@ import { Terminal } from "./Terminal";
 import { useLocation } from "react-router-dom";
 import TeacherDashBoard from "./TeacherDashBoard";
 import StudentDashBoard from "./StudentDashBoard";
-import CodeModal from "react-modal";
+
+import io from "socket.io-client";
 
 function IDE() {
   let location = useLocation();
@@ -26,6 +27,16 @@ function IDE() {
   let [dirBtn, setDirBtn] = useState(false);
   let [editorReady, setEditerReady] = useState(false);
   let [user, setUser] = useState("권순용");
+
+  const [socketResponse, setSocketResponse] = useState("");
+
+  // socket.io example
+  useEffect(() => {
+    const socket = io();
+    socket.on("", (data) => {
+      setSocketResponse(data);
+    });
+  }, []);
 
   function handleEditorDidMount() {
     setEditerReady(true);
@@ -105,7 +116,7 @@ function IDE() {
             <Terminal />
           </div>
         ) : location.state.asTeacher ? (
-          <TeacherDashBoard/>
+          <TeacherDashBoard />
         ) : (
           <StudentDashBoard />
         )}

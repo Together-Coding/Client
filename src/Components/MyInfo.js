@@ -83,6 +83,7 @@ function MyInfo() {
     })
   },[]);
   */
+
   //**********임시 회원정보 (이메일)
   const [userEmail, setEmail] = useState("");
   //***********************
@@ -90,7 +91,16 @@ function MyInfo() {
   //*********임시 수업개설 완료 데이터
   const [수업개설, set수업개설] = useState([]);
   //********************
-
+  useEffect(() => {
+    let unlisten = history.listen((location) => {
+      if (history.action == "POP") {
+        history.push("/");
+      }
+    });
+    return () => {
+      unlisten();
+    };
+  }, [history]);
   // 내 강의, 참여중 강의 저장용
   const [myClass, setMyClass] = useState([]);
   const [participantClass, setParticipantClass] = useState([]);

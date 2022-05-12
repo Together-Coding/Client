@@ -14,6 +14,8 @@ function RegisterPage() {
   let [name, setName] = useState("");
 
   let [pwdLength, setPwdLength] = useState(false);
+  let [checkInputPwd, setCheckInputPwd] = useState(false);
+
   const emailEvent = (e) => {
     setEmail(e.target.value);
   };
@@ -27,6 +29,11 @@ function RegisterPage() {
   };
   const checkPwdEvent = (e) => {
     setCheckPwd(e.target.value);
+    if (e.target.value == pwd) {
+      setCheckInputPwd(true);
+    } else {
+      setCheckInputPwd(false);
+    }
   };
   const nameEvent = (e) => {
     setName(e.target.value);
@@ -50,7 +57,17 @@ function RegisterPage() {
           history.push("/user/login");
         }
       })
-      .catch((error) => console.log(error));
+      .catch((error) => {
+        if (error.response.status === 409) {
+          alert("이미 가입된 이메일 입니다ㅠㅠ");
+          return false;
+        } else if (error.response.status === 400) {
+          alert(
+            "비밀번호는 영어와 숫자로 포함해서 8~20자리 이내로 입력해주세요."
+          );
+          return false;
+        }
+      });
   };
   return (
     <>
@@ -70,13 +87,6 @@ function RegisterPage() {
               required
             ></input>
             <label>비밀번호 (영어, 숫자포함 8~20자리)</label>
-            <input
-              style={{ marginBottom: 5 }}
-              type="password"
-              value={pwd}
-              onChange={pwdEvent}
-              required
-            />
             <span>
               {pwdLength ? null : (
                 <span style={{ color: "red", fontSize: "10px" }}>
@@ -84,7 +94,22 @@ function RegisterPage() {
                 </span>
               )}
             </span>
+            <input
+              style={{ marginBottom: 5 }}
+              type="password"
+              value={pwd}
+              onChange={pwdEvent}
+              required
+            />
+
             <label>비밀번호 확인</label>
+            <span>
+              {checkInputPwd ? null : (
+                <span style={{ color: "red", fontSize: "10px", marginLeft: 2 }}>
+                  비밀번호 확인이 다릅니다.
+                </span>
+              )}
+            </span>
             <input
               type="password"
               value={checkPwd}

@@ -8,7 +8,7 @@ function Home() {
   const logOutCtrl = () => {
     if (window.confirm("로그아웃 하시겠습니까?")) {
       localStorage.removeItem("access_token");
-      history.push("/");
+      window.location.replace("/");
     } else {
       return false;
     }
@@ -23,7 +23,7 @@ function Home() {
           {localStorage.getItem("access_token") !== null ? (
             <>
               <span>
-                <Link to="/me">내 정보</Link>
+                <Link to="/me">내 강의 정보</Link>
               </span>
               <button onClick={logOutCtrl}>로그아웃</button>
             </>

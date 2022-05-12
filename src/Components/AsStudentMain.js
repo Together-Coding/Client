@@ -1,12 +1,13 @@
 import React from "react";
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useHistory } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import "../styles/AsStudentMain.scss";
 
 function AsStudentMain() {
   const location = useLocation();
+  const history = useHistory();
   const courseID = useParams();
   console.log(location);
   const lesson = [
@@ -52,52 +53,65 @@ function AsStudentMain() {
     },
   ];
 
-  return (
-    <div style={{ marginRight: 30, marginLeft: 30 }}>
-      <h2 className="stu-main-nav">
-        {location.state.class}{" "}
-        <span style={{ fontSize: 15, color: "gray" }}>
-          ({location.state.description})
-        </span>
-      </h2>
-      <div className="student-main-container">
-        <div className="class-box-contain">
-          {lesson.map((x) => {
-            return (
-              <div className="class-box-stu">
-                <Link
-                  to={{
-                    pathname:
-                      "/course/" + courseID.id + "/lesson/" + x.lessonId,
-                    state: {
-                      class: location.state.class,
-                      week: x.week,
-                    },
-                  }}
-                >
-                  <h3>{x.week}주차</h3>
-                  <h4>{x.date}</h4>
-                </Link>
-              </div>
-            );
-          })}
-        </div>
+  const logoutBtn = () => {
+    if (window.confirm("로그아웃 하시겠습니까?")) {
+      localStorage.removeItem("access_token");
+      history.push("/");
+    } else {
+      return false;
+    }
+  };
 
-        <div className="class-participants-box">
-          <p>참여자 목록</p>
-          {mockUpParticipants.map((x) => {
-            return (
-              <div className="stu-boxs">
-                <span style={{ fontWeight: "bold", fontSize: 20 }}>
-                  {x.name}
-                </span>
-                <span style={{ color: "gray", fontSize: 13 }}>{x.email}</span>
-              </div>
-            );
-          })}
+  return (
+    <>
+      <div className="stu-main-nav">
+        <div>
+          {location.state.class} <span>({location.state.description})</span>
+        </div>
+        <button onClick={logoutBtn}>로그아웃</button>
+      </div>
+      <div style={{ marginRight: 30, marginLeft: 30 }}>
+        <div className="student-main-container">
+          <div className="class-box-contain">
+            {lesson.map((x) => {
+              return (
+                <div className="class-box-stu">
+                  <div className="stu-class-box-nav">
+                    <Link
+                      to={{
+                        pathname:
+                          "/course/" + courseID.id + "/lesson/" + x.lessonId,
+                        state: {
+                          class: location.state.class,
+                          week: x.week,
+                        },
+                      }}
+                    >
+                      <p>{x.week}주차</p>
+                      <span>{x.date}</span>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="class-participants-box">
+            <p>참여자 목록</p>
+            {mockUpParticipants.map((x) => {
+              return (
+                <div className="stu-boxs">
+                  <span style={{ fontWeight: "bold", fontSize: 20 }}>
+                    {x.name}
+                  </span>
+                  <span style={{ color: "gray", fontSize: 13 }}>{x.email}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

@@ -33,12 +33,13 @@ function LoginPage() {
         localStorage.setItem("access_token", token);
         if (res.status === 200) {
           history.push("/me");
-        } else {
-          alert("아이디, 비밀번호를 확인 하세요");
         }
       })
-      .catch((res) => {
-        console.log(res);
+      .catch((error) => {
+        if (error.response.status === 401) {
+          alert("아이디, 비밀번호를 확인하세요.");
+          return false;
+        }
       });
   };
   return (
