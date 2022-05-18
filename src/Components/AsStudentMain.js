@@ -1,15 +1,43 @@
-import React from "react";
+import axios from "axios";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { useParams, useHistory } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { API_URL } from "../constants";
 import "../styles/AsStudentMain.scss";
 
 function AsStudentMain() {
+  let headers = {
+    Authorization: "Bearer " + localStorage.getItem("access_token") || "",
+  };
+
   const location = useLocation();
   const history = useHistory();
   const courseID = useParams();
-  console.log(location);
+  const realCourseID = Number(courseID.id);
+
+  let [courseInfo, setCourseInfo] = useState([]);
+  let [lessonInfo, setLessonInfo] = useState([]);
+
+  // 수업정보, 레슨정보 가져오기
+  useEffect(() => {
+    axios
+      .all([
+        axios.get(`${API_URL}/api/course/${realCourseID}`, { headers }),
+        axios.get(`${API_URL}/api/lesson/${realCourseID}`, { headers }),
+      ])
+      .then(
+        axios.spread((res1, res2) => {
+          setCourseInfo(res1.data);
+          setLessonInfo(res2.data);
+        })
+      )
+      .catch(() => {});
+  }, []);
+
+  console.log(courseInfo);
+
   const lesson = [
     { lessonId: 1, week: 1, classOpen: true, date: "04-15 ~ 04-22" },
     { lessonId: 2, week: 2, classOpen: true, date: "04-15 ~ 04-22" },
@@ -98,16 +126,29 @@ function AsStudentMain() {
 
           <div className="class-participants-box">
             <p>참여자 목록</p>
-            {mockUpParticipants.map((x) => {
-              return (
-                <div className="stu-boxs">
-                  <span style={{ fontWeight: "bold", fontSize: 20 }}>
-                    {x.name}
-                  </span>
-                  <span style={{ color: "gray", fontSize: 13 }}>{x.email}</span>
-                </div>
-              );
-            })}
+            <div className="stu-boxs">
+              <span style={{ fontWeight: "bold", fontSize: 20 }}>
+                {courseInfo.participants && courseInfo.participants[0].name} (
+                <span>교수자</span>)
+              </span>
+
+              <span style={{ color: "gray", fontSize: 13 }}>
+                {courseInfo.participants && courseInfo.participants[0].email}
+              </span>
+            </div>
+            {courseInfo.participants &&
+              courseInfo.participants.slice(1).map((x) => {
+                return (
+                  <div className="stu-boxs">
+                    <span style={{ fontWeight: "bold", fontSize: 20 }}>
+                      {x.name}
+                    </span>
+                    <span style={{ color: "gray", fontSize: 13 }}>
+                      {x.email}
+                    </span>
+                  </div>
+                );
+              })}
           </div>
         </div>
       </div>

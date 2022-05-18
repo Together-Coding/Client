@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useState } from "react";
 import "../styles/IDE.scss";
 import Editor from "@monaco-editor/react";
@@ -15,37 +15,55 @@ import StudentDashBoard from "./StudentDashBoard";
 
 import io from "socket.io-client";
 
+const socket = io("https://ide-ws.together-coding.com/", {
+  auth: {
+    Authorization: "Bearer " + localStorage.getItem("access_token"),
+  },
+});
+
 function IDE() {
   let location = useLocation();
-  console.log(location);
-  let examples = {
-    javascript: 'console.log("hello javascript")',
-    c: '#include <stdio.h>\nint main(int argc, char* argv[])\n{\n    printf("Hello World");\n    return 0;\n}\n',
-    python: 'print("hello python")',
-  };
+  console.log(socket);
+
   let [sidebarBtn, setSidebarBtn] = useState("IDE");
   let [dirBtn, setDirBtn] = useState(false);
-  let [editorReady, setEditerReady] = useState(false);
+
   let [user, setUser] = useState("권순용");
 
   const [socketResponse, setSocketResponse] = useState("");
 
+  const monacoRef = useRef();
+
+  let [codeValue, setCodeValue] = useState(
+    '#include <stdio.h>\nint main(int argc, char* argv[])\n{\n    printf("Hello World");\n    return 0;\n}\n'
+  );
+
   // socket.io example
   useEffect(() => {
-    const socket = io();
-    socket.on("", (data) => {
-      setSocketResponse(data);
+    socket.emit("INIT_LESSON", {
+      courseId: 2,
+      lessonId: 3,
     });
   }, []);
 
-  function handleEditorDidMount() {
-    setEditerReady(true);
+  const editorDidMount = (editor, monaco) => {
+    monacoRef.current = editor;
+  };
+  //현재 라인, 코드 보여줌
+  function handleEditorChange(value, e) {
+    console.log(value);
+    setCodeValue(value);
+    console.log(monacoRef.current.getPosition());
   }
   const clickHandler = (e) => {
     setSidebarBtn(e.currentTarget.value);
   };
   const DirBtnHandler = () => {
     setDirBtn(!dirBtn);
+  };
+  let codeSet;
+  const saveCodeBtn = () => {
+    console.log(monacoRef.current.setModel(null));
   };
 
   return (
@@ -63,7 +81,7 @@ function IDE() {
           <a>Git</a>
           <a>배포</a>
           <a>창</a>
-          <a>도움말</a>
+          <button onClick={saveCodeBtn}>코드 저장</button>
           <span className="user">{user}</span>
         </div>
         <div className="second-nav">
@@ -109,8 +127,10 @@ function IDE() {
                 height="70vh"
                 theme="vs-dark"
                 defaultLanguage="c"
-                defaultValue={examples["c"]}
-                editorDidMount={handleEditorDidMount}
+                defaultValue={codeValue}
+                onChange={handleEditorChange}
+                onMount={editorDidMount}
+                keepCurrentModel={true}
               />
             </div>
             <Terminal />

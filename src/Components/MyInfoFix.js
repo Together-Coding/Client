@@ -2,9 +2,13 @@ import React, { useState } from "react";
 import "../styles/MyInfoFix.scss";
 import { API_URL } from "../constants";
 import axios from "axios";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 
 function MyInfoFix() {
+  let headers = {
+    Authorization: "Bearer " + localStorage.getItem("access_token") || "",
+  };
+
   let [changeName, setChangeName] = useState("");
 
   let [nowPwd, setNowPwd] = useState("");
@@ -14,16 +18,7 @@ function MyInfoFix() {
   let [pwdLength, setPwdLength] = useState(false);
 
   let [checkInputPwd, setCheckInputPwd] = useState(false);
-  // 이름 변경 요청 함수
-  const changeNameBtn = () => {
-    axios
-      .put(`${API_URL}/api/user`, {
-        name: changeName,
-      })
-      .then((res) => {
-        console.log(res);
-      });
-  };
+
   const pwdEvent = (e) => {
     setChangePwd(e.target.value);
     if (e.target.value.length >= 8) {
@@ -40,6 +35,20 @@ function MyInfoFix() {
       setCheckInputPwd(false);
     }
   };
+  // 이름 변경 요청 함수
+  const changeNameBtn = () => {
+    axios
+      .put(
+        `${API_URL}/api/user`,
+        {
+          name: changeName,
+        },
+        { headers }
+      )
+      .then((res) => {
+        console.log(res);
+      });
+  };
   // 비밀번호 변경 요청 함수
   const changePwdBtn = () => {
     let body = {
@@ -47,14 +56,15 @@ function MyInfoFix() {
       newPassword: changePwd,
       checkPassword: checkPwd,
     };
-    axios.put(`${API_URL}/api/password`, body).then((res) => {
+    axios.put(`${API_URL}/api/password`, body, { headers }).then((res) => {
       console.log(res);
     });
   };
+
   return (
     <>
       <div className="Info-nav-bar">
-      <p>
+        <p>
           <Link to="/">Together Coding</Link>
         </p>
       </div>
@@ -71,7 +81,8 @@ function MyInfoFix() {
         <div className="change-pwd-box">
           <h3>비밀 번호 변경</h3>
           <label>현재 비밀번호</label>
-          <input type="password"
+          <input
+            type="password"
             onChange={(e) => {
               setNowPwd(e.target.value);
             }}
@@ -93,7 +104,7 @@ function MyInfoFix() {
               </span>
             )}
           </span>
-          <input onChange={checkPwdEvent} type="password"/>
+          <input onChange={checkPwdEvent} type="password" />
           <button onClick={changePwdBtn}>비밀 번호 변경</button>
         </div>
       </div>
