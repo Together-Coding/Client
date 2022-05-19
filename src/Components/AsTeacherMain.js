@@ -25,6 +25,28 @@ function AsTeacherMain() {
 
   // 수업정보, 레슨정보 가져오기
   useEffect(() => {
+    const getCourseInfo = async () => {
+      const courseInfo = await axios.get(
+        `${API_URL}/api/course/${realCourseID}`,
+        { headers }
+      );
+      setCourseInfo(courseInfo.data);
+    };
+    getCourseInfo();
+  }, []);
+
+  useEffect(() => {
+    const getLessonInfo = async () => {
+      const lessonInfo = await axios.get(
+        `${API_URL}/api/lesson/${realCourseID}`,
+        { headers }
+      );
+      setLessonInfo(lessonInfo.data);
+    };
+    getLessonInfo();
+  }, []);
+  /*
+  useEffect(() => {
     axios
       .all([
         axios.get(`${API_URL}/api/course/${realCourseID}`, { headers }),
@@ -36,44 +58,26 @@ function AsTeacherMain() {
           setLessonInfo(res2.data);
         })
       )
-      .catch(() => {});
+      .catch((e) => {
+        console.log(e);
+      });
   }, []);
-
-  const lesson = [
-    {
-      id: 102,
-      name: "모두를 위한 프로그래밍: 파이썬",
-      description: "Getting Started with Python",
-    },
-    {
-      id: 104,
-      name: "파이썬 자료구조",
-      description: "Python Data Structures",
-    },
-    {
-      id: 105,
-      name: "파이썬을 이용한 웹 스크래핑",
-      description: "Using Python to Access Web Data",
-    },
-    {
-      id: 106,
-      name: "파이썬을 이용한 데이터베이스 처리",
-      description: "Using Databases With Python",
-    },
-  ];
-  
+*/
   const [Lang, setLang] = useState([]);
-  const [availableLang, setavailableLang] = useState([]);
+  console.log(courseInfo);
+  console.log(lessonInfo);
 
   // 사용 가능 언어 get 요청
   useEffect(() => {
     axios
       .get("https://dev-bridge.together-coding.com/api/runtimes/available")
       .then((res) => {
-        setLang(res.data.language);
+        setLang(res.data.image);
       });
   }, []);
-  console.log(Lang);
+
+  let availableLang = Lang.filter((val) => val.available === true);
+
   // 참여자 등록
   const addStudentBtn = () => {
     let body = {
@@ -90,37 +94,12 @@ function AsTeacherMain() {
         });
       setAddStuIsOpen(false);
       setParticipants([]);
+      window.location.reload();
     } else {
       return false;
     }
   };
-  // 레슨 등록
-  const addLessonBtn = () => {
-    if (addlessonName === "" || addlessonDes === "") {
-      alert("빈값을 입력하세요");
-      return false;
-    }
-    let body = {
-      name: addlessonName,
-      description: addlessonDes,
-      courseId: realCourseID,
-    };
-    if (window.confirm(addlessonName + " 수업을 등록하시겠습니까?")) {
-      axios
-        .post(`${API_URL}/api/lesson/${realCourseID}`, body, { headers })
-        .then((res) => {
-          if (res.status === 200) {
-            alert("레슨 등록 완료!");
-          }
-        });
-      setLessonName("");
-      setLessonDes("");
-      setModalIsOpen(false);
-    } else {
-      return false;
-    }
-  };
-  
+
   const [participants, setParticipants] = useState([]);
   let [participantsInput, setParticipantsInput] = useState("");
 
@@ -133,7 +112,7 @@ function AsTeacherMain() {
   // 레슨 추가 저장 state
   let [addlessonName, setLessonName] = useState("");
   let [addlessonDes, setLessonDes] = useState("");
-  let [addlessonLang, setLessonLang] = useState("");
+  let [addlessonLang, setLessonLang] = useState();
 
   // 레슨 추가 모달 컨트롤
   const addLessonInput = (e) => {
@@ -166,6 +145,37 @@ function AsTeacherMain() {
   let [changeLessonDes, setChangeLessonDes] = useState("");
 
   let [saveLessonID, setLessonID] = useState("");
+  // 레슨 등록
+  const addLessonBtn = () => {
+    if (
+      addlessonName === "" ||
+      addlessonDes === "" ||
+      addlessonLang === "none"
+    ) {
+      alert("빈값을 입력하세요");
+      return false;
+    }
+    let body = {
+      name: addlessonName,
+      description: addlessonDes,
+      courseId: realCourseID,
+      lang_image_id: Number(addlessonLang),
+    };
+    console.log(body);
+    if (window.confirm(addlessonName + " 수업을 등록하시겠습니까?")) {
+      axios.post(`${API_URL}/api/lesson`, body, { headers }).then((res) => {
+        if (res.status === 200) {
+          alert("레슨 등록 완료!");
+        }
+      });
+      setLessonName("");
+      setLessonDes("");
+      setModalIsOpen(false);
+      window.location.reload();
+    } else {
+      return false;
+    }
+  };
   //레슨 이름 변경 모달 컨트롤
   const changeLessonNameInput = (e) => {
     setChangeLessonName(e.target.value);
@@ -175,9 +185,14 @@ function AsTeacherMain() {
     let body = { name: changeLessonName };
     console.log(body);
     axios
-      .put(`${API_URL}/api/lesson/name/${saveLessonID}`, body)
+      .put(`${API_URL}/api/lesson/name/${saveLessonID}`, body, { headers })
       .then((res) => {
-        console.log(res);
+        if (res.status === 200) {
+          alert("변경 완료");
+          setModalChangeLessonName(false);
+          setChangeLessonName("");
+          window.location.reload();
+        }
       });
   };
   // 레슨 설명 변경 모달 컨트롤
@@ -189,9 +204,16 @@ function AsTeacherMain() {
     let body = { description: changeLessonDes };
     console.log(body);
     axios
-      .put(`${API_URL}/api/lesson/description/${saveLessonID}`, body)
+      .put(`${API_URL}/api/lesson/description/${saveLessonID}`, body, {
+        headers,
+      })
       .then((res) => {
-        console.log(res);
+        if (res.status === 200) {
+          alert("변경 완료");
+          setModalChangeLessonDes(false);
+          setChangeLessonDes("");
+          window.location.reload();
+        }
       });
   };
   // 로그아웃
@@ -207,9 +229,14 @@ function AsTeacherMain() {
   const delLessonBtn = (e) => {
     let lessonID = e.target.value;
     if (window.confirm("해당 레슨을 정말 종료 시키겠습니까?")) {
-      axios.delete(`${API_URL}/api/lesson/${lessonID}`).then((res) => {
-        console.log(res);
-      });
+      axios
+        .delete(`${API_URL}/api/lesson/${lessonID}`, { headers })
+        .then((res) => {
+          if (res.status === 200) {
+            alert("레슨 삭제 완료");
+            window.location.reload();
+          }
+        });
     } else {
       return false;
     }
@@ -245,6 +272,7 @@ function AsTeacherMain() {
       participantsCopy.push(participantsInput);
       setParticipants(participantsCopy);
       setParticipantsInput("");
+      window.location.reload();
     } else {
       return false;
     }
@@ -267,7 +295,14 @@ function AsTeacherMain() {
             수업 추가
           </button>
           <div className="class-fix-btn">
-            <button>코스 수정</button>
+            <Link
+              to={{
+                pathname: "/changeInfo",
+                state: { courseId: realCourseID },
+              }}
+            >
+              <button>코스 수정</button>
+            </Link>
             <button
               className="close-class-btn"
               style={{ backgroundColor: "#6c757e" }}
@@ -279,89 +314,96 @@ function AsTeacherMain() {
         </div>
         <div className="teacher-main-container">
           <div className="class-box-contain">
-            {lesson.map((x) => {
-              return (
-                <div className="class-box-teacher">
-                  <div className="class-box-nav-teacher">
-                    <p>
-                      <Link
-                        to={{
-                          pathname:
-                            "/course/" + courseID.id + "/lesson/" + x.id,
-                          state: {
-                            class: x.name,
-                            classDes: x.description,
-                            lessonId: x.id,
-                            asTeacher: location.state.asTeacher,
-                          },
-                        }}
-                      >
-                        {x.name}
-                      </Link>
-                      <button
-                        value={x.id}
-                        onClick={() => {
-                          setModalChangeLessonName(true);
-                          setLessonID(x.id);
-                        }}
-                      >
-                        <FontAwesomeIcon icon={faPenToSquare} />
-                      </button>
-                    </p>{" "}
-                    <span>
-                      {x.description}{" "}
-                      <button
-                        value={x.id}
-                        onClick={() => {
-                          setModalChangeLessonDes(true);
-                          setLessonID(x.id);
-                        }}
-                      >
-                        <FontAwesomeIcon icon={faPenToSquare} />
-                      </button>
-                    </span>
-                  </div>
-                  <div className="class-box-bottom">
-                    <p>세션 시간: </p>
-                    <p>학생수: </p>
-                    <p>질문수 :</p>
-                    <p>전체 피드백 수</p>
-
-                    <div style={{ borderTop: "1px solid gray" }}>
-                      <p>과제 개수: </p>
-                      <p>과제 완료 학생: </p>
-                      <div className="class-box-btns">
-                        <form style={{ marginBottom: 5 }}>
-                          <label
-                            className="template-label"
-                            htmlFor="file-upload"
-                          >
-                            템플릿 업로드
-                          </label>
-                          <input
-                            type="file"
-                            id="file-upload"
-                            style={{ display: "none" }}
-                            accept="zip,application/octet-stream,application/zip,application/x-zip,application/x-zip-compressed"
-                            onChange={templateUploadCtrl}
-                          />
-                        </form>
-                        <button className="template-btn">
-                          템플릿 다운로드
-                        </button>
+            {lessonInfo.length === 0 ? (
+              <h1 style={{ color: "gray" }}>수업을 추가해주세요!</h1>
+            ) : null}
+            {lessonInfo &&
+              lessonInfo.map((x) => {
+                return (
+                  <div key={x.lessonId} className="class-box-teacher">
+                    <div className="class-box-nav-teacher">
+                      <p>
+                        <Link
+                          to={{
+                            pathname:
+                              "/course/" +
+                              realCourseID +
+                              "/lesson/" +
+                              x.lessonId,
+                            state: {
+                              class: x.name,
+                              classDes: x.description,
+                              lessonId: x.lessonId,
+                              asTeacher: location.state.role,
+                            },
+                          }}
+                        >
+                          {x.name}
+                        </Link>
                         <button
                           value={x.id}
-                          className="del-class-btn"
-                          onClick={delLessonBtn}
+                          onClick={() => {
+                            setModalChangeLessonName(true);
+                            setLessonID(x.lessonId);
+                          }}
                         >
-                          레슨 삭제
+                          <FontAwesomeIcon icon={faPenToSquare} />
                         </button>
+                      </p>{" "}
+                      <span>
+                        {x.description}{" "}
+                        <button
+                          value={x.id}
+                          onClick={() => {
+                            setModalChangeLessonDes(true);
+                            setLessonID(x.lessonId);
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faPenToSquare} />
+                        </button>
+                      </span>
+                    </div>
+                    <div className="class-box-bottom">
+                      <p>세션 시간: </p>
+                      <p>학생수: </p>
+                      <p>질문수 :</p>
+                      <p>전체 피드백 수</p>
+
+                      <div style={{ borderTop: "1px solid gray" }}>
+                        <p>과제 개수: </p>
+                        <p>과제 완료 학생: </p>
+                        <div className="class-box-btns">
+                          <form style={{ marginBottom: 5 }}>
+                            <label
+                              className="template-label"
+                              htmlFor="file-upload"
+                            >
+                              템플릿 업로드
+                            </label>
+                            <input
+                              type="file"
+                              id="file-upload"
+                              style={{ display: "none" }}
+                              accept="zip,application/octet-stream,application/zip,application/x-zip,application/x-zip-compressed"
+                              onChange={templateUploadCtrl}
+                            />
+                          </form>
+                          <button className="template-btn">
+                            템플릿 다운로드
+                          </button>
+                          <button
+                            value={x.lessonId}
+                            className="del-class-btn"
+                            onClick={delLessonBtn}
+                          >
+                            레슨 삭제
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
           <div className="class-participants-box">
             <p>
@@ -373,7 +415,7 @@ function AsTeacherMain() {
             {courseInfo.participants &&
               courseInfo.participants.slice(1).map((item) => {
                 return (
-                  <div className="stu-boxs">
+                  <div key={item.userId} className="stu-boxs">
                     <span style={{ fontWeight: "bold", fontSize: 20 }}>
                       {item.name}
                     </span>
@@ -421,18 +463,21 @@ function AsTeacherMain() {
               <input required onChange={addlessonDesInput} />
               <label>Course ID</label>
               <input value={realCourseID} readOnly />
-              {/*
               <label>사용 언어</label>
-              <select required onChange={addLessonLangSelect}>
-                {Lang.map((x) => {
-                  return (
-                    <>
-                      <option>{x.name}</option>
-                    </>
-                  );
-                })}
+              <select onChange={addLessonLangSelect}>
+                <option value="none"></option>
+                {availableLang &&
+                  availableLang.map((x, idx) => {
+                    return (
+                      <>
+                        <option key={x.id} value={x.id}>
+                          {x.name}
+                        </option>
+                      </>
+                    );
+                  })}
               </select>
-              */}
+
               <button className="add-lesson-btn" onClick={addLessonBtn}>
                 레슨 등록
               </button>
@@ -489,9 +534,9 @@ function AsTeacherMain() {
               />
               <div className="stu-to-be-add">
                 <p>등록할 학생</p>
-                {participants.map((item) => (
+                {participants.map((item, idx) => (
                   <>
-                    <span>{item} | </span>
+                    <span key={idx}>{item} | </span>
                   </>
                 ))}
               </div>

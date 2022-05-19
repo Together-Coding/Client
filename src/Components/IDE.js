@@ -14,16 +14,16 @@ import TeacherDashBoard from "./TeacherDashBoard";
 import StudentDashBoard from "./StudentDashBoard";
 
 import io from "socket.io-client";
-
+/*
 const socket = io("https://ide-ws.together-coding.com/", {
   auth: {
     Authorization: "Bearer " + localStorage.getItem("access_token"),
   },
 });
-
+*/
 function IDE() {
   let location = useLocation();
-  console.log(socket);
+  //console.log(socket);
 
   let [sidebarBtn, setSidebarBtn] = useState("IDE");
   let [dirBtn, setDirBtn] = useState(false);
@@ -39,13 +39,13 @@ function IDE() {
   );
 
   // socket.io example
-  useEffect(() => {
+  /*useEffect(() => {
     socket.emit("INIT_LESSON", {
       courseId: 2,
       lessonId: 3,
     });
   }, []);
-
+*/
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
   };
@@ -86,7 +86,7 @@ function IDE() {
         </div>
         <div className="second-nav">
           <span>
-            {location.state.class} / {location.state.classDes}
+            {location.state.class} / {location.state.name}
           </span>{" "}
           {/*
           <div className="second-toolbar">

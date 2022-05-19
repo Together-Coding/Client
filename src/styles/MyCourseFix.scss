@@ -1,0 +1,39 @@
+.course-fix-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh
+}
+.change-teacher-box{
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+    margin-top: 50px;
+    border-bottom: 1px solid lightgrey;
+    label{
+        color: gray;
+        font-size: 20px;
+    }
+    input{
+        height: 30px;
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+    button {
+        border: none;
+        margin-top: 20px;
+        border-radius: 12px;
+        background-color: #78b4ea;
+        color: white;
+        height: 35px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 20px;
+        margin-bottom: 60px;
+    }
+}
+.change-course-pwd-box{
+    @extend .change-teacher-box;
+    border-bottom: none;
+}

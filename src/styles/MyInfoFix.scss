@@ -9,7 +9,7 @@
 .change-name-box{
     display: flex;
     flex-direction: column;
-    border-bottom: 1px solid lightgrey;
+    
     margin-top: 50px;
     label{
         color: gray;
@@ -36,8 +36,9 @@
 .change-pwd-box{
     display: flex;
     flex-direction: column;
+    border-top: 1px solid lightgrey;
     h3{
-        margin-top: 100px;
+        margin-top: 20px;
     }
     label{
         color: gray;

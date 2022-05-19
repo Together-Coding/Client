@@ -22,64 +22,26 @@ function AsStudentMain() {
 
   // 수업정보, 레슨정보 가져오기
   useEffect(() => {
-    axios
-      .all([
-        axios.get(`${API_URL}/api/course/${realCourseID}`, { headers }),
-        axios.get(`${API_URL}/api/lesson/${realCourseID}`, { headers }),
-      ])
-      .then(
-        axios.spread((res1, res2) => {
-          setCourseInfo(res1.data);
-          setLessonInfo(res2.data);
-        })
-      )
-      .catch(() => {});
+    const getCourseInfo = async () => {
+      const courseInfo = await axios.get(
+        `${API_URL}/api/course/${realCourseID}`,
+        { headers }
+      );
+      setCourseInfo(courseInfo.data);
+    };
+    getCourseInfo();
   }, []);
 
-  console.log(courseInfo);
-
-  const lesson = [
-    { lessonId: 1, week: 1, classOpen: true, date: "04-15 ~ 04-22" },
-    { lessonId: 2, week: 2, classOpen: true, date: "04-15 ~ 04-22" },
-    { lessonId: 3, week: 3, classOpen: true, date: "04-15 ~ 04-22" },
-    { lessonId: 4, week: 4, classOpen: true, date: "04-15 ~ 04-22" },
-    { lessonId: 5, week: 5, classOpen: true, date: "04-15 ~ 04-22" },
-    { lessonId: 6, week: 6, classOpen: false, date: "04-15 ~ 04-22" },
-    { lessonId: 7, week: 7, classOpen: false, date: "04-15 ~ 04-22" },
-    { lessonId: 8, week: 8, classOpen: false, date: "04-15 ~ 04-22" },
-  ];
-  const mockUpParticipants = [
-    {
-      userId: 102,
-      email: "teacher2@naver.com",
-      name: "teacher2",
-    },
-    {
-      userId: 11,
-      email: "student11@naver.com",
-      name: "student11",
-    },
-    {
-      userId: 12,
-      email: "student12@naver.com",
-      name: "student12",
-    },
-    {
-      userId: 13,
-      email: "student13@naver.com",
-      name: "student13",
-    },
-    {
-      userId: 14,
-      email: "student14@naver.com",
-      name: "student14",
-    },
-    {
-      userId: 15,
-      email: "student15@naver.com",
-      name: "student15",
-    },
-  ];
+  useEffect(() => {
+    const getLessonInfo = async () => {
+      const lessonInfo = await axios.get(
+        `${API_URL}/api/lesson/${realCourseID}`,
+        { headers }
+      );
+      setLessonInfo(lessonInfo.data);
+    };
+    getLessonInfo();
+  }, []);
 
   const logoutBtn = () => {
     if (window.confirm("로그아웃 하시겠습니까?")) {
@@ -101,27 +63,28 @@ function AsStudentMain() {
       <div style={{ marginRight: 30, marginLeft: 30 }}>
         <div className="student-main-container">
           <div className="class-box-contain">
-            {lesson.map((x) => {
-              return (
-                <div className="class-box-stu">
-                  <div className="stu-class-box-nav">
-                    <Link
-                      to={{
-                        pathname:
-                          "/course/" + courseID.id + "/lesson/" + x.lessonId,
-                        state: {
-                          class: location.state.class,
-                          week: x.week,
-                        },
-                      }}
-                    >
-                      <p>{x.week}주차</p>
-                      <span>{x.date}</span>
-                    </Link>
+            {lessonInfo &&
+              lessonInfo.map((x) => {
+                return (
+                  <div className="class-box-stu">
+                    <div className="stu-class-box-nav">
+                      <Link
+                        to={{
+                          pathname:
+                            "/course/" + x.courseId + "/lesson/" + x.lessonId,
+                          state: {
+                            class: location.state.class,
+                            name: x.name,
+                          },
+                        }}
+                      >
+                        <p>{x.name}</p>
+                        <span>{x.description}</span>
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
 
           <div className="class-participants-box">
@@ -129,7 +92,7 @@ function AsStudentMain() {
             <div className="stu-boxs">
               <span style={{ fontWeight: "bold", fontSize: 20 }}>
                 {courseInfo.participants && courseInfo.participants[0].name} (
-                <span>교수자</span>)
+                <span style={{ color: "#0d6efd" }}>교수자</span>)
               </span>
 
               <span style={{ color: "gray", fontSize: 13 }}>

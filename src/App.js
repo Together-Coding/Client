@@ -14,6 +14,7 @@ import AsTeacherMain from "./Components/AsTeacherMain";
 import AsStudentMain from "./Components/AsStudentMain";
 import MyInfoFix from "./Components/MyInfoFix";
 import Modal from "react-modal";
+import MyCourseFix from "./Components/MyCourseFix";
 function App() {
   return (
     <div className="App">
@@ -50,6 +51,9 @@ function App() {
         </Route>
         <Route path="/fix-info">
           <MyInfoFix />
+        </Route>
+        <Route path="/changeInfo">
+          <MyCourseFix />
         </Route>
       </Switch>
     </div>

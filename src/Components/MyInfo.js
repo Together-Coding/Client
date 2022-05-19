@@ -85,7 +85,7 @@ function MyInfo() {
       setCourseName("");
       setCoursePwd("");
       setCourseDescription("");
-      window.location.replace("/me");
+      window.location.reload();
     } else {
       return false;
     }
