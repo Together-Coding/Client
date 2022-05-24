@@ -16,6 +16,7 @@ function AsTeacherMain() {
   };
 
   const location = useLocation();
+  console.log(location);
   const history = useHistory();
   let courseID = useParams();
   const realCourseID = Number(courseID.id);
@@ -272,7 +273,6 @@ function AsTeacherMain() {
       participantsCopy.push(participantsInput);
       setParticipants(participantsCopy);
       setParticipantsInput("");
-      window.location.reload();
     } else {
       return false;
     }
@@ -282,7 +282,7 @@ function AsTeacherMain() {
     <>
       <div className="teacher-main-nav">
         <div>
-          {location.state.class} <span>({location.state.description})</span>
+          {courseInfo.name} <span>({courseInfo.description})</span>
         </div>
         <button onClick={logoutBtn}>로그아웃</button>
       </div>
@@ -333,8 +333,9 @@ function AsTeacherMain() {
                             state: {
                               class: x.name,
                               classDes: x.description,
+                              classId: realCourseID,
                               lessonId: x.lessonId,
-                              asTeacher: location.state.role,
+                              asTeacher: location.state.asTeacher,
                             },
                           }}
                         >

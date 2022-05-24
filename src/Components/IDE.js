@@ -6,27 +6,41 @@ import {
   faWindowMaximize,
   faFolderOpen,
   faChalkboardUser,
+  faPeopleArrowsLeftRight
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
 import { useLocation } from "react-router-dom";
 import TeacherDashBoard from "./TeacherDashBoard";
 import StudentDashBoard from "./StudentDashBoard";
+import { WSClient } from "../utils/websocket";
 
 import io from "socket.io-client";
-/*
-const socket = io("https://ide-ws.together-coding.com/", {
-  auth: {
-    Authorization: "Bearer " + localStorage.getItem("access_token"),
-  },
-});
-*/
+
 function IDE() {
   let location = useLocation();
-  //console.log(socket);
+  const courseId = location.state.classId;
+  const lessonId = location.state.lessonId;
+
+  let activeStu;
+  let notActiveStu;
+
+  let [stuInfo, setStuInfo] = useState([]);
+
+  activeStu = stuInfo.filter(
+    (item) => item.project !== null && item.project.active === true
+  );
+  notActiveStu = stuInfo.filter(
+    (item) => item.project === null || item.project.active === false
+  );
+
+  // socket.io example
+  useEffect(() => {
+    runSocket(courseId, lessonId);
+  }, []);
 
   let [sidebarBtn, setSidebarBtn] = useState("IDE");
-  let [dirBtn, setDirBtn] = useState(false);
+  let [sidebarBtn2, setSidebarBtn2] = useState("");
 
   let [user, setUser] = useState("권순용");
 
@@ -38,14 +52,6 @@ function IDE() {
     '#include <stdio.h>\nint main(int argc, char* argv[])\n{\n    printf("Hello World");\n    return 0;\n}\n'
   );
 
-  // socket.io example
-  /*useEffect(() => {
-    socket.emit("INIT_LESSON", {
-      courseId: 2,
-      lessonId: 3,
-    });
-  }, []);
-*/
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
   };
@@ -58,13 +64,51 @@ function IDE() {
   const clickHandler = (e) => {
     setSidebarBtn(e.currentTarget.value);
   };
-  const DirBtnHandler = () => {
-    setDirBtn(!dirBtn);
+  const stuAndDirBtnHandler = (e) => {
+    setSidebarBtn2(e.currentTarget.value);
   };
   let codeSet;
   const saveCodeBtn = () => {
     console.log(monacoRef.current.setModel(null));
   };
+
+  const subsEvents = (socket) => {
+    socket.on("INIT_LESSON", (data) => {
+      console.log(data);
+    });
+    socket.on("ALL_PARTICIPANT", (args) => {
+      setStuInfo(args);
+    });
+  };
+
+  const runSocket = (courseID, lessonID) => {
+    let socket = io("https://ide-ws.together-coding.com/", {
+      auth: {
+        Authorization: "Bearer " + localStorage.getItem("access_token"),
+      },
+    });
+
+    subsEvents(socket);
+
+    socket.on("connect", () => {
+      console.log("connected");
+
+      socket.emit("INIT_LESSON", {
+        courseId: courseID,
+        lessonId: lessonID,
+      });
+      socket.emit("ALL_PARTICIPANT");
+    });
+
+    socket.on("disconnect", () => {
+      console.log("user disconnected");
+    });
+    socket.on("connect_error", (err) => {
+      console.log(`connect_error due to ${err.message}`);
+    });
+  };
+
+  console.log(stuInfo);
 
   return (
     <div>
@@ -112,14 +156,23 @@ function IDE() {
             </button>
             <span>대쉬보드</span>
 
-            <button onClick={DirBtnHandler} value="디렉토리">
+            <button value="디렉토리" onClick={stuAndDirBtnHandler}>
               <FontAwesomeIcon icon={faFolderOpen} />
             </button>
             <span>디렉토리</span>
+
+            <button value="학생" onClick={stuAndDirBtnHandler}>
+              <FontAwesomeIcon icon={faPeopleArrowsLeftRight} />
+            </button>
+            <span>학생 현황</span>
           </div>
         </div>
         {/*-----------code input and terminal-----------*/}
-        {dirBtn ? <SideExplorer /> : null}
+        {sidebarBtn2 === "디렉토리" ? (
+          <SideExplorer />
+        ) : (
+          <SideExplorer2 activeStu={activeStu} notActiveStu={notActiveStu} />
+        )}
         {sidebarBtn === "IDE" ? (
           <div className="terminal">
             <div className="editor">
@@ -135,7 +188,7 @@ function IDE() {
             </div>
             <Terminal />
           </div>
-        ) : location.state.asTeacher ? (
+        ) : location.state.asTeacher === "teacher" ? (
           <TeacherDashBoard />
         ) : (
           <StudentDashBoard />
@@ -151,6 +204,36 @@ function SideExplorer() {
       <p className="side-navbar">
         <span>디렉토리</span>
       </p>
+    </div>
+  );
+}
+function SideExplorer2({ activeStu, notActiveStu }) {
+  return (
+    <div className="side-explorer">
+      <p className="side-navbar">
+        <div className="online-stu"></div>
+        <span>온라인</span>
+      </p>
+      {activeStu &&
+        activeStu.map((item) => {
+          return (
+            <div className="stu-list">
+              <span>{item.nickname}</span>
+            </div>
+          );
+        })}
+      <p className="side-navbar">
+        <div className="offline-stu"></div>
+        <span>오프라인</span>
+      </p>
+      {notActiveStu &&
+        notActiveStu.map((item) => {
+          return (
+            <div className="stu-list">
+              <span>{item.nickname}</span>
+            </div>
+          );
+        })}
     </div>
   );
 }
