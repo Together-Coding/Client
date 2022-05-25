@@ -6,7 +6,7 @@ import {
   faWindowMaximize,
   faFolderOpen,
   faChalkboardUser,
-  faPeopleArrowsLeftRight
+  faPeopleArrowsLeftRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
@@ -22,35 +22,33 @@ function IDE() {
   const courseId = location.state.classId;
   const lessonId = location.state.lessonId;
 
+  let [userfile, setUserFile] = useState([]);
+  // let userId;
+  const [userId, setUserId] = useState(0);
+
   let activeStu;
   let notActiveStu;
 
   let [stuInfo, setStuInfo] = useState([]);
 
-  activeStu = stuInfo.filter(
-    (item) => item.project !== null && item.project.active === true
-  );
-  notActiveStu = stuInfo.filter(
-    (item) => item.project === null || item.project.active === false
-  );
+  activeStu = stuInfo.filter((item) => item.active === true);
+  notActiveStu = stuInfo.filter((item) => item.active === false);
 
   // socket.io example
   useEffect(() => {
-    runSocket(courseId, lessonId);
-  }, []);
+    runSocket();
+  }, [userId]);
 
   let [sidebarBtn, setSidebarBtn] = useState("IDE");
   let [sidebarBtn2, setSidebarBtn2] = useState("");
 
-  let [user, setUser] = useState("권순용");
-
   const [socketResponse, setSocketResponse] = useState("");
 
   const monacoRef = useRef();
+  const socketio = useRef();
 
-  let [codeValue, setCodeValue] = useState(
-    '#include <stdio.h>\nint main(int argc, char* argv[])\n{\n    printf("Hello World");\n    return 0;\n}\n'
-  );
+  let [codeValue, setCodeValue] = useState("");
+  let [codeLang, setCodeLang] = useState("");
 
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
@@ -67,49 +65,134 @@ function IDE() {
   const stuAndDirBtnHandler = (e) => {
     setSidebarBtn2(e.currentTarget.value);
   };
-  let codeSet;
   const saveCodeBtn = () => {
     console.log(monacoRef.current.setModel(null));
   };
 
-  const subsEvents = (socket) => {
-    socket.on("INIT_LESSON", (data) => {
-      console.log(data);
+  const saveUserInfo = (data) => {
+    setUserId((prev) => {
+      return data.ptcId;
     });
-    socket.on("ALL_PARTICIPANT", (args) => {
-      setStuInfo(args);
-    });
+    console.log(data);
+  };
+  const saveCode = (data) => {
+    if (data.file.slice(-1) === "c") {
+      setCodeLang("c");
+      setCodeValue((prev) => {
+        return data.content;
+      });
+    } else if (data.file.slice(-2) === "py") {
+      setCodeLang("python");
+      setCodeValue((prev) => {
+        return data.content;
+      });
+    } else if (data.file.slice(-2) === "js") {
+      setCodeLang("javascript");
+      setCodeValue((prev) => {
+        return data.content;
+      });
+    } else if (data.file.slice(-2) === "md") {
+      setCodeLang("markdown");
+      setCodeValue((prev) => {
+        return data.content;
+      });
+    } else {
+      setCodeLang("plaintext");
+      setCodeValue((prev) => {
+        return data.content;
+      });
+    }
   };
 
-  const runSocket = (courseID, lessonID) => {
-    let socket = io("https://ide-ws.together-coding.com/", {
-      auth: {
-        Authorization: "Bearer " + localStorage.getItem("access_token"),
-      },
-    });
+  const filterFile = (args) => {
+    if (args) {
+      let filterData = args.file.map((i) => decodeURIComponent(window.atob(i)));
+      setUserFile(filterData);
+    }
+  };
 
-    subsEvents(socket);
+  const changeStuActive = (args) => {
+    let findIndex = stuInfo.findIndex((i) => i.id === args.id);
+    let copy = [...stuInfo];
+    if (findIndex !== -1) {
+      copy[findIndex] = { ...copy[findIndex], active: args.active };
+    }
+    setStuInfo(copy);
+  };
 
+  const subsCommonEvents = (socket) => {
     socket.on("connect", () => {
       console.log("connected");
 
+      // INIT_LESSON 에서 수업 정보를 구독하면, 나의 참여 ID 를 받음
       socket.emit("INIT_LESSON", {
-        courseId: courseID,
-        lessonId: lessonID,
+        courseId: courseId,
+        lessonId: lessonId,
       });
-      socket.emit("ALL_PARTICIPANT");
     });
 
     socket.on("disconnect", () => {
       console.log("user disconnected");
     });
+
     socket.on("connect_error", (err) => {
       console.log(`connect_error due to ${err.message}`);
     });
   };
 
-  console.log(stuInfo);
+  const emitEventsOnInit = (socket) => {
+    socket.emit("ALL_PARTICIPANT");
 
+    getDirectory(socket);
+  };
+
+  const subsEvents = (socket) => {
+    socket.on("INIT_LESSON", (data) => {
+      // 유저 정보 저장
+      saveUserInfo(data);
+
+      // IDE 데이터 요청
+      emitEventsOnInit(socket);
+    });
+
+    socket.on("ALL_PARTICIPANT", (args) => {
+      setStuInfo(args);
+    });
+
+    socket.on("PARTICIPANT_STATUS", (args) => {
+      console.log(args);
+      if (args) {
+        changeStuActive(args);
+      }
+    });
+
+    socket.on("ACTIVITY_PING");
+
+    socket.on("DIR_INFO", (args) => {
+      console.log(args);
+      filterFile(args);
+    });
+    socket.on("FILE_READ", (data) => {
+      saveCode(data);
+    });
+  };
+
+  const getDirectory = (socket) => {
+    socket.emit("DIR_INFO", {
+      targetId: userId,
+    });
+  };
+
+  const runSocket = () => {
+    console.log(userId);
+    socketio.current = io("https://ide-ws.together-coding.com/", {
+      auth: {
+        Authorization: "Bearer " + localStorage.getItem("access_token"),
+      },
+    });
+    subsCommonEvents(socketio.current);
+    subsEvents(socketio.current);
+  };
   return (
     <div>
       {/*--------------navbar--------------*/}
@@ -126,11 +209,10 @@ function IDE() {
           <a>배포</a>
           <a>창</a>
           <button onClick={saveCodeBtn}>코드 저장</button>
-          <span className="user">{user}</span>
         </div>
         <div className="second-nav">
           <span>
-            {location.state.class} / {location.state.name}
+            {location.state.class} / {location.state.classDes}
           </span>{" "}
           {/*
           <div className="second-toolbar">
@@ -169,7 +251,11 @@ function IDE() {
         </div>
         {/*-----------code input and terminal-----------*/}
         {sidebarBtn2 === "디렉토리" ? (
-          <SideExplorer />
+          <SideExplorer
+            userfile={userfile}
+            socketio={socketio}
+            userId={userId}
+          />
         ) : (
           <SideExplorer2 activeStu={activeStu} notActiveStu={notActiveStu} />
         )}
@@ -179,8 +265,8 @@ function IDE() {
               <Editor
                 height="70vh"
                 theme="vs-dark"
-                defaultLanguage="c"
-                defaultValue={codeValue}
+                language={codeLang}
+                value={codeValue}
                 onChange={handleEditorChange}
                 onMount={editorDidMount}
                 keepCurrentModel={true}
@@ -198,12 +284,30 @@ function IDE() {
   );
 }
 
-function SideExplorer() {
+function SideExplorer({ userfile, socketio, userId }) {
   return (
     <div className="side-explorer">
       <p className="side-navbar">
         <span>디렉토리</span>
       </p>
+      {userfile &&
+        userfile.map((i) => {
+          return (
+            <div>
+              <span
+                value={i}
+                onClick={() => {
+                  socketio.current.emit("FILE_READ", {
+                    ownerId: userId,
+                    file: i,
+                  });
+                }}
+              >
+                {i}
+              </span>
+            </div>
+          );
+        })}
     </div>
   );
 }
@@ -215,9 +319,9 @@ function SideExplorer2({ activeStu, notActiveStu }) {
         <span>온라인</span>
       </p>
       {activeStu &&
-        activeStu.map((item) => {
+        activeStu.map((item, idx) => {
           return (
-            <div className="stu-list">
+            <div className="stu-list" key={idx}>
               <span>{item.nickname}</span>
             </div>
           );
@@ -227,9 +331,9 @@ function SideExplorer2({ activeStu, notActiveStu }) {
         <span>오프라인</span>
       </p>
       {notActiveStu &&
-        notActiveStu.map((item) => {
+        notActiveStu.map((item, idx) => {
           return (
-            <div className="stu-list">
+            <div className="stu-list" style={{ color: "grey" }} key={idx}>
               <span>{item.nickname}</span>
             </div>
           );
