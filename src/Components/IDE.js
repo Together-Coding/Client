@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useState } from "react";
 import "../styles/IDE.scss";
 import Editor from "@monaco-editor/react";
@@ -13,7 +13,6 @@ import { Terminal } from "./Terminal";
 import { useLocation } from "react-router-dom";
 import TeacherDashBoard from "./TeacherDashBoard";
 import StudentDashBoard from "./StudentDashBoard";
-import { WSClient } from "../utils/websocket";
 
 import io from "socket.io-client";
 
@@ -37,6 +36,10 @@ function IDE() {
   // socket.io example
   useEffect(() => {
     runSocket();
+    console.log("render");
+    return ()=>{
+      getDirectory(socketio.current)
+    }
   }, [userId]);
 
   let [sidebarBtn, setSidebarBtn] = useState("IDE");
@@ -50,13 +53,19 @@ function IDE() {
   let [codeValue, setCodeValue] = useState("");
   let [codeLang, setCodeLang] = useState("");
 
+  let [inputToggle, setInputToggle] = useState(false);
+  let [fileTarget, setFileTarget] = useState("");
+
+  let [renameCode, setRenameCode] = useState("");
+
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
   };
   //현재 라인, 코드 보여줌
   function handleEditorChange(value, e) {
     console.log(value);
-    setCodeValue(value);
+    let codeCopy=value
+    setCodeValue(codeCopy);
     console.log(monacoRef.current.getPosition());
   }
   const clickHandler = (e) => {
@@ -69,13 +78,37 @@ function IDE() {
     console.log(monacoRef.current.setModel(null));
   };
 
+  const inputCtrl = (file) => {
+    if (inputToggle === true && renameCode !== "") {
+      socketio.current.emit("FILE_UPDATE", {
+        ownerId: userId,
+        type: "file",
+        name: file,
+        rename: renameCode,
+      });
+    }
+    setRenameCode("");
+    socketio.current.on("FILE_UPDATE", (data) => {
+      if (userfile.length > 0) {
+        console.log(userfile);
+        let copy = [...userfile];
+        let findIndex = copy.findIndex((i) => i === data.name);
+        if (findIndex !== -1) {
+          copy[findIndex] = data.rename;
+        }
+        setUserFile([...copy])
+      }
+    });
+  };
+
   const saveUserInfo = (data) => {
     setUserId((prev) => {
       return data.ptcId;
     });
-    console.log(data);
   };
+  // todo: 디렉토리 있을때 처리
   const saveCode = (data) => {
+    console.log(data);
     if (data.file.slice(-1) === "c") {
       setCodeLang("c");
       setCodeValue((prev) => {
@@ -117,7 +150,7 @@ function IDE() {
     if (findIndex !== -1) {
       copy[findIndex] = { ...copy[findIndex], active: args.active };
     }
-    setStuInfo(copy);
+    setStuInfo({...copy});
   };
 
   const subsCommonEvents = (socket) => {
@@ -154,6 +187,7 @@ function IDE() {
       // IDE 데이터 요청
       emitEventsOnInit(socket);
     });
+    
 
     socket.on("ALL_PARTICIPANT", (args) => {
       setStuInfo(args);
@@ -169,7 +203,6 @@ function IDE() {
     socket.on("ACTIVITY_PING");
 
     socket.on("DIR_INFO", (args) => {
-      console.log(args);
       filterFile(args);
     });
     socket.on("FILE_READ", (data) => {
@@ -181,10 +214,10 @@ function IDE() {
     socket.emit("DIR_INFO", {
       targetId: userId,
     });
+    
   };
 
   const runSocket = () => {
-    console.log(userId);
     socketio.current = io("https://ide-ws.together-coding.com/", {
       auth: {
         Authorization: "Bearer " + localStorage.getItem("access_token"),
@@ -241,7 +274,7 @@ function IDE() {
             <button value="디렉토리" onClick={stuAndDirBtnHandler}>
               <FontAwesomeIcon icon={faFolderOpen} />
             </button>
-            <span>디렉토리</span>
+            <span>내 파일</span>
 
             <button value="학생" onClick={stuAndDirBtnHandler}>
               <FontAwesomeIcon icon={faPeopleArrowsLeftRight} />
@@ -251,13 +284,84 @@ function IDE() {
         </div>
         {/*-----------code input and terminal-----------*/}
         {sidebarBtn2 === "디렉토리" ? (
-          <SideExplorer
-            userfile={userfile}
-            socketio={socketio}
-            userId={userId}
-          />
+          <div className="side-explorer">
+            <p className="side-navbar">
+              <span>내 파일</span>
+            </p>
+            <div className="file-container">
+              {userfile &&
+                userfile.map((i, idx) => {
+                  return (
+                    <div className="file-bar" key={idx}>
+                      <div className="files-btns">
+                        <span
+                          value={i}
+                          onClick={() => {
+                            socketio.current.emit("FILE_READ", {
+                              ownerId: userId,
+                              file: i,
+                            });
+                          }}
+                        >
+                          {i}
+                        </span>
+                        <div>
+                          <button
+                            value={i}
+                            onClick={(e) => {
+                              setInputToggle(!inputToggle);
+                              setFileTarget(e.currentTarget.value);
+                              inputCtrl(i);
+                            }}
+                          >
+                            {inputToggle && fileTarget === i ? "저장" : "수정"}
+                          </button>
+                          <button>삭제</button>
+                        </div>
+                      </div>
+                      {inputToggle && fileTarget === i ? (
+                        <div className="input-file">
+                          <input
+                          defaultValue={i}
+                            spellCheck="false"
+                            onChange={(e) => {
+                              setRenameCode(e.target.value);
+                            }}
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
         ) : (
-          <SideExplorer2 activeStu={activeStu} notActiveStu={notActiveStu} />
+          <div className="side-explorer">
+            <p className="side-navbar">
+              <div className="online-stu"></div>
+              <span>온라인</span>
+            </p>
+            {activeStu &&
+              activeStu.map((item, idx) => {
+                return (
+                  <div className="stu-list" key={idx}>
+                    <span>{item.nickname}</span>
+                  </div>
+                );
+              })}
+            <p className="side-navbar">
+              <div className="offline-stu"></div>
+              <span>오프라인</span>
+            </p>
+            {notActiveStu &&
+              notActiveStu.map((item, idx) => {
+                return (
+                  <div className="stu-list" style={{ color: "grey" }} key={idx}>
+                    <span>{item.nickname}</span>
+                  </div>
+                );
+              })}
+          </div>
         )}
         {sidebarBtn === "IDE" ? (
           <div className="terminal">
@@ -283,31 +387,75 @@ function IDE() {
     </div>
   );
 }
-
+/*
 function SideExplorer({ userfile, socketio, userId }) {
+  console.log(userfile)
+  let [inputToggle, setInputToggle] = useState(false);
+  let [fileTarget, setFileTarget] = useState("");
+
+  let [renameCode, setRenameCode] = useState("");
+
+  const inputCtrl = (file) => {
+    if (inputToggle === true && renameCode !== "") {
+      socketio.current.emit("FILE_UPDATE", {
+        ownerId: userId,
+        type: "file",
+        name: file,
+        rename: renameCode,
+      });
+    }
+    setRenameCode("");
+  };
   return (
     <div className="side-explorer">
       <p className="side-navbar">
-        <span>디렉토리</span>
+        <span>내 파일</span>
       </p>
-      {userfile &&
-        userfile.map((i) => {
-          return (
-            <div>
-              <span
-                value={i}
-                onClick={() => {
-                  socketio.current.emit("FILE_READ", {
-                    ownerId: userId,
-                    file: i,
-                  });
-                }}
-              >
-                {i}
-              </span>
-            </div>
-          );
-        })}
+      <div className="file-container">
+        {userfile &&
+          userfile.map((i, idx) => {
+            return (
+              <div className="file-bar" key={idx}>
+                <div className="files-btns">
+                  <span
+                    value={i}
+                    onClick={() => {
+                      socketio.current.emit("FILE_READ", {
+                        ownerId: userId,
+                        file: i,
+                      });
+                    }}
+                  >
+                    {i}
+                  </span>
+                  <div>
+                    <button
+                      value={i}
+                      onClick={(e) => {
+                        setInputToggle(!inputToggle);
+                        setFileTarget(e.currentTarget.value);
+                        inputCtrl(i);
+                      }}
+                    >
+                      {inputToggle && fileTarget === i ? "저장" : "수정"}
+                    </button>
+                    <button>삭제</button>
+                  </div>
+                </div>
+                {inputToggle && fileTarget === i ? (
+                  <div className="input-file">
+                    <input
+                      spellCheck="false"
+                      onChange={(e) => {
+                        setRenameCode(e.target.value);
+                      }}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+      </div>
     </div>
   );
 }
