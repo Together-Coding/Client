@@ -16,12 +16,12 @@ import StudentDashBoard from "./StudentDashBoard";
 
 import io from "socket.io-client";
 
-function IDE() {
+const IDE = () => {
   let location = useLocation();
   const courseId = location.state.classId;
   const lessonId = location.state.lessonId;
 
-  let [userfile, setUserFile] = useState([]);
+  let [userFile, setUserFile] = useState([]);
   // let userId;
   const [userId, setUserId] = useState(0);
 
@@ -30,17 +30,44 @@ function IDE() {
 
   let [stuInfo, setStuInfo] = useState([]);
 
-  activeStu = stuInfo.filter((item) => item.active === true);
-  notActiveStu = stuInfo.filter((item) => item.active === false);
+  let files = [
+    { folder: [{ folder2: ["hihi.txt"] }, "empty_file.txt", "inner file.txt"] },
+    "user16.txt",
+    "reagjjjd.md",
+  ];
 
+  let files2 = [
+    "folder/empty_file.txt",
+    "folder/inner file.txt",
+    "user16.txt",
+    "reagjjjd.md",
+    "folder/folder2/hi.txt",
+  ];
+  
+  let newArr=files2.reduce((res,path)=>{
+    let convertArr=path.split("/")
+    let parent=res;
+    let treePath=convertArr.forEach(ele=>{
+      let temParent=parent.find(el=>el.path===ele)
+      if(!temParent){
+        let tmp={path:ele, children:[]}
+        parent.push(tmp);
+        parent=tmp.children
+      }else{
+        parent=temParent.children
+      }
+    })
+    return res
+  },[])
+
+  console.log(files);
+
+ 
   // socket.io example
   useEffect(() => {
     runSocket();
     console.log("render");
-    return ()=>{
-      getDirectory(socketio.current)
-    }
-  }, [userId]);
+  }, []);
 
   let [sidebarBtn, setSidebarBtn] = useState("IDE");
   let [sidebarBtn2, setSidebarBtn2] = useState("");
@@ -64,7 +91,7 @@ function IDE() {
   //현재 라인, 코드 보여줌
   function handleEditorChange(value, e) {
     console.log(value);
-    let codeCopy=value
+    let codeCopy = value;
     setCodeValue(codeCopy);
     console.log(monacoRef.current.getPosition());
   }
@@ -88,17 +115,6 @@ function IDE() {
       });
     }
     setRenameCode("");
-    socketio.current.on("FILE_UPDATE", (data) => {
-      if (userfile.length > 0) {
-        console.log(userfile);
-        let copy = [...userfile];
-        let findIndex = copy.findIndex((i) => i === data.name);
-        if (findIndex !== -1) {
-          copy[findIndex] = data.rename;
-        }
-        setUserFile([...copy])
-      }
-    });
   };
 
   const saveUserInfo = (data) => {
@@ -137,20 +153,29 @@ function IDE() {
     }
   };
 
+  /**
+   * 파일명이 _ 인 경우는 유저에게 보여주지 않는다.
+   */
+  const filterOutFile = (filename) => {
+    return !filename.endsWith("_");
+  };
+
   const filterFile = (args) => {
     if (args) {
-      let filterData = args.file.map((i) => decodeURIComponent(window.atob(i)));
-      setUserFile(filterData);
+      let filterData = args.file
+        .map((i) => decodeURIComponent(window.atob(i)))
+        .filter(filterOutFile);
+      setUserFile([...filterData]);
     }
   };
 
   const changeStuActive = (args) => {
-    let findIndex = stuInfo.findIndex((i) => i.id === args.id);
     let copy = [...stuInfo];
+    let findIndex = copy.findIndex((i) => i.id === args.id);
     if (findIndex !== -1) {
       copy[findIndex] = { ...copy[findIndex], active: args.active };
     }
-    setStuInfo({...copy});
+    setStuInfo({ ...copy });
   };
 
   const subsCommonEvents = (socket) => {
@@ -173,48 +198,65 @@ function IDE() {
     });
   };
 
-  const emitEventsOnInit = (socket) => {
+  const emitEventsOnInit = (socket, _userId = null) => {
     socket.emit("ALL_PARTICIPANT");
 
-    getDirectory(socket);
+    getDirectory(socket, _userId);
   };
 
-  const subsEvents = (socket) => {
+  let subsEvents = (socket) => {
     socket.on("INIT_LESSON", (data) => {
       // 유저 정보 저장
+      let _userId = data.ptcId;
       saveUserInfo(data);
 
       // IDE 데이터 요청
-      emitEventsOnInit(socket);
+      emitEventsOnInit(socket, data.ptcId);
     });
-    
 
     socket.on("ALL_PARTICIPANT", (args) => {
       setStuInfo(args);
     });
 
-    socket.on("PARTICIPANT_STATUS", (args) => {
-      console.log(args);
-      if (args) {
-        changeStuActive(args);
+    socket.on("PARTICIPANT_STATUS", async (args) => {
+      let user = await args;
+      if (user) {
+        changeStuActive(user);
       }
     });
 
     socket.on("ACTIVITY_PING");
 
     socket.on("DIR_INFO", (args) => {
+      console.log(args);
       filterFile(args);
     });
+
     socket.on("FILE_READ", (data) => {
       saveCode(data);
     });
+
+    socket.on("FILE_UPDATE", (data) => {
+      setUserFile((userFile) => {
+        if (userFile.length > 0) {
+          console.log(userFile);
+          let copy = [...userFile];
+          let findIndex = copy.findIndex((i) => i === data.name);
+          if (findIndex !== -1) {
+            copy[findIndex] = data.rename;
+          }
+          console.log("#");
+          return [...copy];
+        }
+        return userFile;
+      });
+    });
   };
 
-  const getDirectory = (socket) => {
+  const getDirectory = (socket, _userId = null) => {
     socket.emit("DIR_INFO", {
-      targetId: userId,
+      targetId: _userId || userId,
     });
-    
   };
 
   const runSocket = () => {
@@ -223,6 +265,7 @@ function IDE() {
         Authorization: "Bearer " + localStorage.getItem("access_token"),
       },
     });
+
     subsCommonEvents(socketio.current);
     subsEvents(socketio.current);
   };
@@ -289,8 +332,8 @@ function IDE() {
               <span>내 파일</span>
             </p>
             <div className="file-container">
-              {userfile &&
-                userfile.map((i, idx) => {
+              {userFile &&
+                userFile.map((i, idx) => {
                   return (
                     <div className="file-bar" key={idx}>
                       <div className="files-btns">
@@ -322,7 +365,7 @@ function IDE() {
                       {inputToggle && fileTarget === i ? (
                         <div className="input-file">
                           <input
-                          defaultValue={i}
+                            defaultValue={i}
                             spellCheck="false"
                             onChange={(e) => {
                               setRenameCode(e.target.value);
@@ -386,10 +429,10 @@ function IDE() {
       </div>
     </div>
   );
-}
+};
 /*
-function SideExplorer({ userfile, socketio, userId }) {
-  console.log(userfile)
+function SideExplorer({ userFile, socketio, userId }) {
+  console.log(userFile)
   let [inputToggle, setInputToggle] = useState(false);
   let [fileTarget, setFileTarget] = useState("");
 
@@ -412,8 +455,8 @@ function SideExplorer({ userfile, socketio, userId }) {
         <span>내 파일</span>
       </p>
       <div className="file-container">
-        {userfile &&
-          userfile.map((i, idx) => {
+        {userFile &&
+          userFile.map((i, idx) => {
             return (
               <div className="file-bar" key={idx}>
                 <div className="files-btns">

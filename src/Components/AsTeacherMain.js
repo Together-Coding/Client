@@ -24,6 +24,7 @@ function AsTeacherMain() {
   let [courseInfo, setCourseInfo] = useState([]);
   let [lessonInfo, setLessonInfo] = useState([]);
 
+  let fileUrl;
   // 수업정보, 레슨정보 가져오기
   useEffect(() => {
     const getCourseInfo = async () => {
@@ -245,23 +246,45 @@ function AsTeacherMain() {
   };
   // 템플릿 업로드
   const templateUploadCtrl = (e) => {
-    e.preventDefault();
-
     if (e.target.files) {
-      const uploadFile = e.target.files[0];
       const formData = new FormData();
-      formData.append("files", uploadFile);
-      //디버깅용 for문
+      const uploadFile = e.target.files[0];
+
+      formData.append("file", uploadFile);
+
+      let body = {
+        courseId: realCourseID,
+        lessonId: lessonIdforFile,
+      };
+
+      const val = JSON.stringify(body);
+      const blob = new Blob([val], { type: "application/json" });
+      formData.append("uploadDTO", blob);
+      //디버그용 for문
       for (let value of formData.values()) {
         console.log(value);
       }
-
-      axios.post(`${API_URL}/`, formData).then((res) => {
-        console.log(res);
-      });
+      axios
+        .post(`${API_URL}/api/file`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: "Bearer " + localStorage.getItem("access_token"),
+          },
+        })
+        .then((res) => {
+          if (res.status === 200) {
+            window.location.reload();
+          } else {
+            alert("예상치 못한 오류가 발생하였습니다. 관리자에게 문의 하세요");
+            return false;
+          }
+        })
+        .catch((e) => {
+          console.log(e);
+        });
     }
   };
-
+  let [lessonIdforFile, setLessonIdforFile] = useState(0);
   // 참여자 추가 모달 내의 참여자 추가 함수
   const inputPlus = () => {
     if (participantsInput === "") {
@@ -378,20 +401,53 @@ function AsTeacherMain() {
                             <label
                               className="template-label"
                               htmlFor="file-upload"
+                              name={x.lessonId}
+                              onClick={() => setLessonIdforFile(x.lessonId)}
                             >
                               템플릿 업로드
                             </label>
                             <input
                               type="file"
+                              name={x.lessonId}
                               id="file-upload"
                               style={{ display: "none" }}
                               accept="zip,application/octet-stream,application/zip,application/x-zip,application/x-zip-compressed"
                               onChange={templateUploadCtrl}
                             />
                           </form>
-                          <button className="template-btn">
-                            템플릿 다운로드
-                          </button>
+                          {x.fileUrl !== null ? (
+                            <button
+                              className="template-btn"
+                              value={x.fileUrl}
+                              onClick={(e) => {
+                                axios
+                                  .post(
+                                    `${API_URL}/api/file/url`,
+                                    {
+                                      fileUrl: x.fileUrl,
+                                      lessonId: x.lessonId,
+                                    },
+                                    { headers }
+                                  )
+                                  .then((res) => {
+                                    if (res.status === 200) {
+                                      fileUrl = res.data;
+                                    } else {
+                                      alert(
+                                        "예상치 못한 오류가 발생하였습니다. 관리자에게 문의 하세요"
+                                      );
+                                      return false;
+                                    }
+                                  })
+                                  .then(() => {
+                                    window.open(fileUrl);
+                                  });
+                              }}
+                            >
+                              템플릿 다운로드
+                            </button>
+                          ) : null}
+
                           <button
                             value={x.lessonId}
                             className="del-class-btn"
