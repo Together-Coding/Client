@@ -7,6 +7,7 @@ import {
   faFolderOpen,
   faChalkboardUser,
   faPeopleArrowsLeftRight,
+  faSquarePlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
@@ -25,44 +26,8 @@ const IDE = () => {
   // let userId;
   const [userId, setUserId] = useState(0);
 
-  let activeStu;
-  let notActiveStu;
-
   let [stuInfo, setStuInfo] = useState([]);
 
-  let files = [
-    { folder: [{ folder2: ["hihi.txt"] }, "empty_file.txt", "inner file.txt"] },
-    "user16.txt",
-    "reagjjjd.md",
-  ];
-
-  let files2 = [
-    "folder/empty_file.txt",
-    "folder/inner file.txt",
-    "user16.txt",
-    "reagjjjd.md",
-    "folder/folder2/hi.txt",
-  ];
-  
-  let newArr=files2.reduce((res,path)=>{
-    let convertArr=path.split("/")
-    let parent=res;
-    let treePath=convertArr.forEach(ele=>{
-      let temParent=parent.find(el=>el.path===ele)
-      if(!temParent){
-        let tmp={path:ele, children:[]}
-        parent.push(tmp);
-        parent=tmp.children
-      }else{
-        parent=temParent.children
-      }
-    })
-    return res
-  },[])
-
-  console.log(files);
-
- 
   // socket.io example
   useEffect(() => {
     runSocket();
@@ -71,6 +36,8 @@ const IDE = () => {
 
   let [sidebarBtn, setSidebarBtn] = useState("IDE");
   let [sidebarBtn2, setSidebarBtn2] = useState("");
+
+  let [AddFileToggle, setAddFileToggle] = useState(false);
 
   const [socketResponse, setSocketResponse] = useState("");
 
@@ -84,6 +51,7 @@ const IDE = () => {
   let [fileTarget, setFileTarget] = useState("");
 
   let [renameCode, setRenameCode] = useState("");
+  let [createFile, setCreateFile] = useState("");
 
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
@@ -161,21 +129,21 @@ const IDE = () => {
   };
 
   const filterFile = (args) => {
-    if (args) {
-      let filterData = args.file
-        .map((i) => decodeURIComponent(window.atob(i)))
-        .filter(filterOutFile);
-      setUserFile([...filterData]);
-    }
-  };
+    setUserFile((userFile) => {
+      if (args) {
+        let filterData = args.file
+          .map((i) => decodeURIComponent(window.atob(i)))
+          .filter(filterOutFile);
 
-  const changeStuActive = (args) => {
-    let copy = [...stuInfo];
-    let findIndex = copy.findIndex((i) => i.id === args.id);
-    if (findIndex !== -1) {
-      copy[findIndex] = { ...copy[findIndex], active: args.active };
-    }
-    setStuInfo({ ...copy });
+        filterData.sort((a, b) => {
+          a.toString();
+          b.toString();
+          return a.localeCompare(b);
+        });
+        return [...filterData];
+      }
+      return userFile;
+    });
   };
 
   const subsCommonEvents = (socket) => {
@@ -201,11 +169,14 @@ const IDE = () => {
   const emitEventsOnInit = (socket, _userId = null) => {
     socket.emit("ALL_PARTICIPANT");
 
+    socket.emit("PROJECT_ACCESSIBLE")
+
     getDirectory(socket, _userId);
   };
 
   let subsEvents = (socket) => {
     socket.on("INIT_LESSON", (data) => {
+      console.log(data);
       // 유저 정보 저장
       let _userId = data.ptcId;
       saveUserInfo(data);
@@ -215,25 +186,77 @@ const IDE = () => {
     });
 
     socket.on("ALL_PARTICIPANT", (args) => {
+      console.log(args)
       setStuInfo(args);
     });
 
-    socket.on("PARTICIPANT_STATUS", async (args) => {
-      let user = await args;
-      if (user) {
-        changeStuActive(user);
-      }
+    socket.on("PARTICIPANT_STATUS", (args) => {
+      console.log(args)
+      setStuInfo((stuInfo) => {
+        if (stuInfo.length > 0) {
+          let copy = [...stuInfo];
+          let findIndex = copy.findIndex((i) => i.id === args.id);
+          if (findIndex !== -1) {
+            copy[findIndex] = { ...copy[findIndex], active: args.active };
+          }
+          return [...copy];
+        }
+        return stuInfo;
+      });
     });
 
     socket.on("ACTIVITY_PING");
 
+    socket.on("PROJECT_ACCESSIBLE", (data)=>{
+      console.log(data)
+    });
+
     socket.on("DIR_INFO", (args) => {
+      if(args.error){
+        alert(args.error[0]);
+        return false
+      }
       console.log(args);
       filterFile(args);
+      
     });
 
     socket.on("FILE_READ", (data) => {
       saveCode(data);
+    });
+    socket.on("FILE_CREATE", (data) => {
+      console.log(data);
+      if (data) {
+        setCreateFile("");
+        setAddFileToggle(false);
+
+        setUserFile((userFile) => {
+          if (userFile.length > 0) {
+            console.log(userFile);
+            let copy = [...userFile];
+            copy.push(data.name);
+            return [...copy];
+          }
+          return userFile;
+        });
+      }
+    });
+    socket.on("FILE_DELETE", (data) => {
+      console.log(data);
+      if (data) {
+        setUserFile((userFile) => {
+          if (userFile.length > 0) {
+            console.log(userFile);
+            let copy = [...userFile];
+            let findIndex = copy.findIndex((i) => i === data.name);
+            if (findIndex !== -1) {
+              copy.splice(findIndex, 1);
+            }
+            return [...copy];
+          }
+          return userFile;
+        });
+      }
     });
 
     socket.on("FILE_UPDATE", (data) => {
@@ -269,6 +292,7 @@ const IDE = () => {
     subsCommonEvents(socketio.current);
     subsEvents(socketio.current);
   };
+
   return (
     <div>
       {/*--------------navbar--------------*/}
@@ -328,15 +352,51 @@ const IDE = () => {
         {/*-----------code input and terminal-----------*/}
         {sidebarBtn2 === "디렉토리" ? (
           <div className="side-explorer">
-            <p className="side-navbar">
+            <p
+              className="side-navbar"
+              style={{ display: "flex", justifyContent: "space-between" }}
+            >
               <span>내 파일</span>
+              <button
+                onClick={(e) => {
+                  setAddFileToggle(!AddFileToggle);
+                }}
+              >
+                <FontAwesomeIcon icon={faSquarePlus} />
+              </button>
             </p>
+            {AddFileToggle ? (
+              <div className="add-file-input-container">
+                <label>정확한 경로를 입력해주세요.</label>
+                <div className="add-file-input-area">
+                  <input
+                    value={createFile}
+                    spellCheck="false"
+                    onChange={(e) => {
+                      setCreateFile(e.target.value);
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      socketio.current.emit("FILE_CREATE", {
+                        ownerId: userId,
+                        type: "file",
+                        name: createFile,
+                      });
+                    }}
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
             <div className="file-container">
               {userFile &&
                 userFile.map((i, idx) => {
                   return (
-                    <div className="file-bar" key={idx}>
-                      <div className="files-btns">
+                    <div className="file-bar">
+                      <div className="files-btns" key={idx}>
                         <span
                           value={i}
                           onClick={() => {
@@ -348,6 +408,7 @@ const IDE = () => {
                         >
                           {i}
                         </span>
+                        {}
                         <div>
                           <button
                             value={i}
@@ -357,9 +418,36 @@ const IDE = () => {
                               inputCtrl(i);
                             }}
                           >
-                            {inputToggle && fileTarget === i ? "저장" : "수정"}
+                            {inputToggle && fileTarget === i
+                              ? "Save"
+                              : "Rename"}
                           </button>
-                          <button>삭제</button>
+                          <button
+                            onClick={() => {
+                              let filename;
+                              if (i.includes("/")) {
+                                let idx = i.lastIndexOf("/");
+                                filename = i.substr(idx + 1);
+                              } else {
+                                filename = i;
+                              }
+                              if (
+                                window.confirm(
+                                  "정말 " + filename + "을 삭제하시겠습니까?"
+                                )
+                              ) {
+                                socketio.current.emit("FILE_DELETE", {
+                                  ownerId: userId,
+                                  type: "file",
+                                  name: i,
+                                });
+                              } else {
+                                return false;
+                              }
+                            }}
+                          >
+                            X
+                          </button>
                         </div>
                       </div>
                       {inputToggle && fileTarget === i ? (
@@ -384,25 +472,29 @@ const IDE = () => {
               <div className="online-stu"></div>
               <span>온라인</span>
             </p>
-            {activeStu &&
-              activeStu.map((item, idx) => {
-                return (
-                  <div className="stu-list" key={idx}>
-                    <span>{item.nickname}</span>
-                  </div>
-                );
+            {stuInfo &&
+              stuInfo.map((item, idx) => {
+                if (item.active === true) {
+                  return (
+                    <div className="stu-list" key={idx}>
+                      <span>{item.nickname}</span>
+                    </div>
+                  );
+                }
               })}
             <p className="side-navbar">
               <div className="offline-stu"></div>
               <span>오프라인</span>
             </p>
-            {notActiveStu &&
-              notActiveStu.map((item, idx) => {
-                return (
-                  <div className="stu-list" style={{ color: "grey" }} key={idx}>
-                    <span>{item.nickname}</span>
-                  </div>
-                );
+            {stuInfo &&
+              stuInfo.map((item, idx) => {
+                if (item.active === false) {
+                  return (
+                    <div className="stu-list" key={idx}>
+                      <span>{item.nickname}</span>
+                    </div>
+                  );
+                }
               })}
           </div>
         )}
@@ -424,7 +516,17 @@ const IDE = () => {
         ) : location.state.asTeacher === "teacher" ? (
           <TeacherDashBoard />
         ) : (
-          <StudentDashBoard />
+          <div style={{ display: "flex" }}>
+            <div style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}>
+              <h2>
+                접근 권한이 없습니다.
+              </h2>
+            </div>
+          </div>
         )}
       </div>
     </div>

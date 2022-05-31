@@ -16,6 +16,7 @@ function AsStudentMain() {
   const history = useHistory();
   const courseID = useParams();
   const realCourseID = Number(courseID.id);
+  console.log(location)
 
   let [courseInfo, setCourseInfo] = useState([]);
   let [lessonInfo, setLessonInfo] = useState([]);
@@ -72,10 +73,13 @@ function AsStudentMain() {
                         to={{
                           pathname:
                             "/course/" + x.courseId + "/lesson/" + x.lessonId,
-                          state: {
-                            class: location.state.class,
-                            name: x.name,
-                          },
+                            state: {
+                              class: x.name,
+                              classDes: x.description,
+                              classId: realCourseID,
+                              lessonId: x.lessonId,
+                              asTeacher: location.state.asTeacher,
+                            },
                         }}
                       >
                         <p>{x.name}</p>
