@@ -181,6 +181,9 @@
     background-color: red;
     @extend .online-stu;
 }
+.off-line-stu-name{
+    color: #757677;
+}
 .stu-list{
     margin-left: 5px;
     margin-bottom: 5px;
@@ -275,4 +278,13 @@
         }
       
 }
-
+.file-save-btn{
+    border: none;
+    background-color: transparent;
+    color: #757677;
+    font-size: 17px;
+    cursor: pointer;
+}
+.file-save-btn:focus(){
+    color: #b9c3dd;
+}

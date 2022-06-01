@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import "../styles/TeacherDashboard.scss";
 import { Link } from "react-router-dom";
@@ -50,9 +50,32 @@ import CodeModal from "./CodeModal";
 
 //console.log(userMockData);
 
-function DashBoard() {
+function DashBoard({ socketio }) {
+  console.log("socket", socketio);
+
   const location = useLocation();
   console.log(location);
+
+  useEffect(() => {
+    console.log("hi");
+      subEvent();
+    
+  }, []);
+
+  const emitEventsOnInit = (socket) => {
+    console.log('HIHIHI')
+    socket.current.emit("FEEDBACK_LIST",{});
+  };
+
+  const subEvent = () => {
+    
+    emitEventsOnInit(socketio);
+
+    socketio.current.on("FEEDBACK_LIST", (args) => {
+      console.log(args);
+    });
+  };
+
   let [userMockData, setMockData] = useState([
     {
       id: 1,
@@ -189,7 +212,7 @@ function DashBoard() {
 
   return (
     <div className="teacher-dashboard-main-container">
-      <div className="dash-side-bar">sideBar</div>
+      
       <div className="dash-main">
         <div className="dash-list">
           {userMockData.map((x) => {

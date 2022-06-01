@@ -8,6 +8,7 @@ import {
   faChalkboardUser,
   faPeopleArrowsLeftRight,
   faSquarePlus,
+  faFileArrowUp
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
@@ -56,14 +57,16 @@ const IDE = () => {
   let [renameCode, setRenameCode] = useState("");
   let [createFile, setCreateFile] = useState("");
 
+  let [outFocus, setOutFocus]=useState(false);
+
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
   };
+  console.log(codeValue);
   //현재 라인, 코드 보여줌
   function handleEditorChange(value, e) {
-    console.log(value);
-    let codeCopy = value;
-    setCodeValue(codeCopy);
+    setOutFocus((prev)=>{return false});
+    setCodeValue(value);
 
     let lineNum = monacoRef.current.getPosition().lineNumber;
     let colNum = monacoRef.current.getPosition().column;
@@ -79,7 +82,18 @@ const IDE = () => {
       event: "", // 파일을 열었을 때에만 `open` 으로 전송. 이외에는 필요 없음
       timestamp: Date.now(),
     });
-    console.log(monacoRef.current.hasTextFocus());
+
+    if(monacoRef.current.hasTextFocus()){
+      setTimeout(() => {
+        socketio.current.emit("FILE_SAVE",{
+          "ownerId": userId,
+          "file": saveFileName,
+          "content": value
+        })
+      }, 5000);
+
+    }
+    
   }
   const clickHandler = (e) => {
     setSidebarBtn(e.currentTarget.value);
@@ -138,7 +152,6 @@ const IDE = () => {
       });
     }
   };
-
   /**
    * 파일명이 _ 인 경우는 유저에게 보여주지 않는다.
    */
@@ -163,6 +176,14 @@ const IDE = () => {
       return userFile;
     });
   };
+
+  const fileSaveBtn=()=>{
+    socketio.current.emit("FILE_SAVE",{
+      "ownerId": userId,
+      "file": saveFileName,
+      "content": codeValue
+    })
+  }
 
   const subsCommonEvents = (socket) => {
     socket.on("connect", () => {
@@ -297,6 +318,9 @@ const IDE = () => {
     socket.on("CURSOR_MOVE", (args) => {
       console.log(args);
     });
+    socket.on("FILE_SAVE", (args)=>{
+      console.log(args);
+    })
   };
 
   const getDirectory = (socket, _userId = null) => {
@@ -323,34 +347,21 @@ const IDE = () => {
       <div className="nav-bar">
         <div className="first-nav">
           <p>Together Coding</p>
-          <a>파일</a>
-          <a>편집</a>
-          <a>프로젝트</a>
-          <a>디버그</a>
-          <a>컨테이너</a>
-          <a>Git</a>
-          <a>배포</a>
-          <a>창</a>
-          <button onClick={saveCodeBtn}>코드 저장</button>
+          
         </div>
         <div className="second-nav">
           <span>
-            {location.state.class} / {location.state.classDes}
+            {location.state.class} / {location.state.classDes} 
           </span>{" "}
-          {/*
-          <div className="second-toolbar">
-            <button>저장</button>
-            <button>다른 이름으로 저장</button>
-            <button>검색</button>
-            <div className="toolbar-divider"> </div>
-            <button>more.....</button>
-          </div>
-  */}
+          {saveFileName!==""? <><span style={{marginLeft:"5%", fontWeight:"bold" ,color:"#757677"}}>{saveFileName}</span><button className="file-save-btn" onClick={fileSaveBtn}> <FontAwesomeIcon icon={faFileArrowUp} /></button></> : null}
         </div>
       </div>
       {/*-------------side bar--------------*/}
       <div className="main">
-        <div className="side-bar">
+        <div className="side-bar" onClick={()=>{
+          setOutFocus((prev)=>{return true});
+          console.log(outFocus);
+        }}>
           <div className="side-btn">
             <button value="IDE" onClick={clickHandler}>
               <FontAwesomeIcon icon={faWindowMaximize} />
@@ -374,7 +385,10 @@ const IDE = () => {
         </div>
         {/*-----------code input and terminal-----------*/}
         {sidebarBtn2 === "디렉토리" ? (
-          <div className="side-explorer">
+          <div className="side-explorer" onClick={()=>{
+            setOutFocus((prev)=>{return true});
+            console.log(outFocus);
+          }}>
             <p
               className="side-navbar"
               style={{ display: "flex", justifyContent: "space-between" }}
@@ -423,11 +437,12 @@ const IDE = () => {
                         <span
                           value={i}
                           onClick={() => {
-                            setSaveFileName(i);
+                            console.log("before",saveFileName)
                             socketio.current.emit("FILE_READ", {
                               ownerId: userId,
                               file: i,
                             });
+                            setSaveFileName(i);
                             socketio.current.emit("CURSOR_LAST", {
                               ownerId: userId,
                               file: i,
@@ -523,7 +538,7 @@ const IDE = () => {
                 if (item.active === false) {
                   return (
                     <div className="stu-list" key={idx}>
-                      <span>{item.nickname}</span>
+                      <span className="off-line-stu-name">{item.nickname}</span>
                     </div>
                   );
                 }
@@ -535,8 +550,8 @@ const IDE = () => {
             <div
               className="editor"
               onClick={() => {
-                console.log(saveFileName);
-                console.log("hi");
+                setOutFocus((prev)=>{return false});
+                console.log(outFocus);
               }}
             >
               <Editor
@@ -549,10 +564,15 @@ const IDE = () => {
                 keepCurrentModel={true}
               />
             </div>
+            <div onClick={()=>{
+              setOutFocus(true);
+              console.log(outFocus)
+            }}>
             <Terminal />
+            </div>
           </div>
         ) : location.state.asTeacher === "teacher" ? (
-          <TeacherDashBoard />
+          <TeacherDashBoard socketio={socketio}/>
         ) : (
           <div style={{ display: "flex" }}>
             <div
