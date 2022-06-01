@@ -27,7 +27,10 @@ const IDE = () => {
   const [userId, setUserId] = useState(0);
 
   let [stuInfo, setStuInfo] = useState([]);
+  let [saveFileName, setSaveFileName] = useState("");
 
+  let [initLineNum, setInitLineNum] = useState(0);
+  let [initCursor, setInitCursor] = useState(0);
   // socket.io example
   useEffect(() => {
     runSocket();
@@ -61,7 +64,22 @@ const IDE = () => {
     console.log(value);
     let codeCopy = value;
     setCodeValue(codeCopy);
-    console.log(monacoRef.current.getPosition());
+
+    let lineNum = monacoRef.current.getPosition().lineNumber;
+    let colNum = monacoRef.current.getPosition().column;
+    let fullLine = monacoRef.current.getSelection().endLineNumber;
+    console.log(lineNum, colNum, fullLine);
+    socketio.current.emit("CURSOR_MOVE", {
+      fileInfo: {
+        ownerId: userId, // 파일 소유자 ID
+        file: saveFileName, // 현재 보고있는 파일
+        line: fullLine, // 전체 라인 수
+        cursor: lineNum+"."+colNum, // Line 10의 2번째 글짜 ~ Line 11의 10번째 글자
+      },
+      event: "", // 파일을 열었을 때에만 `open` 으로 전송. 이외에는 필요 없음
+      timestamp: Date.now(),
+    });
+    console.log(monacoRef.current.hasTextFocus());
   }
   const clickHandler = (e) => {
     setSidebarBtn(e.currentTarget.value);
@@ -169,7 +187,7 @@ const IDE = () => {
   const emitEventsOnInit = (socket, _userId = null) => {
     socket.emit("ALL_PARTICIPANT");
 
-    socket.emit("PROJECT_ACCESSIBLE")
+    socket.emit("PROJECT_ACCESSIBLE");
 
     getDirectory(socket, _userId);
   };
@@ -186,12 +204,12 @@ const IDE = () => {
     });
 
     socket.on("ALL_PARTICIPANT", (args) => {
-      console.log(args)
+      console.log(args);
       setStuInfo(args);
     });
 
     socket.on("PARTICIPANT_STATUS", (args) => {
-      console.log(args)
+      console.log(args);
       setStuInfo((stuInfo) => {
         if (stuInfo.length > 0) {
           let copy = [...stuInfo];
@@ -207,18 +225,17 @@ const IDE = () => {
 
     socket.on("ACTIVITY_PING");
 
-    socket.on("PROJECT_ACCESSIBLE", (data)=>{
-      console.log(data)
+    socket.on("PROJECT_ACCESSIBLE", (data) => {
+      console.log(data);
     });
 
     socket.on("DIR_INFO", (args) => {
-      if(args.error){
+      if (args.error) {
         alert(args.error[0]);
-        return false
+        return false;
       }
       console.log(args);
       filterFile(args);
-      
     });
 
     socket.on("FILE_READ", (data) => {
@@ -273,6 +290,12 @@ const IDE = () => {
         }
         return userFile;
       });
+    });
+    socket.on("CURSOR_LAST", (args) => {
+      console.log(args);
+    });
+    socket.on("CURSOR_MOVE", (args) => {
+      console.log(args);
     });
   };
 
@@ -400,7 +423,16 @@ const IDE = () => {
                         <span
                           value={i}
                           onClick={() => {
+                            setSaveFileName(i);
                             socketio.current.emit("FILE_READ", {
+                              ownerId: userId,
+                              file: i,
+                            });
+                            socketio.current.emit("CURSOR_LAST", {
+                              ownerId: userId,
+                              file: i,
+                            });
+                            socketio.current.emit("CURSOR_LAST", {
                               ownerId: userId,
                               file: i,
                             });
@@ -500,7 +532,13 @@ const IDE = () => {
         )}
         {sidebarBtn === "IDE" ? (
           <div className="terminal">
-            <div className="editor">
+            <div
+              className="editor"
+              onClick={() => {
+                console.log(saveFileName);
+                console.log("hi");
+              }}
+            >
               <Editor
                 height="70vh"
                 theme="vs-dark"
@@ -517,14 +555,14 @@ const IDE = () => {
           <TeacherDashBoard />
         ) : (
           <div style={{ display: "flex" }}>
-            <div style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}>
-              <h2>
-                접근 권한이 없습니다.
-              </h2>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <h2>접근 권한이 없습니다.</h2>
             </div>
           </div>
         )}
