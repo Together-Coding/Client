@@ -61,7 +61,7 @@ const IDE = () => {
 
   let [outFocus, setOutFocus] = useState(false);
 
-  let [readForTeacherId, setReadForTeacherId]=useState(0);
+  let [readForTeacherId, setReadForTeacherId] = useState(0);
 
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
@@ -381,14 +381,9 @@ const IDE = () => {
   };
 
   const getDirectory = (socket, _userId = null) => {
-    
-  
-      socket.emit("DIR_INFO", {
-        targetId: _userId || userId,
-      });
-
-    
-    
+    socket.emit("DIR_INFO", {
+      targetId: _userId || userId,
+    });
   };
 
   const runSocket = () => {
@@ -462,7 +457,7 @@ const IDE = () => {
             <button value="학생" onClick={stuAndDirBtnHandler}>
               <FontAwesomeIcon icon={faPeopleArrowsLeftRight} />
             </button>
-            <span>학생 현황</span>
+            <span>현황</span>
           </div>
         </div>
         {/*-----------code input and terminal-----------*/}
@@ -612,6 +607,7 @@ const IDE = () => {
                   return (
                     <div className="stu-list" key={idx}>
                       <span>{item.nickname}</span>
+                      {item.is_teacher ? <span>(teacher)</span> : null}
                     </div>
                   );
                 }
@@ -625,7 +621,10 @@ const IDE = () => {
                 if (item.active === false) {
                   return (
                     <div className="stu-list" key={idx}>
-                      <span className="off-line-stu-name">{item.nickname}</span>
+                      <span className="off-line-stu-name">
+                        {item.nickname}
+                        {item.is_teacher ? <span>(teacher)</span> : null}
+                      </span>
                     </div>
                   );
                 }
