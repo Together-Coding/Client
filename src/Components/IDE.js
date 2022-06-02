@@ -8,7 +8,7 @@ import {
   faChalkboardUser,
   faPeopleArrowsLeftRight,
   faSquarePlus,
-  faFileArrowUp
+  faFileArrowUp,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
@@ -51,13 +51,17 @@ const IDE = () => {
   let [codeValue, setCodeValue] = useState("");
   let [codeLang, setCodeLang] = useState("");
 
+  let [realTimeCode, setRealTimeCode] = useState([]);
+
   let [inputToggle, setInputToggle] = useState(false);
   let [fileTarget, setFileTarget] = useState("");
 
   let [renameCode, setRenameCode] = useState("");
   let [createFile, setCreateFile] = useState("");
 
-  let [outFocus, setOutFocus]=useState(false);
+  let [outFocus, setOutFocus] = useState(false);
+
+  let [readForTeacherId, setReadForTeacherId]=useState(0);
 
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
@@ -65,35 +69,81 @@ const IDE = () => {
   console.log(codeValue);
   //현재 라인, 코드 보여줌
   function handleEditorChange(value, e) {
-    setOutFocus((prev)=>{return false});
+    setOutFocus((prev) => {
+      return false;
+    });
     setCodeValue(value);
 
     let lineNum = monacoRef.current.getPosition().lineNumber;
     let colNum = monacoRef.current.getPosition().column;
     let fullLine = monacoRef.current.getSelection().endLineNumber;
+
+    realTimeCodeSend(e, lineNum, colNum);
+
     console.log(lineNum, colNum, fullLine);
+
     socketio.current.emit("CURSOR_MOVE", {
       fileInfo: {
         ownerId: userId, // 파일 소유자 ID
         file: saveFileName, // 현재 보고있는 파일
         line: fullLine, // 전체 라인 수
-        cursor: lineNum+"."+colNum, // Line 10의 2번째 글짜 ~ Line 11의 10번째 글자
+        cursor: lineNum + "." + colNum, // Line 10의 2번째 글짜 ~ Line 11의 10번째 글자
       },
       event: "", // 파일을 열었을 때에만 `open` 으로 전송. 이외에는 필요 없음
       timestamp: Date.now(),
     });
 
-    if(monacoRef.current.hasTextFocus()){
-      setTimeout(() => {
-        socketio.current.emit("FILE_SAVE",{
-          "ownerId": userId,
-          "file": saveFileName,
-          "content": value
-        })
-      }, 5000);
+    saveCodeDeferred();
+  }
 
+  const realTimeCodeSend = (e, lineNum, colNum) => {
+    let inputStr;
+    let inputTime = Date.now();
+    if (e.changes[0].text === "") {
+      inputStr = 8;
+    } else {
+      inputStr = e.changes[0].text.charCodeAt(0);
     }
-    
+
+    let copy = [...realTimeCode];
+    copy.push(inputStr);
+    setRealTimeCode(copy);
+
+    setTimeout(() => {
+      socketio.current.emit("FILE_MOD", {
+        ownerId: userId,
+        file: saveFileName,
+        cursor: lineNum + "." + colNum,
+        change: realTimeCode,
+        timestamp: inputTime,
+      });
+    }, 1000);
+    console.log(realTimeCode);
+  };
+
+  let saveCodeTimeout;
+
+  const saveDelay = 500;
+
+  function saveCodeDeferred() {
+    // if(monacoRef.current.hasTextFocus()){
+    //   setTimeout(() => {
+    //     socketio.current.emit("FILE_SAVE",{
+    //       "ownerId": userId,
+    //       "file": saveFileName,
+    //       "content": value
+    //     })
+    //   }, 5000);
+    // }
+
+    clearTimeout();
+    saveCodeTimeout = setTimeout(() => {
+      socketio.current.emit("FILE_SAVE", {
+        ownerId: userId,
+        file: saveFileName,
+        content: codeValue, // TODO: 확인 필요
+      });
+    }, saveDelay);
   }
   const clickHandler = (e) => {
     setSidebarBtn(e.currentTarget.value);
@@ -122,6 +172,7 @@ const IDE = () => {
       return data.ptcId;
     });
   };
+
   // todo: 디렉토리 있을때 처리
   const saveCode = (data) => {
     console.log(data);
@@ -177,13 +228,13 @@ const IDE = () => {
     });
   };
 
-  const fileSaveBtn=()=>{
-    socketio.current.emit("FILE_SAVE",{
-      "ownerId": userId,
-      "file": saveFileName,
-      "content": codeValue
-    })
-  }
+  const fileSaveBtn = () => {
+    socketio.current.emit("FILE_SAVE", {
+      ownerId: userId,
+      file: saveFileName,
+      content: codeValue,
+    });
+  };
 
   const subsCommonEvents = (socket) => {
     socket.on("connect", () => {
@@ -318,15 +369,26 @@ const IDE = () => {
     socket.on("CURSOR_MOVE", (args) => {
       console.log(args);
     });
-    socket.on("FILE_SAVE", (args)=>{
+    socket.on("FILE_SAVE", (args) => {
       console.log(args);
-    })
+    });
+    socket.on("FILE_MOD", (args) => {
+      if (args.success === true) {
+        setRealTimeCode([]);
+      }
+      console.log(args);
+    });
   };
 
   const getDirectory = (socket, _userId = null) => {
-    socket.emit("DIR_INFO", {
-      targetId: _userId || userId,
-    });
+    
+  
+      socket.emit("DIR_INFO", {
+        targetId: _userId || userId,
+      });
+
+    
+    
   };
 
   const runSocket = () => {
@@ -347,21 +409,41 @@ const IDE = () => {
       <div className="nav-bar">
         <div className="first-nav">
           <p>Together Coding</p>
-          
         </div>
         <div className="second-nav">
           <span>
-            {location.state.class} / {location.state.classDes} 
+            {location.state.class} / {location.state.classDes}
           </span>{" "}
-          {saveFileName!==""? <><span style={{marginLeft:"5%", fontWeight:"bold" ,color:"#757677"}}>{saveFileName}</span><button className="file-save-btn" onClick={fileSaveBtn}> <FontAwesomeIcon icon={faFileArrowUp} /></button></> : null}
+          {saveFileName !== "" ? (
+            <>
+              <span
+                style={{
+                  marginLeft: "5%",
+                  fontWeight: "bold",
+                  color: "#757677",
+                }}
+              >
+                {saveFileName}
+              </span>
+              <button className="file-save-btn" onClick={fileSaveBtn}>
+                {" "}
+                <FontAwesomeIcon icon={faFileArrowUp} />
+              </button>
+            </>
+          ) : null}
         </div>
       </div>
       {/*-------------side bar--------------*/}
       <div className="main">
-        <div className="side-bar" onClick={()=>{
-          setOutFocus((prev)=>{return true});
-          console.log(outFocus);
-        }}>
+        <div
+          className="side-bar"
+          onClick={() => {
+            setOutFocus((prev) => {
+              return true;
+            });
+            console.log(outFocus);
+          }}
+        >
           <div className="side-btn">
             <button value="IDE" onClick={clickHandler}>
               <FontAwesomeIcon icon={faWindowMaximize} />
@@ -385,10 +467,15 @@ const IDE = () => {
         </div>
         {/*-----------code input and terminal-----------*/}
         {sidebarBtn2 === "디렉토리" ? (
-          <div className="side-explorer" onClick={()=>{
-            setOutFocus((prev)=>{return true});
-            console.log(outFocus);
-          }}>
+          <div
+            className="side-explorer"
+            onClick={() => {
+              setOutFocus((prev) => {
+                return true;
+              });
+              console.log(outFocus);
+            }}
+          >
             <p
               className="side-navbar"
               style={{ display: "flex", justifyContent: "space-between" }}
@@ -437,7 +524,7 @@ const IDE = () => {
                         <span
                           value={i}
                           onClick={() => {
-                            console.log("before",saveFileName)
+                            console.log("before", saveFileName);
                             socketio.current.emit("FILE_READ", {
                               ownerId: userId,
                               file: i,
@@ -550,7 +637,9 @@ const IDE = () => {
             <div
               className="editor"
               onClick={() => {
-                setOutFocus((prev)=>{return false});
+                setOutFocus((prev) => {
+                  return false;
+                });
                 console.log(outFocus);
               }}
             >
@@ -564,15 +653,17 @@ const IDE = () => {
                 keepCurrentModel={true}
               />
             </div>
-            <div onClick={()=>{
-              setOutFocus(true);
-              console.log(outFocus)
-            }}>
-            <Terminal />
+            <div
+              onClick={() => {
+                setOutFocus(true);
+                console.log(outFocus);
+              }}
+            >
+              <Terminal />
             </div>
           </div>
         ) : location.state.asTeacher === "teacher" ? (
-          <TeacherDashBoard socketio={socketio}/>
+          <TeacherDashBoard socketio={socketio} />
         ) : (
           <div style={{ display: "flex" }}>
             <div
