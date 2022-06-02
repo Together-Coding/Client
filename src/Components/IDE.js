@@ -32,6 +32,38 @@ const IDE = () => {
 
   let [initLineNum, setInitLineNum] = useState(0);
   let [initCursor, setInitCursor] = useState(0);
+  let files = [
+    { folder: [{ folder2: ["hihi.txt"] }, "empty_file.txt", "inner file.txt"] },
+    "user16.txt",
+    "reagjjjd.md",
+  ];
+
+  let files2 = [
+    "folder/empty_file.txt",
+    "folder/inner file.txt",
+    "user16.txt",
+    "reagjjjd.md",
+    "folder/folder2/hi.txt",
+  ];
+
+  let newArr=files2.reduce((res,path)=>{
+    let convertArr=path.split("/")
+    let parent=res;
+    let treePath=convertArr.forEach(ele=>{
+      let temParent=parent.find(el=>el.path===ele)
+      if(!temParent){
+        let tmp={path:ele, children:[]}
+        parent.push(tmp);
+        parent=tmp.children
+      }else{
+        parent=temParent.children
+      }
+    })
+    return res
+  },[])
+
+  console.log(files);
+
   // socket.io example
   useEffect(() => {
     runSocket();
@@ -67,6 +99,7 @@ const IDE = () => {
     monacoRef.current = editor;
   };
   console.log(codeValue);
+
   //현재 라인, 코드 보여줌
   function handleEditorChange(value, e) {
     setOutFocus((prev) => {
@@ -92,8 +125,6 @@ const IDE = () => {
       event: "", // 파일을 열었을 때에만 `open` 으로 전송. 이외에는 필요 없음
       timestamp: Date.now(),
     });
-
-    saveCodeDeferred();
   }
 
   const realTimeCodeSend = (e, lineNum, colNum) => {
@@ -121,30 +152,6 @@ const IDE = () => {
     console.log(realTimeCode);
   };
 
-  let saveCodeTimeout;
-
-  const saveDelay = 500;
-
-  function saveCodeDeferred() {
-    // if(monacoRef.current.hasTextFocus()){
-    //   setTimeout(() => {
-    //     socketio.current.emit("FILE_SAVE",{
-    //       "ownerId": userId,
-    //       "file": saveFileName,
-    //       "content": value
-    //     })
-    //   }, 5000);
-    // }
-
-    clearTimeout();
-    saveCodeTimeout = setTimeout(() => {
-      socketio.current.emit("FILE_SAVE", {
-        ownerId: userId,
-        file: saveFileName,
-        content: codeValue, // TODO: 확인 필요
-      });
-    }, saveDelay);
-  }
   const clickHandler = (e) => {
     setSidebarBtn(e.currentTarget.value);
   };
