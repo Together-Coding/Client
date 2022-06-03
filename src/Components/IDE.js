@@ -12,21 +12,24 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
+import { isObject, uuidv4 } from "../utils/etc";
 import { useLocation } from "react-router-dom";
 import TeacherDashBoard from "./TeacherDashBoard";
 import StudentDashBoard from "./StudentDashBoard";
 
 import io from "socket.io-client";
+import {API_URL, WS_MONITOR} from "../constants";
 
 const IDE = () => {
   let location = useLocation();
-  const courseId = location.state.classId;
-  const lessonId = location.state.lessonId;
+  let courseId = useRef(location.state ? location.state.classId : 0);
+  let lessonId = useRef(location.state ? location.state.lessonId : 0);
+  let className_ = useRef(location.state ? location.state.class : '');
+  let classDesc = useRef(location.state ? location.state.classDes : '');
 
   const [initId, setInitId] = useState(0);
 
   let [userFile, setUserFile] = useState([]);
-  // let userId;
   const [userId, setUserId] = useState(0);
   let [userNickName, setUserNickName] = useState("나");
 
@@ -35,8 +38,14 @@ const IDE = () => {
 
   let [initLineNum, setInitLineNum] = useState(0);
   let [initCursor, setInitCursor] = useState(0);
-  // socket.io example
+
   useEffect(() => {
+    if (location.state == null) {
+      let m = location.pathname.match(/^\/course\/(\d+)\/lesson\/(\d+).*/)
+      courseId.current = parseInt(m[1]);
+      lessonId.current = parseInt(m[2]);
+    }
+
     runSocket();
     console.log("render");
   }, []);
@@ -67,6 +76,9 @@ const IDE = () => {
   let [outFocus, setOutFocus] = useState(false);
 
   let [readForTeacherId, setReadForTeacherId] = useState(0);
+
+  let interval_1sec = null;
+  let timeout_activityPing = null;
 
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
@@ -127,21 +139,10 @@ const IDE = () => {
   };
 
   let saveCodeTimeout;
-
   const saveDelay = 500;
 
   function saveCodeDeferred() {
-    // if(monacoRef.current.hasTextFocus()){
-    //   setTimeout(() => {
-    //     socketio.current.emit("FILE_SAVE",{
-    //       "ownerId": userId,
-    //       "file": saveFileName,
-    //       "content": value
-    //     })
-    //   }, 5000);
-    // }
-
-    clearTimeout();
+    clearTimeout(saveCodeTimeout);
     saveCodeTimeout = setTimeout(() => {
       socketio.current.emit("FILE_SAVE", {
         ownerId: userId,
@@ -150,6 +151,7 @@ const IDE = () => {
       });
     }, saveDelay);
   }
+
   const clickHandler = (e) => {
     setSidebarBtn(e.currentTarget.value);
   };
@@ -228,7 +230,7 @@ const IDE = () => {
 
   const filterFile = (args) => {
     setUserFile((userFile) => {
-      if (args) {
+      if (args && args.file) {
         let filterData = args.file
           .map((i) => decodeURIComponent(window.atob(i)))
           .filter(filterOutFile);
@@ -258,8 +260,8 @@ const IDE = () => {
 
       // INIT_LESSON 에서 수업 정보를 구독하면, 나의 참여 ID 를 받음
       socket.emit("INIT_LESSON", {
-        courseId: courseId,
-        lessonId: lessonId,
+        courseId: courseId.current,
+        lessonId: lessonId.current,
       });
     });
 
@@ -283,6 +285,10 @@ const IDE = () => {
   let subsEvents = (socket) => {
     socket.on("INIT_LESSON", (data) => {
       console.log(data);
+      // 수업 정보 저장
+      className_.current = data.lesson.name;
+      classDesc.current = data.lesson.description;
+
       // 유저 정보 저장
       setInitId((prev) => {
         return data.ptcId;
@@ -295,7 +301,8 @@ const IDE = () => {
 
     socket.on("ALL_PARTICIPANT", (args) => {
       console.log(args);
-      setStuInfo(args);
+      if (args.participants) return setStuInfo(args.participants);
+      setStuInfo(args); // 호환성 유지를 위함
     });
 
     socket.on("PARTICIPANT_STATUS", (args) => {
@@ -312,8 +319,6 @@ const IDE = () => {
         return stuInfo;
       });
     });
-
-    socket.on("ACTIVITY_PING");
 
     socket.on("PROJECT_ACCESSIBLE", (data) => {
       setAcessibleStu((prev) => {
@@ -415,8 +420,55 @@ const IDE = () => {
       },
     });
 
+    // 서버측의 웹소켓 모니터링 지원
+    if (WS_MONITOR) {
+      const filter = ["connect", 'echo', 'TIMESTAMP_ACK', 'TIME_SYNC', 'TIME_SYNC_ACK']
+      // Timestamp 값을 주입하여 emit 한다.
+      const origEmit = socketio.current.emit;
+      socketio.current.emit = (ev, data, ...args) => {
+        // if (!filter.includes(ev)) return;
+        if (data == null) data = {};
+        if (isObject(data) && ev !== 'TIMESTAMP_ACK') {
+          data['_ts_1'] = new Date().getTime();
+          data['uuid'] = uuidv4();
+        }
+        return origEmit.call(socketio.current, ev, data, ...args)
+      }
+
+      const origOn = socketio.current.on;
+      socketio.current.on = (ev, listener) => {
+        return origOn.call(socketio.current, ev, (data = null) => {
+          if (isObject(data) && data.hasOwnProperty('_ts_3')) {
+            let _data = Object.assign({}, data)
+            _data['_ts_4'] = new Date().getTime();
+            socketio.current.emit('TIMESTAMP_ACK', _data);
+          }
+          return listener(data);
+        })
+      }
+
+      socketio.current.on('connect', () => {
+        socketio.current.emit('TIME_SYNC', {ts1: new Date().getTime()})
+      })
+
+      socketio.current.on('TIME_SYNC_ACK', (data) => {
+        socketio.current.emit('TIME_SYNC_ACK', {...data, ts2: new Date().getTime()})
+      })
+    }
+
     subsCommonEvents(socketio.current);
     subsEvents(socketio.current);
+
+    clearTimeout(interval_1sec);
+    interval_1sec = setInterval(() => {
+      if (!timeout_activityPing) {
+      timeout_activityPing = setTimeout(() => {
+        socketio.current.emit('ACTIVITY_PING', {targetId: userId})
+        clearTimeout(timeout_activityPing);
+        timeout_activityPing = null;
+      }, 1000 * 10)
+      }
+    }, 1000)
   };
 
   return (
@@ -438,7 +490,7 @@ const IDE = () => {
         </div>
         <div className="second-nav">
           <span>
-            {location.state.class} / {location.state.classDes}
+            {className_.current} / {classDesc.current}
           </span>{" "}
           {saveFileName !== "" ? (
             <>

@@ -2,6 +2,7 @@
 //  dev/prod 환경에 따라 설정을 나눌 수 있으면 좋을 것 같습니다.
 
 const DEBUG = true;
+export const WS_MONITOR = true;
 
 export const API_URL = 'https://api.together-coding.com'
 export const RUNTIME_BRIDGE_URL = DEBUG ? 'https://dev-bridge.together-coding.com' : 'https://bridge.together-coding.com'
