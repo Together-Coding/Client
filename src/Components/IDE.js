@@ -12,11 +12,13 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
+import { isObject, uuidv4 } from "../utils/etc";
 import { useLocation } from "react-router-dom";
 import TeacherDashBoard from "./TeacherDashBoard";
 import StudentDashBoard from "./StudentDashBoard";
 
 import io from "socket.io-client";
+import {API_URL, WS_MONITOR} from "../constants";
 
 const IDE = () => {
   let location = useLocation();
@@ -225,7 +227,7 @@ const IDE = () => {
 
   const filterFile = (args) => {
     setUserFile((userFile) => {
-      if (args) {
+      if (args && args.file) {
         let filterData = args.file
           .map((i) => decodeURIComponent(window.atob(i)))
           .filter(filterOutFile);
@@ -294,7 +296,8 @@ const IDE = () => {
 
     socket.on("ALL_PARTICIPANT", (args) => {
       console.log(args);
-      setStuInfo(args);
+      if (args.participants) return setStuInfo(args.participants);
+      setStuInfo(args); // 호환성 유지를 위함
     });
 
     socket.on("PARTICIPANT_STATUS", (args) => {
@@ -408,8 +411,55 @@ const IDE = () => {
       },
     });
 
+    // 서버측의 웹소켓 모니터링 지원
+    if (WS_MONITOR) {
+      const filter = ["connect", 'echo', 'TIMESTAMP_ACK', 'TIME_SYNC', 'TIME_SYNC_ACK']
+      // Timestamp 값을 주입하여 emit 한다.
+      const origEmit = socketio.current.emit;
+      socketio.current.emit = (ev, data, ...args) => {
+        // if (!filter.includes(ev)) return;
+        if (data == null) data = {};
+        if (isObject(data) && ev !== 'TIMESTAMP_ACK') {
+          data['_ts_1'] = new Date().getTime();
+          data['uuid'] = uuidv4();
+        }
+        return origEmit.call(socketio.current, ev, data, ...args)
+      }
+
+      const origOn = socketio.current.on;
+      socketio.current.on = (ev, listener) => {
+        return origOn.call(socketio.current, ev, (data = null) => {
+          if (isObject(data) && data.hasOwnProperty('_ts_3')) {
+            let _data = Object.assign({}, data)
+            _data['_ts_4'] = new Date().getTime();
+            socketio.current.emit('TIMESTAMP_ACK', _data);
+          }
+          return listener(data);
+        })
+      }
+
+      socketio.current.on('connect', () => {
+        socketio.current.emit('TIME_SYNC', {ts1: new Date().getTime()})
+      })
+
+      socketio.current.on('TIME_SYNC_ACK', (data) => {
+        socketio.current.emit('TIME_SYNC_ACK', {...data, ts2: new Date().getTime()})
+      })
+    }
+
     subsCommonEvents(socketio.current);
     subsEvents(socketio.current);
+
+    clearTimeout(interval_1sec);
+    interval_1sec = setInterval(() => {
+      if (!timeout_activityPing) {
+      timeout_activityPing = setTimeout(() => {
+        socketio.current.emit('ACTIVITY_PING')
+        clearTimeout(timeout_activityPing);
+        timeout_activityPing = null;
+      }, 1000 * 10)
+      }
+    }, 1000)
   };
 
   return (
