@@ -20,11 +20,12 @@ import io from "socket.io-client";
 
 const IDE = () => {
   let location = useLocation();
-  const courseId = location.state.classId;
-  const lessonId = location.state.lessonId;
+  let courseId = useRef(location.state ? location.state.classId : 0);
+  let lessonId = useRef(location.state ? location.state.lessonId : 0);
+  let className_ = useRef(location.state ? location.state.class : '');
+  let classDesc = useRef(location.state ? location.state.classDes : '');
 
   let [userFile, setUserFile] = useState([]);
-  // let userId;
   const [userId, setUserId] = useState(0);
 
   let [stuInfo, setStuInfo] = useState([]);
@@ -64,8 +65,13 @@ const IDE = () => {
 
   console.log(files);
 
-  // socket.io example
   useEffect(() => {
+    if (location.state == null) {
+      let m = location.pathname.match(/^\/course\/(\d+)\/lesson\/(\d+).*/)
+      courseId.current = parseInt(m[1]);
+      lessonId.current = parseInt(m[2]);
+    }
+
     runSocket();
     console.log("render");
   }, []);
@@ -249,8 +255,8 @@ const IDE = () => {
 
       // INIT_LESSON 에서 수업 정보를 구독하면, 나의 참여 ID 를 받음
       socket.emit("INIT_LESSON", {
-        courseId: courseId,
-        lessonId: lessonId,
+        courseId: courseId.current,
+        lessonId: lessonId.current,
       });
     });
 
@@ -274,6 +280,10 @@ const IDE = () => {
   let subsEvents = (socket) => {
     socket.on("INIT_LESSON", (data) => {
       console.log(data);
+      // 수업 정보 저장
+      className_.current = data.lesson.name;
+      classDesc.current = data.lesson.description;
+
       // 유저 정보 저장
       let _userId = data.ptcId;
       saveUserInfo(data);
@@ -301,8 +311,6 @@ const IDE = () => {
         return stuInfo;
       });
     });
-
-    socket.on("ACTIVITY_PING");
 
     socket.on("PROJECT_ACCESSIBLE", (data) => {
       console.log(data);
@@ -414,7 +422,7 @@ const IDE = () => {
         </div>
         <div className="second-nav">
           <span>
-            {location.state.class} / {location.state.classDes}
+            {className_.current} / {classDesc.current}
           </span>{" "}
           {saveFileName !== "" ? (
             <>
