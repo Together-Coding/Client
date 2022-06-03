@@ -103,6 +103,9 @@ const IDE = () => {
 
   let [readForTeacherId, setReadForTeacherId] = useState(0);
 
+  let interval_1sec = null;
+  let timeout_activityPing = null;
+
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
   };
@@ -454,7 +457,7 @@ const IDE = () => {
     interval_1sec = setInterval(() => {
       if (!timeout_activityPing) {
       timeout_activityPing = setTimeout(() => {
-        socketio.current.emit('ACTIVITY_PING')
+        socketio.current.emit('ACTIVITY_PING', {targetId: userId})
         clearTimeout(timeout_activityPing);
         timeout_activityPing = null;
       }, 1000 * 10)
