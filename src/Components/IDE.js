@@ -71,7 +71,7 @@ const IDE = () => {
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
   };
-  console.log(codeValue);
+
   //현재 라인, 코드 보여줌
   function handleEditorChange(value, e) {
     setOutFocus((prev) => {
@@ -178,6 +178,17 @@ const IDE = () => {
     });
   };
 
+  const returnMyProject = (e) => {
+    setUserId((prev) => {
+      return e.target.value;
+    });
+    setSidebarBtn2("디렉토리");
+    setUserNickName("나");
+    socketio.current.emit("DIR_INFO", {
+      targetId: userId,
+    });
+  };
+
   // todo: 디렉토리 있을때 처리
   const saveCode = (data) => {
     console.log(data);
@@ -273,7 +284,9 @@ const IDE = () => {
     socket.on("INIT_LESSON", (data) => {
       console.log(data);
       // 유저 정보 저장
-      setInitId(data.ptcId);
+      setInitId((prev) => {
+        return data.ptcId;
+      });
       saveUserInfo(data);
 
       // IDE 데이터 요청
@@ -414,13 +427,10 @@ const IDE = () => {
         <div className="first-nav">
           <p>Together Coding</p>
           <button
+            value={initId}
             className="return-my-project-btn"
-            onClick={() => {
-              setSidebarBtn2("디렉토리");
-              setUserNickName("나");
-              socketio.current.emit("DIR_INFO", {
-                targetId: initId,
-              });
+            onClick={(e) => {
+              returnMyProject(e);
             }}
           >
             내 프로젝트 불러오기
@@ -496,7 +506,7 @@ const IDE = () => {
               className="side-navbar"
               style={{ display: "flex", justifyContent: "space-between" }}
             >
-              <span>{userNickName}의 파일</span>
+              <span>{userNickName}의 프로젝트</span>
               <button
                 onClick={(e) => {
                   setAddFileToggle(!AddFileToggle);
