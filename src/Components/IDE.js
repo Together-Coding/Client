@@ -23,9 +23,12 @@ const IDE = () => {
   const courseId = location.state.classId;
   const lessonId = location.state.lessonId;
 
+  const [initId, setInitId] = useState(0);
+
   let [userFile, setUserFile] = useState([]);
   // let userId;
   const [userId, setUserId] = useState(0);
+  let [userNickName, setUserNickName] = useState("나");
 
   let [stuInfo, setStuInfo] = useState([]);
   let [saveFileName, setSaveFileName] = useState("");
@@ -58,6 +61,8 @@ const IDE = () => {
 
   let [renameCode, setRenameCode] = useState("");
   let [createFile, setCreateFile] = useState("");
+
+  let [acessibleStu, setAcessibleStu] = useState([]);
 
   let [outFocus, setOutFocus] = useState(false);
 
@@ -268,7 +273,7 @@ const IDE = () => {
     socket.on("INIT_LESSON", (data) => {
       console.log(data);
       // 유저 정보 저장
-      let _userId = data.ptcId;
+      setInitId(data.ptcId);
       saveUserInfo(data);
 
       // IDE 데이터 요청
@@ -298,12 +303,16 @@ const IDE = () => {
     socket.on("ACTIVITY_PING");
 
     socket.on("PROJECT_ACCESSIBLE", (data) => {
-      console.log(data);
+      setAcessibleStu((prev) => {
+        return data;
+      });
     });
 
     socket.on("DIR_INFO", (args) => {
       if (args.error) {
+        setUserFile([]);
         alert(args.error[0]);
+
         return false;
       }
       console.log(args);
@@ -404,6 +413,18 @@ const IDE = () => {
       <div className="nav-bar">
         <div className="first-nav">
           <p>Together Coding</p>
+          <button
+            className="return-my-project-btn"
+            onClick={() => {
+              setSidebarBtn2("디렉토리");
+              setUserNickName("나");
+              socketio.current.emit("DIR_INFO", {
+                targetId: initId,
+              });
+            }}
+          >
+            내 프로젝트 불러오기
+          </button>
         </div>
         <div className="second-nav">
           <span>
@@ -452,7 +473,7 @@ const IDE = () => {
             <button value="디렉토리" onClick={stuAndDirBtnHandler}>
               <FontAwesomeIcon icon={faFolderOpen} />
             </button>
-            <span>내 파일</span>
+            <span>파일</span>
 
             <button value="학생" onClick={stuAndDirBtnHandler}>
               <FontAwesomeIcon icon={faPeopleArrowsLeftRight} />
@@ -475,7 +496,7 @@ const IDE = () => {
               className="side-navbar"
               style={{ display: "flex", justifyContent: "space-between" }}
             >
-              <span>내 파일</span>
+              <span>{userNickName}의 파일</span>
               <button
                 onClick={(e) => {
                   setAddFileToggle(!AddFileToggle);
@@ -629,6 +650,57 @@ const IDE = () => {
                   );
                 }
               })}
+            <p className="side-navbar">
+              <span>프로젝트 접근</span>
+            </p>
+            <div className="accessble-container">
+              {acessibleStu.accessible_to &&
+                acessibleStu.accessible_to.map((i, idx) => {
+                  if (i.active === true) {
+                    return (
+                      <div className="online-accessible-stu-bar">
+                        <span
+                          className="online-accessible-stu"
+                          value={i.userId}
+                          onClick={(e) => {
+                            setUserId(i.userId);
+                            setUserNickName(i.nickname);
+                            setCodeValue("");
+
+                            socketio.current.emit("DIR_INFO", {
+                              targetId: i.userId,
+                            });
+                            setSidebarBtn2("디렉토리");
+                          }}
+                        >
+                          {i.nickname}
+                        </span>
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div className="offline-accessible-stu-bar">
+                        <span
+                          className="offline-accessible-stu"
+                          value={i.userId}
+                          onClick={(e) => {
+                            setUserId(i.userId);
+                            setUserNickName(i.nickname);
+                            setCodeValue("");
+
+                            socketio.current.emit("DIR_INFO", {
+                              targetId: i.userId,
+                            });
+                            setSidebarBtn2("디렉토리");
+                          }}
+                        >
+                          {i.nickname}
+                        </span>
+                      </div>
+                    );
+                  }
+                })}
+            </div>
           </div>
         )}
         {sidebarBtn === "IDE" ? (
