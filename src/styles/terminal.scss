@@ -1,0 +1,81 @@
+.terminal-wrapper {
+    position: relative;
+    background-color: #2f3336;
+    width: 100%;
+    height: 24.9vh;
+    color: #efefef;
+    overflow: scroll;
+
+    .loading-modal {
+        z-index: 1;
+        position: absolute;
+        top: 0;
+        left: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        ;
+
+        width: 100%;
+        height: 100%;
+
+        background-color: rgba(0, 0, 0, 0.2);
+        text-align: center;
+
+        .square-spinner {
+            width: 60px;
+            height: 60px;
+
+            aspect-ratio: 1;
+            --g1: conic-gradient(from 90deg at 3px 3px, #0000 90deg, #9d9d9d 0);
+            --g2: conic-gradient(from -90deg at 22px 22px, #0000 90deg, #757575 0);
+            background: var(--g1), var(--g1), var(--g1), var(--g2), var(--g2), var(--g2);
+            background-size: 25px 25px;
+            background-repeat: no-repeat;
+            animation: spinner-frame 1.5s infinite;
+        }
+    }
+
+    .xterm-terminal {
+        margin: 10px;
+
+        // &::-webkit-scrollbar-track {
+        //     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+        //     background-color: #F5F5F5;
+        // }
+
+        // &::-webkit-scrollbar {
+        //     width: 6px;
+        //     background-color: #F5F5F5;
+        // }
+
+        // &::-webkit-scrollbar-thumb {
+        //     background-color: #000000;
+        // }
+    }
+}
+
+
+
+@keyframes spinner-frame {
+    0% {
+        background-position: 0 0, 0 100%, 100% 100%
+    }
+
+    25% {
+        background-position: 100% 0, 0 100%, 100% 100%
+    }
+
+    50% {
+        background-position: 100% 0, 0 0, 100% 100%
+    }
+
+    75% {
+        background-position: 100% 0, 0 0, 0 100%
+    }
+
+    100% {
+        background-position: 100% 100%, 0 0, 0 100%
+    }
+}

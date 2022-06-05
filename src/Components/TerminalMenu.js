@@ -4,7 +4,10 @@ import { SSHClient } from "../utils/websocket";
 import { XTerm } from "xterm-for-react";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
-import {API_URL, RUNTIME_BRIDGE_URL, RUNTIME_URL} from "../constants";
+import "../styles/terminal.scss";
+import { API_URL, RUNTIME_BRIDGE_URL, RUNTIME_URL, WS_URL } from "../constants";
+import { api } from "../utils/http";
+
 
 /**
  * 터미널 메뉴
@@ -18,11 +21,15 @@ export function TerminalMenu() {
   // xterm Terminal
   let xtermRef = useRef();
   let terminalWrapper = useRef();
+  let [loaded, setLoaded] = useState(false);
+
   // FitAddon: xtermRef 를 부모 요소 크기에 맞게 조정
   const fitAddon = new FitAddon();
+
   // Terminal options
   let [ptyCols, setPtyCols] = useState(0);
   let [ptyRows, setPtyRows] = useState(0);
+
   const xtermOptions = {
     cursorBlink: true,
     theme: {
@@ -33,7 +40,7 @@ export function TerminalMenu() {
 
   let sshClient = useRef();
   useEffect(() => {
-    initTerminal();
+    initRuntime();
   }, []);
 
   let initTerminal = () => {
@@ -68,11 +75,13 @@ export function TerminalMenu() {
    * @param data
    */
   let onData = (data) => {
+    if (!loaded) return;
     sshClient.current.emit("SSH", encodeText(data));
   };
 
   let onScroll = (newPos) => {
-    // TODO
+    if (!loaded) return;
+    // TODO:
     console.log("onScroll", newPos);
   };
 
@@ -86,13 +95,13 @@ export function TerminalMenu() {
     // 새로운 pty 크기 계산
     let cols = parseInt(
       terminalWrapper.current.clientWidth /
-        xtermRef.current.terminal._core._renderService._renderer.dimensions
-          .actualCellWidth
+      xtermRef.current.terminal._core._renderService._renderer.dimensions
+        .actualCellWidth
     );
     let rows = parseInt(
       terminalWrapper.current.clientHeight /
-        xtermRef.current.terminal._core._renderService._renderer.dimensions
-          .actualCellHeight
+      xtermRef.current.terminal._core._renderService._renderer.dimensions
+        .actualCellHeight
     );
 
     if (ptyCols === cols && ptyRows === rows) return;
@@ -120,25 +129,20 @@ export function TerminalMenu() {
   async function initRuntime() {
     let contInfo = {};
 
-    // FIXME headers, payload 를 상황에 맞게 보내줘야 함
-    let headers = {
-      Authorization: "Bearer " + localStorage.getItem("access_token") || "",
-    };
-    let payload = {
-      name: "C (gcc11)",
-      lang: "C",
-    };
-    let res = await axios.post(
-      `${RUNTIME_BRIDGE_URL}/api/containers/launch`,
-      payload,
-      { headers }
-    );
+    // 수업의 image id 값 요청
+    let res0 = await api.get(`${WS_URL}/api/lesson/${localStorage.getItem("lessonId")}`)
+
+    // 새로운 컨테이너 할당 요청
+    let payload = {image_id: res0.data.lang_image_id};
+    let res = await api.post(`${RUNTIME_BRIDGE_URL}/api/containers/launch`,payload);
     contInfo.url = res.data.url;
     contInfo.port = res.data.port;
 
     if (!contInfo.url || !contInfo.port) {
       return;
     }
+
+    // 컨테이너에 SSH relay 웹소켓 연결
     sshClient.current = new SSHClient(
       RUNTIME_URL,
       token,
@@ -147,6 +151,11 @@ export function TerminalMenu() {
         path: `/${contInfo.url}/${contInfo.port}/socket.io/`
       },
     );
+
+    sshClient.current.on('connect', () => {
+      initTerminal();
+      setLoaded(true);
+    })
 
     // 웹소켓 연결 상태에서 추가적인 인증 정보를 전송합니다.
     sshClient.current.on("AUTHENTICATE", (data) => {
@@ -163,7 +172,9 @@ export function TerminalMenu() {
 
   return (
     <>
-      <button onClick={initRuntime}>[임시] 컨테이너 시작하기</button>
+      {loaded === false ? <div className="loading-modal">
+        <div className="square-spinner"></div>
+      </div> : ""}
       <XTerm
         ref={xtermRef}
         className={"xterm-terminal"}
