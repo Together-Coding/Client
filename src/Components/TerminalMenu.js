@@ -142,7 +142,10 @@ export function TerminalMenu() {
     sshClient.current = new SSHClient(
       RUNTIME_URL,
       token,
-      {path: `/${contInfo.url}/${contInfo.port}/`},
+      {
+        transports: ['websocket', 'polling'],
+        path: `/${contInfo.url}/${contInfo.port}/socket.io/`
+      },
     );
 
     // 웹소켓 연결 상태에서 추가적인 인증 정보를 전송합니다.
