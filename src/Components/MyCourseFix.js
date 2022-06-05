@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useHistory, useLocation } from "react-router-dom";
-import axios from "axios";
 import "../styles/MyCourseFix.scss";
 import { API_URL } from "../constants.js";
+import {api} from "../utils/http"
 
 function MyCourseFix() {
-  let headers = {
-    Authorization: "Bearer " + localStorage.getItem("access_token") || "",
-  };
   let history = useHistory();
 
   let location = useLocation();
@@ -15,7 +12,7 @@ function MyCourseFix() {
   const [courseInfo, setCourseInfo] = useState([]);
 
   useEffect(() => {
-    axios.get(`${API_URL}/api/course/${courseId}`, { headers }).then((res) => {
+    api.get(`${API_URL}/api/course/${courseId}`).then((res) => {
       setCourseInfo(res.data);
     });
   }, []);
@@ -37,8 +34,8 @@ function MyCourseFix() {
         courseId: courseId,
         teacherEmail: teacherEmail,
       };
-      axios
-        .put(`${API_URL}/api/course/teacher`, body, { headers })
+      api
+        .put(`${API_URL}/api/course/teacher`, body)
         .then((res) => {
           if (res.status === 200) {
             alert(
@@ -61,8 +58,8 @@ function MyCourseFix() {
       courseId: courseId,
       password: coursePwd,
     };
-    axios
-      .put(`${API_URL}/api/course/password`, body, { headers })
+    api
+      .put(`${API_URL}/api/course/password`, body)
       .then((res) => {
         if (res.status === 200) {
           alert("변경 완료");
@@ -80,8 +77,8 @@ function MyCourseFix() {
       name: newCourseName,
       description: newCourseDes,
     };
-    axios
-      .put(`${API_URL}/api/course/${courseId}`, body, { headers })
+    api
+      .put(`${API_URL}/api/course/${courseId}`, body)
       .then((res) => {
         if (res.status === 200) {
           alert("변경 완료");

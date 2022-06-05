@@ -7,14 +7,10 @@ import "../styles/AsTeacherMain.scss";
 import Modal from "react-modal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCirclePlus, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
-import axios from "axios";
 import { API_URL } from "../constants";
+import {api} from "../utils/http";
 
 function AsTeacherMain() {
-  let headers = {
-    Authorization: "Bearer " + localStorage.getItem("access_token") || "",
-  };
-
   const location = useLocation();
   console.log(location);
   const history = useHistory();
@@ -28,10 +24,7 @@ function AsTeacherMain() {
   // 수업정보, 레슨정보 가져오기
   useEffect(() => {
     const getCourseInfo = async () => {
-      const courseInfo = await axios.get(
-        `${API_URL}/api/course/${realCourseID}`,
-        { headers }
-      );
+      const courseInfo = await api.get(`${API_URL}/api/course/${realCourseID}`);
       setCourseInfo(courseInfo.data);
     };
     getCourseInfo();
@@ -39,10 +32,7 @@ function AsTeacherMain() {
 
   useEffect(() => {
     const getLessonInfo = async () => {
-      const lessonInfo = await axios.get(
-        `${API_URL}/api/lesson/${realCourseID}`,
-        { headers }
-      );
+      const lessonInfo = await api.get(`${API_URL}/api/lesson/${realCourseID}`);
       setLessonInfo(lessonInfo.data);
     };
     getLessonInfo();
@@ -71,7 +61,7 @@ function AsTeacherMain() {
 
   // 사용 가능 언어 get 요청
   useEffect(() => {
-    axios
+    api
       .get("https://dev-bridge.together-coding.com/api/runtimes/available")
       .then((res) => {
         setLang(res.data.image);
@@ -87,8 +77,8 @@ function AsTeacherMain() {
       emails: participants,
     };
     if (window.confirm("참여자를 등록하시겠습니까?")) {
-      axios
-        .post(`${API_URL}/api/course/student`, body, { headers })
+      api
+        .post(`${API_URL}/api/course/student`, body)
         .then((res) => {
           if (res.status === 200) {
             alert("등록 완료");
@@ -130,8 +120,8 @@ function AsTeacherMain() {
   // 코스 삭제 컨트롤
   const closeClassBtn = () => {
     if (window.confirm("정말 코스를 종료 시키겠습니까?")) {
-      axios
-        .delete(`${API_URL}/api/course/${realCourseID}`, { headers })
+      api
+        .delete(`${API_URL}/api/course/${realCourseID}`)
         .then((res) => {
           if (res.status === 200) {
             alert("코스 종료 완료");
@@ -165,7 +155,7 @@ function AsTeacherMain() {
     };
     console.log(body);
     if (window.confirm(addlessonName + " 수업을 등록하시겠습니까?")) {
-      axios.post(`${API_URL}/api/lesson`, body, { headers }).then((res) => {
+      api.post(`${API_URL}/api/lesson`, body).then((res) => {
         if (res.status === 200) {
           alert("레슨 등록 완료!");
         }
@@ -186,8 +176,8 @@ function AsTeacherMain() {
   const changeLessonNameBtn = () => {
     let body = { name: changeLessonName };
     console.log(body);
-    axios
-      .put(`${API_URL}/api/lesson/name/${saveLessonID}`, body, { headers })
+    api
+      .put(`${API_URL}/api/lesson/name/${saveLessonID}`, body)
       .then((res) => {
         if (res.status === 200) {
           alert("변경 완료");
@@ -205,10 +195,8 @@ function AsTeacherMain() {
   const changeLessonDesBtn = () => {
     let body = { description: changeLessonDes };
     console.log(body);
-    axios
-      .put(`${API_URL}/api/lesson/description/${saveLessonID}`, body, {
-        headers,
-      })
+    api
+      .put(`${API_URL}/api/lesson/description/${saveLessonID}`, body)
       .then((res) => {
         if (res.status === 200) {
           alert("변경 완료");
@@ -231,8 +219,8 @@ function AsTeacherMain() {
   const delLessonBtn = (e) => {
     let lessonID = e.target.value;
     if (window.confirm("해당 레슨을 정말 종료 시키겠습니까?")) {
-      axios
-        .delete(`${API_URL}/api/lesson/${lessonID}`, { headers })
+      api
+        .delete(`${API_URL}/api/lesson/${lessonID}`)
         .then((res) => {
           if (res.status === 200) {
             alert("레슨 삭제 완료");
@@ -264,11 +252,10 @@ function AsTeacherMain() {
       for (let value of formData.values()) {
         console.log(value);
       }
-      axios
+      api
         .post(`${API_URL}/api/file`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: "Bearer " + localStorage.getItem("access_token"),
           },
         })
         .then((res) => {
@@ -420,14 +407,13 @@ function AsTeacherMain() {
                               className="template-btn"
                               value={x.fileUrl}
                               onClick={(e) => {
-                                axios
+                                api
                                   .post(
                                     `${API_URL}/api/file/url`,
                                     {
                                       fileUrl: x.fileUrl,
                                       lessonId: x.lessonId,
                                     },
-                                    { headers }
                                   )
                                   .then((res) => {
                                     if (res.status === 200) {

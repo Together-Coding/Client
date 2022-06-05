@@ -2,39 +2,34 @@ import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
 import { Link } from "react-router-dom";
 import "../styles/myInfo.scss";
-import axios from "axios";
 import { API_URL } from "../constants.js";
 import { useHistory } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCirclePlus } from "@fortawesome/free-solid-svg-icons";
+import { api } from "../utils/http";
 
 function MyInfo() {
-
-  let headers = {
-    Authorization: "Bearer " + localStorage.getItem("access_token") || "",
-  };
-
   const [myInfo, setMyInfo] = useState("");
   const [myClass, setMyClass] = useState([]);
 
   useEffect(() => {
-    axios
+    api
       .all([
-        axios.get(`${API_URL}/api/user`, { headers }),
-        axios.get(`${API_URL}/api/course/teacher`, { headers }),
-        axios.get(`${API_URL}/api/course/student`, { headers }),
+        api.get(`${API_URL}/api/user`),
+        api.get(`${API_URL}/api/course/teacher`),
+        api.get(`${API_URL}/api/course/student`),
       ])
       .then(
-        axios.spread((res1, res2, res3) => {
+        api.spread((res1, res2, res3) => {
           setMyInfo(res1.data);
           setMyClass(res2.data);
           setParticipantClass(res3.data);
         })
       );
   }, []);
-  
+
   let history = useHistory();
-  
+
   useEffect(() => {
     let unlisten = history.listen((location) => {
       if (history.action == "POP") {
@@ -45,7 +40,7 @@ function MyInfo() {
       unlisten();
     };
   }, [history]);
-  
+
   const [participantClass, setParticipantClass] = useState([]);
   // 모달창 열고 닫기 컨트롤
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -55,7 +50,7 @@ function MyInfo() {
   const [courseName, setCourseName] = useState("");
   const [coursePwd, setCoursePwd] = useState("");
   const [courseDescription, setCourseDescription] = useState("");
-  
+
 
   const courseNameEvent = (e) => {
     setCourseName(e.target.value);
@@ -76,7 +71,7 @@ function MyInfo() {
         password: coursePwd,
         description: courseDescription,
       };
-      axios.post(`${API_URL}/api/course`, body, { headers }).then((res) => {
+      api.post(`${API_URL}/api/course`, body).then((res) => {
         if (res.status === 200) {
           alert("수업 등록 완료");
         }
@@ -90,7 +85,7 @@ function MyInfo() {
       return false;
     }
   };
-  
+
   // 로그아웃 컨트롤: 토큰 지워주기
   const logOutCtrl = () => {
     if (window.confirm("로그아웃 하시겠습니까?")) {
