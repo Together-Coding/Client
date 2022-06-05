@@ -6,3 +6,4 @@ export const WS_MONITOR = true;
 
 export const API_URL = 'https://api.together-coding.com'
 export const RUNTIME_BRIDGE_URL = DEBUG ? 'https://dev-bridge.together-coding.com' : 'https://bridge.together-coding.com'
+export const RUNTIME_URL = 'https://runtime.together-coding.com/';

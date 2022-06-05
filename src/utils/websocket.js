@@ -2,10 +2,10 @@ const {io} = require('socket.io-client');
 
 
 export class WSClient {
-  constructor(url, token) {
+  constructor(url, token, options= null) {
     this.url = url;
     this.token = token;  // 인증 토큰
-    this.socket = io(this.url);
+    this.socket = io(this.url, options || {});
     this.listen = false;
 
     this.authEventName = 'AUTHENTICATE';

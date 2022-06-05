@@ -4,7 +4,7 @@ import { SSHClient } from "../utils/websocket";
 import { XTerm } from "xterm-for-react";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
-import { API_URL, RUNTIME_BRIDGE_URL } from "../constants";
+import {API_URL, RUNTIME_BRIDGE_URL, RUNTIME_URL} from "../constants";
 
 /**
  * 터미널 메뉴
@@ -140,8 +140,9 @@ export function TerminalMenu() {
       return;
     }
     sshClient.current = new SSHClient(
-      `${contInfo.url}:${contInfo.port}`,
-      token
+      RUNTIME_URL,
+      token,
+      {path: `/${contInfo.url}/${contInfo.port}/`},
     );
 
     // 웹소켓 연결 상태에서 추가적인 인증 정보를 전송합니다.
