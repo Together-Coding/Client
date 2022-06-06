@@ -675,7 +675,6 @@ const IDE = () => {
                         >
                           {i}
                         </span>
-                        { }
                         <div>
                           <button
                             value={i}
