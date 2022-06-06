@@ -18,7 +18,7 @@ import TeacherDashBoard from "./TeacherDashBoard";
 import StudentDashBoard from "./StudentDashBoard";
 
 import io from "socket.io-client";
-import {API_URL, WS_MONITOR} from "../constants";
+import {API_URL, WS_MONITOR, WS_URL} from "../constants";
 
 const IDE = () => {
   let location = useLocation();
@@ -45,7 +45,8 @@ const IDE = () => {
       courseId.current = parseInt(m[1]);
       lessonId.current = parseInt(m[2]);
     }
-
+    localStorage.setItem("lessonId", lessonId.current); // FIXME: TerminalMenu.js 로의 상태 전송을 위한 임시 코드
+    
     runSocket();
     console.log("render");
   }, []);
@@ -414,7 +415,7 @@ const IDE = () => {
   };
 
   const runSocket = () => {
-    socketio.current = io("https://ide-ws.together-coding.com/", {
+    socketio.current = io(WS_URL, {
       auth: {
         Authorization: "Bearer " + localStorage.getItem("access_token"),
       },

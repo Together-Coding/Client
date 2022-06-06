@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { API_URL } from "../constants";
 import { Link, useHistory } from "react-router-dom";
 import "../styles/Login.scss";
+import {api} from "../utils/http"
 
 function LoginPage() {
   let history = useHistory();
@@ -22,11 +22,8 @@ function LoginPage() {
       email: email,
       password: pwd,
     };
-    /*
-    let headers = {
-      Authorization: "Bearer " + localStorage.getItem("access_token") || "",
-    };*/
-    axios
+
+    api
       .post(`${API_URL}/auth/login`, body)
       .then((res) => {
         let token = res.data;

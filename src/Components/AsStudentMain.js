@@ -6,12 +6,9 @@ import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { API_URL } from "../constants";
 import "../styles/AsStudentMain.scss";
+import {api} from "../utils/http";
 
 function AsStudentMain() {
-  let headers = {
-    Authorization: "Bearer " + localStorage.getItem("access_token") || "",
-  };
-
   const location = useLocation();
   const history = useHistory();
   const courseID = useParams();
@@ -24,10 +21,7 @@ function AsStudentMain() {
   // 수업정보, 레슨정보 가져오기
   useEffect(() => {
     const getCourseInfo = async () => {
-      const courseInfo = await axios.get(
-        `${API_URL}/api/course/${realCourseID}`,
-        { headers }
-      );
+      const courseInfo = await api.get(`${API_URL}/api/course/${realCourseID}`);
       setCourseInfo(courseInfo.data);
     };
     getCourseInfo();
@@ -35,10 +29,7 @@ function AsStudentMain() {
 
   useEffect(() => {
     const getLessonInfo = async () => {
-      const lessonInfo = await axios.get(
-        `${API_URL}/api/lesson/${realCourseID}`,
-        { headers }
-      );
+      const lessonInfo = await api.get(`${API_URL}/api/lesson/${realCourseID}`);
       setLessonInfo(lessonInfo.data);
     };
     getLessonInfo();

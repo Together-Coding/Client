@@ -1,14 +1,10 @@
 import React, { useState } from "react";
 import "../styles/MyInfoFix.scss";
 import { API_URL } from "../constants";
-import axios from "axios";
 import { Link } from "react-router-dom";
+import { api } from "../utils/http"
 
 function MyInfoFix() {
-  let headers = {
-    Authorization: "Bearer " + localStorage.getItem("access_token") || "",
-  };
-
   let [changeName, setChangeName] = useState("");
 
   let [nowPwd, setNowPwd] = useState("");
@@ -37,13 +33,11 @@ function MyInfoFix() {
   };
   // 이름 변경 요청 함수
   const changeNameBtn = () => {
-    axios
+    api
       .put(
-        `${API_URL}/api/user`,
-        {
-          name: changeName,
-        },
-        { headers }
+        `${API_URL}/api/user`, {
+        name: changeName,
+      },
       )
       .then((res) => {
         console.log(res);
@@ -56,7 +50,7 @@ function MyInfoFix() {
       newPassword: changePwd,
       checkPassword: checkPwd,
     };
-    axios.put(`${API_URL}/api/password`, body, { headers }).then((res) => {
+    api.put(`${API_URL}/api/password`, body).then((res) => {
       console.log(res);
     });
   };
