@@ -9,6 +9,7 @@ import {
   faPeopleArrowsLeftRight,
   faSquarePlus,
   faFileArrowUp,
+  faBookOpenReader,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
@@ -18,7 +19,46 @@ import TeacherDashBoard from "./TeacherDashBoard";
 import StudentDashBoard from "./StudentDashBoard";
 
 import io from "socket.io-client";
-import {API_URL, WS_MONITOR, WS_URL} from "../constants";
+import { API_URL, WS_MONITOR, WS_URL } from "../constants";
+import NavbarCollapse from "react-bootstrap/esm/NavbarCollapse";
+
+/**
+ * ``현황`` 탭에서 학생들 리스트를 보여줍니다.
+ * @param {*} idx for loop key
+ * @param {*} item 해당 유저 participant object
+ * @param {*} acc 자신이 해당 유저에 대해 가지고 있는 권한
+ * @param {*} accBy 해당 유저가 자신에 대해 가지고 있는 권한
+ * @param {*} myId 자신의 ID
+ * @param {*} showOtherDir 해당 유저의 디렉터리 보기 이벤트 핸들러
+ * @returns 
+ */
+const StudentList = (idx, item, acc, accBy, myId, showOtherDir) => {
+  const hasProject = item.project;
+  const permToIt = acc ? acc.permission : 0;
+  const canRead = (permToIt & 4) == 4;
+  const permToMe = accBy  ? accBy.permission : 0;
+
+  return (
+    <div className={"stu-list" + (item.active ? "" : " off-line") + (canRead ? " readable" : "")} key={idx}>
+      <span className="stu-symbol">
+        {item.is_teacher ? <FontAwesomeIcon icon={faBookOpenReader} /> : null}
+      </span>
+      <span>{item.nickname}</span>
+      {myId == item.id ? null : <div className="stu-toolbox">
+        {hasProject && canRead ? (
+          <span className="open" value={item.id} onClick={e => {
+            showOtherDir(item);
+          }}>
+            <FontAwesomeIcon icon={faFolderOpen} />
+          </span>
+        ) : null}
+        <span className={"perm read " + ((permToMe & 4) == 4 ? "active" : "")}>R</span>
+        <span className={"perm write " + ((permToMe & 2) == 2 ? "active" : "")}>W</span>
+        <span className={"perm exec " + ((permToMe & 1) == 1 ? "active" : "")}>X</span>
+      </div>}
+    </div>
+  )
+}
 
 const IDE = () => {
   let location = useLocation();
@@ -30,10 +70,11 @@ const IDE = () => {
   const [initId, setInitId] = useState(0);
 
   let [userFile, setUserFile] = useState([]);
+  const [myPtcId, setMyPtcId] = useState(0);
   const [userId, setUserId] = useState(0);
   let [userNickName, setUserNickName] = useState("나");
 
-  let [stuInfo, setStuInfo] = useState([]);
+  let [stuInfo, setStuInfo] = useState({});
   let [saveFileName, setSaveFileName] = useState("");
 
   let [initLineNum, setInitLineNum] = useState(0);
@@ -46,7 +87,7 @@ const IDE = () => {
       lessonId.current = parseInt(m[2]);
     }
     localStorage.setItem("lessonId", lessonId.current); // FIXME: TerminalMenu.js 로의 상태 전송을 위한 임시 코드
-    
+
     runSocket();
     console.log("render");
   }, []);
@@ -72,7 +113,8 @@ const IDE = () => {
   let [renameCode, setRenameCode] = useState("");
   let [createFile, setCreateFile] = useState("");
 
-  let [acessibleStu, setAcessibleStu] = useState([]);
+  let [accessibleStu, setAccessibleStu] = useState({});
+  let [accessedByStu, setAccessedByStu] = useState({});
 
   let [outFocus, setOutFocus] = useState(false);
 
@@ -84,6 +126,19 @@ const IDE = () => {
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
   };
+
+  // 특정 유저의 디렉터리 보여줌
+  function showOtherDir(ptc) {
+    console.log(ptc)
+    setUserId(ptc.id);
+    setUserNickName(ptc.nickname);
+    setCodeValue("");
+
+    socketio.current.emit("DIR_INFO", {
+      targetId: ptc.id,
+    });
+    setSidebarBtn2("디렉토리");
+  }
 
   //현재 라인, 코드 보여줌
   function handleEditorChange(value, e) {
@@ -188,7 +243,7 @@ const IDE = () => {
     setSidebarBtn2("디렉토리");
     setUserNickName("나");
     socketio.current.emit("DIR_INFO", {
-      targetId: userId,
+      targetId: myPtcId,
     });
   };
 
@@ -294,6 +349,7 @@ const IDE = () => {
       setInitId((prev) => {
         return data.ptcId;
       });
+      setMyPtcId(data.ptcId);
       saveUserInfo(data);
 
       // IDE 데이터 요청
@@ -301,30 +357,28 @@ const IDE = () => {
     });
 
     socket.on("ALL_PARTICIPANT", (args) => {
-      console.log(args);
-      if (args.participants) return setStuInfo(args.participants);
-      setStuInfo(args); // 호환성 유지를 위함
+      let allPtc = {}
+      args.participants.forEach(item => allPtc[item.id] = item)
+      setStuInfo(allPtc);
     });
 
     socket.on("PARTICIPANT_STATUS", (args) => {
       console.log(args);
       setStuInfo((stuInfo) => {
-        if (stuInfo.length > 0) {
-          let copy = [...stuInfo];
-          let findIndex = copy.findIndex((i) => i.id === args.id);
-          if (findIndex !== -1) {
-            copy[findIndex] = { ...copy[findIndex], active: args.active };
-          }
-          return [...copy];
-        }
-        return stuInfo;
+        stuInfo[args.id] = args
+        return Object.assign({}, stuInfo);
       });
     });
 
     socket.on("PROJECT_ACCESSIBLE", (data) => {
-      setAcessibleStu((prev) => {
-        return data;
-      });
+      let newAcc = {}
+      console.log(data)
+      data.accessible_to.forEach(item => newAcc[item.userId] = item);
+      setAccessibleStu(newAcc)
+
+      let newAccBy = {}
+      data.accessed_by.forEach(item => newAccBy[item.userId] = item)
+      setAccessedByStu(newAccBy);
     });
 
     socket.on("DIR_INFO", (args) => {
@@ -449,11 +503,11 @@ const IDE = () => {
       }
 
       socketio.current.on('connect', () => {
-        socketio.current.emit('TIME_SYNC', {ts1: new Date().getTime()})
+        socketio.current.emit('TIME_SYNC', { ts1: new Date().getTime() })
       })
 
       socketio.current.on('TIME_SYNC_ACK', (data) => {
-        socketio.current.emit('TIME_SYNC_ACK', {...data, ts2: new Date().getTime()})
+        socketio.current.emit('TIME_SYNC_ACK', { ...data, ts2: new Date().getTime() })
       })
     }
 
@@ -463,11 +517,11 @@ const IDE = () => {
     clearTimeout(interval_1sec);
     interval_1sec = setInterval(() => {
       if (!timeout_activityPing) {
-      timeout_activityPing = setTimeout(() => {
-        socketio.current.emit('ACTIVITY_PING', {targetId: userId})
-        clearTimeout(timeout_activityPing);
-        timeout_activityPing = null;
-      }, 1000 * 10)
+        timeout_activityPing = setTimeout(() => {
+          socketio.current.emit('ACTIVITY_PING', { targetId: userId })
+          clearTimeout(timeout_activityPing);
+          timeout_activityPing = null;
+        }, 1000 * 10)
       }
     }, 1000)
   };
@@ -621,7 +675,7 @@ const IDE = () => {
                         >
                           {i}
                         </span>
-                        {}
+                        { }
                         <div>
                           <button
                             value={i}
@@ -686,84 +740,17 @@ const IDE = () => {
               <span>온라인</span>
             </p>
             {stuInfo &&
-              stuInfo.map((item, idx) => {
-                if (item.active === true) {
-                  return (
-                    <div className="stu-list" key={idx}>
-                      <span>{item.nickname}</span>
-                      {item.is_teacher ? <span>(teacher)</span> : null}
-                    </div>
-                  );
-                }
+              Object.entries(stuInfo).map(([ptcId, item], idx) => {
+                if (item.active === true) return StudentList(idx, item, accessibleStu[item.id], accessedByStu[item.id], myPtcId, showOtherDir);
               })}
-            <p className="side-navbar">
+            <p className="side-navbar offline-stus">
               <div className="offline-stu"></div>
               <span>오프라인</span>
             </p>
             {stuInfo &&
-              stuInfo.map((item, idx) => {
-                if (item.active === false) {
-                  return (
-                    <div className="stu-list" key={idx}>
-                      <span className="off-line-stu-name">
-                        {item.nickname}
-                        {item.is_teacher ? <span>(teacher)</span> : null}
-                      </span>
-                    </div>
-                  );
-                }
+              Object.entries(stuInfo).map(([ptcId, item], idx) => {
+                if (item.active === false) return StudentList(idx, item, accessibleStu[item.id], accessedByStu[item.id], myPtcId, showOtherDir);
               })}
-            <p className="side-navbar">
-              <span>프로젝트 접근</span>
-            </p>
-            <div className="accessble-container">
-              {acessibleStu.accessible_to &&
-                acessibleStu.accessible_to.map((i, idx) => {
-                  if (i.active === true) {
-                    return (
-                      <div className="online-accessible-stu-bar">
-                        <span
-                          className="online-accessible-stu"
-                          value={i.userId}
-                          onClick={(e) => {
-                            setUserId(i.userId);
-                            setUserNickName(i.nickname);
-                            setCodeValue("");
-
-                            socketio.current.emit("DIR_INFO", {
-                              targetId: i.userId,
-                            });
-                            setSidebarBtn2("디렉토리");
-                          }}
-                        >
-                          {i.nickname}
-                        </span>
-                      </div>
-                    );
-                  } else {
-                    return (
-                      <div className="offline-accessible-stu-bar">
-                        <span
-                          className="offline-accessible-stu"
-                          value={i.userId}
-                          onClick={(e) => {
-                            setUserId(i.userId);
-                            setUserNickName(i.nickname);
-                            setCodeValue("");
-
-                            socketio.current.emit("DIR_INFO", {
-                              targetId: i.userId,
-                            });
-                            setSidebarBtn2("디렉토리");
-                          }}
-                        >
-                          {i.nickname}
-                        </span>
-                      </div>
-                    );
-                  }
-                })}
-            </div>
           </div>
         )}
         {sidebarBtn === "IDE" ? (
