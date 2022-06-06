@@ -10,17 +10,16 @@ import {
   faSquarePlus,
   faFileArrowUp,
   faBookOpenReader,
+  faWindowMinimize,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
 import { isObject, uuidv4 } from "../utils/etc";
 import { useLocation } from "react-router-dom";
 import TeacherDashBoard from "./TeacherDashBoard";
-import StudentDashBoard from "./StudentDashBoard";
 
 import io from "socket.io-client";
 import { API_URL, WS_MONITOR, WS_URL } from "../constants";
-import NavbarCollapse from "react-bootstrap/esm/NavbarCollapse";
 
 /**
  * ``현황`` 탭에서 학생들 리스트를 보여줍니다.
@@ -30,16 +29,17 @@ import NavbarCollapse from "react-bootstrap/esm/NavbarCollapse";
  * @param {*} accBy 해당 유저가 자신에 대해 가지고 있는 권한
  * @param {*} myId 자신의 ID
  * @param {*} showOtherDir 해당 유저의 디렉터리 보기 이벤트 핸들러
+ * @param {*} togglePerm 자신에 대한 권한 수정
  * @returns 
  */
-const StudentList = (idx, item, acc, accBy, myId, showOtherDir) => {
+const StudentList = (idx, item, acc, accBy, myId, showOtherDir, togglePerm) => {
   const hasProject = item.project;
   const permToIt = acc ? acc.permission : 0;
   const canRead = (permToIt & 4) == 4;
-  const permToMe = accBy  ? accBy.permission : 0;
+  const permToMe = accBy ? accBy.permission : 0;
 
   return (
-    <div className={"stu-list" + (item.active ? "" : " off-line") + (canRead ? " readable" : "")} key={idx}>
+    <div className={"stu-list" + (item.active ? "" : " off-line") + (hasProject && canRead ? " readable" : "")} key={idx}>
       <span className="stu-symbol">
         {item.is_teacher ? <FontAwesomeIcon icon={faBookOpenReader} /> : null}
       </span>
@@ -52,9 +52,12 @@ const StudentList = (idx, item, acc, accBy, myId, showOtherDir) => {
             <FontAwesomeIcon icon={faFolderOpen} />
           </span>
         ) : null}
-        <span className={"perm read " + ((permToMe & 4) == 4 ? "active" : "")}>R</span>
-        <span className={"perm write " + ((permToMe & 2) == 2 ? "active" : "")}>W</span>
-        <span className={"perm exec " + ((permToMe & 1) == 1 ? "active" : "")}>X</span>
+        <span className={"perm read " + ((permToMe & 4) == 4 ? "active" : "")}
+          onClick={e => togglePerm(item.id, permToMe, 4)}>R</span>
+        <span className={"perm write " + ((permToMe & 2) == 2 ? "active" : "")}
+          onClick={e => togglePerm(item.id, permToMe, 2)}>W</span>
+        <span className={"perm exec " + ((permToMe & 1) == 1 ? "active" : "")}
+          onClick={e => togglePerm(item.id, permToMe, 1)}>X</span>
       </div>}
     </div>
   )
@@ -460,6 +463,13 @@ const IDE = () => {
       }
       console.log(args);
     });
+    socket.on("PROJECT_PERM", (args) => {
+      setAccessedByStu(prev => {
+        let copied = {...prev}
+        copied[args.userId].permission = args.permission;
+        return copied
+      })
+    })
   };
 
   const getDirectory = (socket, _userId = null) => {
@@ -467,6 +477,20 @@ const IDE = () => {
       targetId: _userId || userId,
     });
   };
+
+  const togglePerm = (targetId, perm, target) => {
+    if ((perm & target) == target) {
+      // perm 존재 -> mask off
+      perm = perm & (-1 - target);
+    } else {
+      // perm 없음 -> mask on
+      perm = perm | target;
+    }
+    socketio.current.emit("PROJECT_PERM", [{
+      targetId,
+      permission: perm,
+    }])
+  }
 
   const runSocket = () => {
     socketio.current = io(WS_URL, {
@@ -740,7 +764,7 @@ const IDE = () => {
             </p>
             {stuInfo &&
               Object.entries(stuInfo).map(([ptcId, item], idx) => {
-                if (item.active === true) return StudentList(idx, item, accessibleStu[item.id], accessedByStu[item.id], myPtcId, showOtherDir);
+                if (item.active === true) return StudentList(idx, item, accessibleStu[item.id], accessedByStu[item.id], myPtcId, showOtherDir, togglePerm);
               })}
             <p className="side-navbar offline-stus">
               <div className="offline-stu"></div>
@@ -748,7 +772,7 @@ const IDE = () => {
             </p>
             {stuInfo &&
               Object.entries(stuInfo).map(([ptcId, item], idx) => {
-                if (item.active === false) return StudentList(idx, item, accessibleStu[item.id], accessedByStu[item.id], myPtcId, showOtherDir);
+                if (item.active === false) return StudentList(idx, item, accessibleStu[item.id], accessedByStu[item.id], myPtcId, showOtherDir, togglePerm);
               })}
           </div>
         )}

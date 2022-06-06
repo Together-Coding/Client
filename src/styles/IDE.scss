@@ -239,7 +239,7 @@
           position: relative;
           display: flex;
           float: right;
-          margin: 2px 2px 0;
+          margin: 0 2px 0;
 
           &::after {
               clear: both;
@@ -252,7 +252,7 @@
           .perm {
               cursor: pointer;
               display: inline-block;
-              margin: 0 2px;
+              margin: 2px 2px 0;
               padding: 1px;
 
               width: 12px;
@@ -267,7 +267,7 @@
               text-align: center;
 
               &:hover {
-                  background-color: rgb(128, 173, 61);
+                  background-color: rgb(105, 105, 105);
                   color: #000000;
               }
           }
@@ -275,11 +275,6 @@
           .perm.active {
               color: #000000;
               background-color: rgb(121, 180, 31);
-
-              &:hover {
-                  background-color: rgb(105, 105, 105);
-                  color: #b9c3dd;
-              }
           }
       }
   }
