@@ -7,6 +7,7 @@ import "xterm/css/xterm.css";
 import "../styles/terminal.scss";
 import { API_URL, RUNTIME_BRIDGE_URL, RUNTIME_URL, WS_URL } from "../constants";
 import { api } from "../utils/http";
+import { Socket } from "socket.io-client";
 
 
 /**
@@ -15,7 +16,7 @@ import { api } from "../utils/http";
  * @return {JSX.Element}
  * @constructor
  */
-export function TerminalMenu() {
+export function TerminalMenu({ termFunc, runtimeInfo }) {
   let token = localStorage.getItem("access_token");
 
   // xterm Terminal
@@ -41,6 +42,8 @@ export function TerminalMenu() {
   let sshClient = useRef();
   useEffect(() => {
     initRuntime();
+
+    termFunc.current = sendSSHMessage;
   }, []);
 
   let initTerminal = () => {
@@ -122,6 +125,18 @@ export function TerminalMenu() {
     }
   };
 
+  function sendSSHMessage(filename) {
+    if (!filename) return;
+
+    sshClient.current.emit("SSH", "cd /usr/src/app\n")
+
+    if (filename.endsWith(".py")) {
+      sshClient.current.emit("SSH", `python ${filename}\n`)
+    } else if (filename.endsWith(".c")) {
+      sshClient.current.emit("SSH", `gcc ${filename} -o _.out && ./_.out\n`)
+    }
+  }
+
   /**
    * SSH relay 서버 연결
    * 코드 실행 환경을 생성하도록 브릿지 서버에 요청을 보냅니다.
@@ -133,10 +148,11 @@ export function TerminalMenu() {
     let res0 = await api.get(`${WS_URL}/api/lesson/${localStorage.getItem("lessonId")}`)
 
     // 새로운 컨테이너 할당 요청
-    let payload = {image_id: res0.data.lang_image_id};
-    let res = await api.post(`${RUNTIME_BRIDGE_URL}/api/containers/launch`,payload);
+    let payload = { image_id: res0.data.lang_image_id };
+    let res = await api.post(`${RUNTIME_BRIDGE_URL}/api/containers/launch`, payload);
     contInfo.url = res.data.url;
     contInfo.port = res.data.port;
+    runtimeInfo.current = contInfo;
 
     if (!contInfo.url || !contInfo.port) {
       return;
