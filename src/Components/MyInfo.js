@@ -16,22 +16,13 @@ function MyInfo() {
 
   const [myInfo, setMyInfo] = useState("");
   const [myClass, setMyClass] = useState([]);
-  let headers = {
-    Authorization: "Bearer " + localStorage.getItem("access_token") || "",
-  };
 
   useEffect(() => {
     axios
       .all([
-<<<<<<< HEAD
         axios.get(`${API_URL}/api/user`, {headers}),
         axios.get(`${API_URL}/api/course/teacher`,  {headers}),
         axios.get(`${API_URL}/api/course/student`,  {headers}),
-=======
-        axios.get(`${API_URL}/api/user`, { headers }),
-        axios.get(`${API_URL}/api/course/teacher`, { headers }),
-        axios.get(`${API_URL}/api/course/student`, { headers }),
->>>>>>> a52204e889518845ac12332c07793d7fb8806a5c
       ])
       .then(
         axios.spread((res1, res2, res3) => {
