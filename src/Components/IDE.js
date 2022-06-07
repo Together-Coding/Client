@@ -9,17 +9,84 @@ import {
   faPeopleArrowsLeftRight,
   faSquarePlus,
   faFileArrowUp,
-  faMicrophoneLines,
+  faBookOpenReader,
+  faWindowMinimize,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
 import { isObject, uuidv4 } from "../utils/etc";
 import { useLocation } from "react-router-dom";
 import TeacherDashBoard from "./TeacherDashBoard";
-import StudentDashBoard from "./StudentDashBoard";
 
 import io from "socket.io-client";
 import { API_URL, WS_MONITOR, WS_URL } from "../constants";
+
+/**
+ * ``현황`` 탭에서 학생들 리스트를 보여줍니다.
+ * @param {*} idx for loop key
+ * @param {*} item 해당 유저 participant object
+ * @param {*} acc 자신이 해당 유저에 대해 가지고 있는 권한
+ * @param {*} accBy 해당 유저가 자신에 대해 가지고 있는 권한
+ * @param {*} myId 자신의 ID
+ * @param {*} showOtherDir 해당 유저의 디렉터리 보기 이벤트 핸들러
+ * @param {*} togglePerm 자신에 대한 권한 수정
+ * @returns
+ */
+const StudentList = (idx, item, acc, accBy, myId, showOtherDir, togglePerm) => {
+  const hasProject = item.project;
+  const permToIt = acc ? acc.permission : 0;
+  const canRead = (permToIt & 4) == 4;
+  const permToMe = accBy ? accBy.permission : 0;
+
+  return (
+    <div
+      className={
+        "stu-list" +
+        (item.active ? "" : " off-line") +
+        (hasProject && canRead ? " readable" : "")
+      }
+      key={idx}
+    >
+      <span className="stu-symbol">
+        {item.is_teacher ? <FontAwesomeIcon icon={faBookOpenReader} /> : null}
+      </span>
+      <span>{item.nickname}</span>
+      {myId == item.id ? null : (
+        <div className="stu-toolbox">
+          {hasProject && canRead ? (
+            <span
+              className="open"
+              value={item.id}
+              onClick={(e) => {
+                showOtherDir(item);
+              }}
+            >
+              <FontAwesomeIcon icon={faFolderOpen} />
+            </span>
+          ) : null}
+          <span
+            className={"perm read " + ((permToMe & 4) == 4 ? "active" : "")}
+            onClick={(e) => togglePerm(item.id, permToMe, 4)}
+          >
+            R
+          </span>
+          <span
+            className={"perm write " + ((permToMe & 2) == 2 ? "active" : "")}
+            onClick={(e) => togglePerm(item.id, permToMe, 2)}
+          >
+            W
+          </span>
+          <span
+            className={"perm exec " + ((permToMe & 1) == 1 ? "active" : "")}
+            onClick={(e) => togglePerm(item.id, permToMe, 1)}
+          >
+            X
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const IDE = () => {
   let location = useLocation();
@@ -31,10 +98,11 @@ const IDE = () => {
   const [initId, setInitId] = useState(0);
 
   let [userFile, setUserFile] = useState([]);
+  const [myPtcId, setMyPtcId] = useState(0);
   const [userId, setUserId] = useState(0);
   let [userNickName, setUserNickName] = useState("나");
 
-  let [stuInfo, setStuInfo] = useState([]);
+  let [stuInfo, setStuInfo] = useState({});
   let [saveFileName, setSaveFileName] = useState("");
 
   let [initLineNum, setInitLineNum] = useState(0);
@@ -51,6 +119,14 @@ const IDE = () => {
     runSocket();
     console.log("render");
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("currUserId", userId);
+  }, [userId]);
+
+  useEffect(() => {
+    localStorage.setItem("currFileName", saveFileName);
+  }, [saveFileName]);
 
   let [sidebarBtn, setSidebarBtn] = useState("IDE");
   let [sidebarBtn2, setSidebarBtn2] = useState("");
@@ -74,7 +150,8 @@ const IDE = () => {
   let [renameCode, setRenameCode] = useState("");
   let [createFile, setCreateFile] = useState("");
 
-  let [acessibleStu, setAcessibleStu] = useState([]);
+  let [accessibleStu, setAccessibleStu] = useState({});
+  let [accessedByStu, setAccessedByStu] = useState({});
 
   let [outFocus, setOutFocus] = useState(false);
 
@@ -86,6 +163,19 @@ const IDE = () => {
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
   };
+
+  // 특정 유저의 디렉터리 보여줌
+  function showOtherDir(ptc) {
+    console.log(ptc);
+    setUserId(ptc.id);
+    setUserNickName(ptc.nickname);
+    setCodeValue("");
+
+    socketio.current.emit("DIR_INFO", {
+      targetId: ptc.id,
+    });
+    setSidebarBtn2("디렉토리");
+  }
 
   //현재 라인, 코드 보여줌
   const handleEditorChange = (value, e) => {
@@ -115,11 +205,10 @@ const IDE = () => {
       timestamp: Date.now(),
     });
 
-    saveCodeDeferred();
+    saveCodeDeferred(saveFileName);
   };
-
   let modCodeTimeout;
-  const modDelay = 1000;
+  const modDelay = 500;
 
   const realTimeCodeSend = (e, lineNum, colNum) => {
     let inputStr;
@@ -151,12 +240,12 @@ const IDE = () => {
   let saveCodeTimeout;
   const saveDelay = 500;
 
-  function saveCodeDeferred() {
+  function saveCodeDeferred(filename) {
     clearTimeout(saveCodeTimeout);
     saveCodeTimeout = setTimeout(() => {
       socketio.current.emit("FILE_SAVE", {
         ownerId: userId,
-        file: saveFileName,
+        file: filename,
         content: codeValue, // TODO: 확인 필요
       });
     }, saveDelay);
@@ -197,7 +286,7 @@ const IDE = () => {
     setSidebarBtn2("디렉토리");
     setUserNickName("나");
     socketio.current.emit("DIR_INFO", {
-      targetId: userId,
+      targetId: myPtcId,
     });
   };
 
@@ -303,6 +392,7 @@ const IDE = () => {
       setInitId((prev) => {
         return data.ptcId;
       });
+      setMyPtcId(data.ptcId);
       saveUserInfo(data);
 
       // IDE 데이터 요청
@@ -310,30 +400,28 @@ const IDE = () => {
     });
 
     socket.on("ALL_PARTICIPANT", (args) => {
-      console.log(args);
-      if (args.participants) return setStuInfo(args.participants);
-      setStuInfo(args); // 호환성 유지를 위함
+      let allPtc = {};
+      args.participants.forEach((item) => (allPtc[item.id] = item));
+      setStuInfo(allPtc);
     });
 
     socket.on("PARTICIPANT_STATUS", (args) => {
       console.log(args);
       setStuInfo((stuInfo) => {
-        if (stuInfo.length > 0) {
-          let copy = [...stuInfo];
-          let findIndex = copy.findIndex((i) => i.id === args.id);
-          if (findIndex !== -1) {
-            copy[findIndex] = { ...copy[findIndex], active: args.active };
-          }
-          return [...copy];
-        }
-        return stuInfo;
+        stuInfo[args.id] = args;
+        return Object.assign({}, stuInfo);
       });
     });
 
     socket.on("PROJECT_ACCESSIBLE", (data) => {
-      setAcessibleStu((prev) => {
-        return data;
-      });
+      let newAcc = {};
+      console.log(data);
+      data.accessible_to.forEach((item) => (newAcc[item.userId] = item));
+      setAccessibleStu(newAcc);
+
+      let newAccBy = {};
+      data.accessed_by.forEach((item) => (newAccBy[item.userId] = item));
+      setAccessedByStu(newAccBy);
     });
 
     socket.on("DIR_INFO", (args) => {
@@ -410,16 +498,14 @@ const IDE = () => {
       console.log(args);
     });
     socket.on("FILE_MOD", (args) => {
-      let codeVal=monacoRef.current.getValue();
-      let splitCode=codeVal.split("\n");
+      let codeVal = monacoRef.current.getValue();
+      let splitCode = codeVal.split("\n");
 
-      if (args.change.length>0) {
-        
-      
+      if (args.change.length > 0) {
         let str;
         let cursorPostion = args.cursor.split(".");
         console.log(args);
-        
+
         str = args.change
           .map((i) => {
             if (i === 13) {
@@ -429,17 +515,16 @@ const IDE = () => {
             }
           })
           .join("");
-       
-        let findLine=splitCode[cursorPostion[0]-1];
-        console.log(findLine);
-        let newStr=findLine.substr(0,cursorPostion[1]-1)+str
-        console.log(newStr)
-        splitCode.splice(cursorPostion[0]-1,0,newStr);
 
-        console.log(splitCode)
-        
+        let findLine = splitCode[cursorPostion[0] - 1];
+        console.log(findLine);
+        let newStr = findLine.substr(0, cursorPostion[1] - 1) + str;
+        console.log(newStr);
+        splitCode.splice(cursorPostion[0] - 1, 0, newStr);
+
+        console.log(splitCode);
       }
-      setCodeValue(splitCode)
+      setCodeValue(splitCode);
       setRealTimeCode([]);
       /*monacoRef.current.executeEdits("", [
         {
@@ -454,12 +539,35 @@ const IDE = () => {
         },
       ]);*/
     });
+    socket.on("PROJECT_PERM", (args) => {
+      setAccessedByStu((prev) => {
+        let copied = { ...prev };
+        copied[args.userId].permission = args.permission;
+        return copied;
+      });
+    });
   };
 
   const getDirectory = (socket, _userId = null) => {
     socket.emit("DIR_INFO", {
       targetId: _userId || userId,
     });
+  };
+
+  const togglePerm = (targetId, perm, target) => {
+    if ((perm & target) == target) {
+      // perm 존재 -> mask off
+      perm = perm & (-1 - target);
+    } else {
+      // perm 없음 -> mask on
+      perm = perm | target;
+    }
+    socketio.current.emit("PROJECT_PERM", [
+      {
+        targetId,
+        permission: perm,
+      },
+    ]);
   };
 
   const runSocket = () => {
@@ -678,7 +786,6 @@ const IDE = () => {
                         >
                           {i}
                         </span>
-                        {}
                         <div>
                           <button
                             value={i}
@@ -743,84 +850,35 @@ const IDE = () => {
               <span>온라인</span>
             </p>
             {stuInfo &&
-              stuInfo.map((item, idx) => {
-                if (item.active === true) {
-                  return (
-                    <div className="stu-list" key={idx}>
-                      <span>{item.nickname}</span>
-                      {item.is_teacher ? <span>(teacher)</span> : null}
-                    </div>
+              Object.entries(stuInfo).map(([ptcId, item], idx) => {
+                if (item.active === true)
+                  return StudentList(
+                    idx,
+                    item,
+                    accessibleStu[item.id],
+                    accessedByStu[item.id],
+                    myPtcId,
+                    showOtherDir,
+                    togglePerm
                   );
-                }
               })}
-            <p className="side-navbar">
+            <p className="side-navbar offline-stus">
               <div className="offline-stu"></div>
               <span>오프라인</span>
             </p>
             {stuInfo &&
-              stuInfo.map((item, idx) => {
-                if (item.active === false) {
-                  return (
-                    <div className="stu-list" key={idx}>
-                      <span className="off-line-stu-name">
-                        {item.nickname}
-                        {item.is_teacher ? <span>(teacher)</span> : null}
-                      </span>
-                    </div>
+              Object.entries(stuInfo).map(([ptcId, item], idx) => {
+                if (item.active === false)
+                  return StudentList(
+                    idx,
+                    item,
+                    accessibleStu[item.id],
+                    accessedByStu[item.id],
+                    myPtcId,
+                    showOtherDir,
+                    togglePerm
                   );
-                }
               })}
-            <p className="side-navbar">
-              <span>프로젝트 접근</span>
-            </p>
-            <div className="accessble-container">
-              {acessibleStu.accessible_to &&
-                acessibleStu.accessible_to.map((i, idx) => {
-                  if (i.active === true) {
-                    return (
-                      <div className="online-accessible-stu-bar">
-                        <span
-                          className="online-accessible-stu"
-                          value={i.userId}
-                          onClick={(e) => {
-                            setUserId(i.userId);
-                            setUserNickName(i.nickname);
-                            setCodeValue("");
-
-                            socketio.current.emit("DIR_INFO", {
-                              targetId: i.userId,
-                            });
-                            setSidebarBtn2("디렉토리");
-                          }}
-                        >
-                          {i.nickname}
-                        </span>
-                      </div>
-                    );
-                  } else {
-                    return (
-                      <div className="offline-accessible-stu-bar">
-                        <span
-                          className="offline-accessible-stu"
-                          value={i.userId}
-                          onClick={(e) => {
-                            setUserId(i.userId);
-                            setUserNickName(i.nickname);
-                            setCodeValue("");
-
-                            socketio.current.emit("DIR_INFO", {
-                              targetId: i.userId,
-                            });
-                            setSidebarBtn2("디렉토리");
-                          }}
-                        >
-                          {i.nickname}
-                        </span>
-                      </div>
-                    );
-                  }
-                })}
-            </div>
           </div>
         )}
         {sidebarBtn === "IDE" ? (
