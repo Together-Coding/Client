@@ -212,7 +212,7 @@ const IDE = () => {
     let colNum = monacoRef.current.getPosition().column;
     let fullLine = monacoRef.current.getSelection().endLineNumber;
 
-    //realTimeCodeSend(e, lineNum, colNum);
+    realTimeCodeSend(e, lineNum, colNum);
 
     console.log(lineNum, colNum, fullLine);
 
@@ -534,34 +534,38 @@ const IDE = () => {
       console.log(args);
     });
     socket.on("FILE_MOD", (args) => {
-      /*  let codeVal = monacoRef.current.getValue();
-      let splitCode = codeVal.split("\n");
+      let codeVal = monacoRef.current.getValue();
+      //let splitCode = codeVal.split("\n");
 
       if (args.change && args.change.length > 0) {
         let str;
-        let cursorPostion = args.cursor.split(".");
+        //let cursorPostion = args.cursor.split(".");
         console.log(args);
 
         str = args.change
           .map((i) => {
             if (i === 13) {
               return "\n";
-            } else {
+            } 
+            else if (i===8){
+              return "\b";
+            }
+            else {
               return String.fromCharCode(i);
             }
           })
           .join("");
 
-        let findLine = splitCode[cursorPostion[0] - 1];
-        console.log(findLine);
-        let newStr = findLine.substr(0, cursorPostion[1] - 1) + str;
-        console.log(newStr);
-        splitCode.splice(cursorPostion[0] - 1, 0, newStr);
-
-        console.log(splitCode);
+        //let findLine = splitCode[cursorPostion[0] - 1];
+        //console.log(findLine);
+        //let newStr = findLine.substr(0, cursorPostion[1] - 1) + str;
+        //console.log(newStr);
+        //splitCode.splice(cursorPostion[0] - 1, 0, newStr);
+        //console.log(splitCode);
+        //codeVal=codeVal+str;
         setRealTimeCode([]);
         setCodeValue((prev) => {
-          return splitCode.join("");
+          return codeVal+str;
         });
       }
 
