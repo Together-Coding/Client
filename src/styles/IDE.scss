@@ -194,26 +194,89 @@
 
   .online-stu {
       background-color: green;
+      margin-top: 2px;
       margin-left: 5px;
       width: 10px;
       height: 10px;
       border-radius: 10px;
   }
 
+  .offline-stus {
+      margin-top: 10px;
+  }
+  
   .offline-stu {
       background-color: red;
       @extend .online-stu;
   }
 
-  .off-line-stu-name {
-      color: #757677;
-  }
 
   .stu-list {
-      margin-left: 5px;
-      margin-bottom: 5px;
+      padding: 4px 6px;
+
       color: #b9c3dd;
       font-size: 13px;
+
+      &:hover {
+          background-color: black;
+      }
+
+      &.off-line {
+          color: #757677;
+      }
+
+      &.readable {
+          cursor: pointer;
+      }
+
+      .stu-symbol {
+          display: inline-block;
+          margin-right: 0.3em;
+          min-width: 15px;
+      }
+
+      .stu-toolbox {
+          position: relative;
+          display: flex;
+          float: right;
+          margin: 0 2px 0;
+
+          &::after {
+              clear: both;
+          }
+
+          .open {
+              margin-right: 6px;
+          }
+
+          .perm {
+              cursor: pointer;
+              display: inline-block;
+              margin: 2px 2px 0;
+              padding: 1px;
+
+              width: 12px;
+              height: 12px;
+              line-height: 10px;
+
+              background-color: rgb(32, 32, 32);
+              color: #b9c3dd;
+              border-radius: 10px;
+              font-size: 10px;
+              font-weight: 500;
+              text-align: center;
+
+              &:hover {
+                  background-color: rgb(105, 105, 105);
+                  color: #000000;
+              }
+          }
+
+          .perm.active {
+              color: #000000;
+              background-color: rgb(121, 180, 31);
+          }
+      }
   }
 
   .file-container {
@@ -331,40 +394,40 @@
       color: #b9c3dd;
   }
 
-  .accessble-container {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+  //   .accessble-container {
+  //       display: flex;
+  //       flex-direction: column;
+  //       justify-content: center;
 
-      span {
-          cursor: pointer;
-      }
-  }
+  //       span {
+  //           cursor: pointer;
+  //       }
+  //   }
 
-  .online-accessible-stu {
-      @extend.stu-list
-  }
+  //   .online-accessible-stu {
+  //       @extend.stu-list
+  //   }
 
-  .offline-accessible-stu {
-      @extend.online-accessible-stu;
-      color: #757677;
-  }
+  //   .offline-accessible-stu {
+  //       @extend.online-accessible-stu;
+  //       color: #757677;
+  //   }
 
-  .online-accessible-stu-bar {
-      padding-bottom: 2px;
-  }
+  //   .online-accessible-stu-bar {
+  //       padding-bottom: 2px;
+  //   }
 
-  .offline-accessible-stu-bar {
-      @extend .online-accessible-stu-bar;
-  }
+  //   .offline-accessible-stu-bar {
+  //       @extend .online-accessible-stu-bar;
+  //   }
 
-  .online-accessible-stu-bar:hover() {
-      background-color: black;
-  }
+  //   .online-accessible-stu-bar:hover() {
+  //       background-color: black;
+  //   }
 
-  .offline-accessible-stu-bar:hover() {
-      background-color: black;
-  }
+  //   .offline-accessible-stu-bar:hover() {
+  //       background-color: black;
+  //   }
 
   .return-my-project-btn {
       margin-left: 220px;
