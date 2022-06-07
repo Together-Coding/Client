@@ -205,8 +205,15 @@ const IDE = () => {
       timestamp: Date.now(),
     });
 
-    saveCodeDeferred(saveFileName);
-  };
+    setSaveFileName(filename => {
+      setCodeValue(code => {
+        saveCodeDeferred(filename, code);
+        return code
+      })
+      return filename
+    })
+  }
+
   let modCodeTimeout;
   const modDelay = 500;
 
@@ -240,13 +247,15 @@ const IDE = () => {
   let saveCodeTimeout;
   const saveDelay = 500;
 
-  function saveCodeDeferred(filename) {
+  function saveCodeDeferred(filename, content) {
     clearTimeout(saveCodeTimeout);
     saveCodeTimeout = setTimeout(() => {
+      if (codeValue.trim().length == 0) return; // fix bug
+
       socketio.current.emit("FILE_SAVE", {
         ownerId: userId,
         file: filename,
-        content: codeValue, // TODO: 확인 필요
+        content: content,
       });
     }, saveDelay);
   }
@@ -540,8 +549,8 @@ const IDE = () => {
       ]);*/
     });
     socket.on("PROJECT_PERM", (args) => {
-      setAccessedByStu((prev) => {
-        let copied = { ...prev };
+      setAccessedByStu(prev => {
+        let copied = { ...prev }
         copied[args.userId].permission = args.permission;
         return copied;
       });

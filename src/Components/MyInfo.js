@@ -20,9 +20,9 @@ function MyInfo() {
   useEffect(() => {
     axios
       .all([
-        axios.get(`${API_URL}/api/user`, { headers }),
-        axios.get(`${API_URL}/api/course/teacher`, { headers }),
-        axios.get(`${API_URL}/api/course/student`, { headers }),
+        axios.get(`${API_URL}/api/user`, {headers}),
+        axios.get(`${API_URL}/api/course/teacher`,  {headers}),
+        axios.get(`${API_URL}/api/course/student`,  {headers}),
       ])
       .then(
         axios.spread((res1, res2, res3) => {
