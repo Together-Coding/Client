@@ -205,9 +205,6 @@ const IDE = () => {
       timestamp: Date.now(),
     });
 
-    let modCodeTimeout;
-    const modDelay = 500;
-
     setSaveFileName(filename => {
       setCodeValue(code => {
         saveCodeDeferred(filename, code);
@@ -216,6 +213,9 @@ const IDE = () => {
       return filename
     })
   }
+
+  let modCodeTimeout;
+  const modDelay = 500;
 
   const realTimeCodeSend = (e, lineNum, colNum) => {
     let inputStr;
