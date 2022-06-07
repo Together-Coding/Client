@@ -189,6 +189,11 @@
           width: 90px;
           height: 29px;
           border-top: 1px solid #6c98cf;
+          border-right: 1px solid #6c98cf;
+
+          &:last-child {
+            border-right: none;
+          }
       }
   }
 

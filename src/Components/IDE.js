@@ -95,6 +95,14 @@ const IDE = () => {
     console.log("render");
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem("currUserId", userId);
+  }, [userId])
+
+  useEffect(() => {
+    localStorage.setItem("currFileName", saveFileName);
+  }, [saveFileName])
+
   let [sidebarBtn, setSidebarBtn] = useState("IDE");
   let [sidebarBtn2, setSidebarBtn2] = useState("");
 
