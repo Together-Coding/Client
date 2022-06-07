@@ -138,6 +138,10 @@ const IDE = () => {
   const monacoRef = useRef();
   const socketio = useRef();
 
+  const explorerStu = useRef();
+  const explorerDirectory = useRef();
+
+
   let [codeValue, setCodeValue] = useState("");
   let [copyCodeVal, setCopyCodeVal] = useState("");
   let [codeLang, setCodeLang] = useState("");
@@ -168,6 +172,19 @@ const IDE = () => {
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
   };
+
+  const explorerResizeHandler = (ref) => {
+    return function (e) {
+      let rect = ref.current.getBoundingClientRect();
+      let newWidth = e.clientX - rect.left
+      ref.current.style.width = parseInt(newWidth) + "px"
+    }
+  }
+
+  const explorerResizeEndHandler = (e) => {
+    document.onmousemove = null;
+    document.onmouseup = null;
+  }
 
   // 특정 유저의 디렉터리 보여줌
   function showOtherDir(ptc) {
@@ -751,6 +768,7 @@ const IDE = () => {
               });
               console.log(outFocus);
             }}
+            ref={explorerDirectory}
           >
             <p
               className="side-navbar"
@@ -870,9 +888,13 @@ const IDE = () => {
                   );
                 })}
             </div>
+            <div className="resizer" onMouseDown={e => {
+              document.onmousemove = explorerResizeHandler(explorerDirectory);
+              document.onmouseup = explorerResizeEndHandler;
+            }}></div>
           </div>
         ) : (
-          <div className="side-explorer">
+          <div className="side-explorer" ref={explorerStu}>
             <p className="side-navbar">
               <div className="online-stu"></div>
               <span>온라인</span>
@@ -907,6 +929,10 @@ const IDE = () => {
                     togglePerm
                   );
               })}
+            <div className="resizer" onMouseDown={e => {
+              document.onmousemove = explorerResizeHandler(explorerStu);
+              document.onmouseup = explorerResizeEndHandler;
+            }}></div>
           </div>
         )}
         {sidebarBtn === "IDE" ? (

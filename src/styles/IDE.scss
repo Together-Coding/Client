@@ -128,10 +128,24 @@
 }
 
 .side-explorer {
+    padding-right: 6px;
     width: 300px;
+    min-width: 200px;
     height: 98vh;
     flex-shrink: 0;
-    background-color: #202427
+    background-color: #202427;
+    position: relative;
+
+    .resizer {
+        cursor: pointer;
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 2px;
+        width: 2px;
+        height: 100%;
+        background: linear-gradient(to right, #202427, #303030);
+    }
 }
 
 .side-navbar {
@@ -459,7 +473,7 @@
 
     .line-num {
         @extend .cursor-file-name;
-        color:  #0080ff;
+        color: #0080ff;
     }
 
     .col-num {
