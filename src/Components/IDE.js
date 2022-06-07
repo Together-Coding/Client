@@ -157,6 +157,11 @@ const IDE = () => {
 
   let [readForTeacherId, setReadForTeacherId] = useState(0);
 
+  // 실시간 커서
+  let [cursorMove, setCursorMove] = useState([]);
+  let [currentLine, setCurrentLine]=useState(0);
+  let [currentCol, setCurrentCol]=useState(0);
+
   let interval_1sec = null;
   let timeout_activityPing = null;
 
@@ -182,15 +187,15 @@ const IDE = () => {
     setOutFocus((prev) => {
       return false;
     });
-    setCodeValue((prev) => {
-      return value;
-    });
+    let codeVal = monacoRef.current.getValue();
+
+    setCodeValue(codeVal);
 
     let lineNum = monacoRef.current.getPosition().lineNumber;
     let colNum = monacoRef.current.getPosition().column;
     let fullLine = monacoRef.current.getSelection().endLineNumber;
 
-    realTimeCodeSend(e, lineNum, colNum);
+    //realTimeCodeSend(e, lineNum, colNum);
 
     console.log(lineNum, colNum, fullLine);
 
@@ -215,7 +220,7 @@ const IDE = () => {
   };
 
   let modCodeTimeout;
-  const modDelay = 500;
+  const modDelay = 1000;
 
   const realTimeCodeSend = (e, lineNum, colNum) => {
     let inputStr;
@@ -255,7 +260,7 @@ const IDE = () => {
       socketio.current.emit("FILE_SAVE", {
         ownerId: userId,
         file: filename,
-        content: content,
+        content: codeValue,
       });
     }, saveDelay);
   }
@@ -501,16 +506,21 @@ const IDE = () => {
       console.log(args);
     });
     socket.on("CURSOR_MOVE", (args) => {
-      console.log(args);
+      setCursorMove((prev) => {
+        return args;
+      });
+      let lineInfo=args.fileInfo.cursor.split(".");
+      setCurrentLine(lineInfo[0]);
+      setCurrentCol(lineInfo[1]);
     });
     socket.on("FILE_SAVE", (args) => {
       console.log(args);
     });
     socket.on("FILE_MOD", (args) => {
-      let codeVal = monacoRef.current.getValue();
+      /*  let codeVal = monacoRef.current.getValue();
       let splitCode = codeVal.split("\n");
 
-      if (args.change.length > 0) {
+      if (args.change && args.change.length > 0) {
         let str;
         let cursorPostion = args.cursor.split(".");
         console.log(args);
@@ -532,9 +542,12 @@ const IDE = () => {
         splitCode.splice(cursorPostion[0] - 1, 0, newStr);
 
         console.log(splitCode);
+        setRealTimeCode([]);
+        setCodeValue((prev) => {
+          return splitCode.join("");
+        });
       }
-      setCodeValue(splitCode);
-      setRealTimeCode([]);
+
       /*monacoRef.current.executeEdits("", [
         {
           range: {
@@ -678,12 +691,22 @@ const IDE = () => {
               >
                 {saveFileName}
               </span>
+
               <button className="file-save-btn" onClick={fileSaveBtn}>
                 {" "}
                 <FontAwesomeIcon icon={faFileArrowUp} />
               </button>
             </>
           ) : null}
+          <div className="real-time-cursor-bar">
+            {cursorMove.fileInfo && cursorMove.fileInfo ? (
+              <>
+              <div className="blink-dot"/>
+                <span>{cursorMove.nickname} <span className="cursor-file-name">({cursorMove.fileInfo.file})</span>입력중... </span>{" "}
+                <span>lineNum : <span className="line-num">{currentLine&&currentLine}</span> colNum : <span className="col-num">{currentCol&&currentCol}</span></span>
+              </>
+            ) : null}
+          </div>
         </div>
       </div>
       {/*-------------side bar--------------*/}
@@ -783,10 +806,6 @@ const IDE = () => {
                               file: i,
                             });
                             setSaveFileName(i);
-                            socketio.current.emit("CURSOR_LAST", {
-                              ownerId: userId,
-                              file: i,
-                            });
                             socketio.current.emit("CURSOR_LAST", {
                               ownerId: userId,
                               file: i,
