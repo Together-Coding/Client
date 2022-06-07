@@ -1,6 +1,6 @@
-  body{
-     overflow: hidden;
-  }
+.HOME-IDE{
+    height: 100vh;
+}
   .nav-bar {
       display: flex;
       width: 100%;
@@ -196,7 +196,7 @@
           border-right: 1px solid #6c98cf;
 
           &:last-child {
-            border-right: none;
+              border-right: none;
           }
       }
   }
@@ -213,7 +213,7 @@
   .offline-stus {
       margin-top: 10px;
   }
-  
+
   .offline-stu {
       background-color: red;
       @extend .online-stu;

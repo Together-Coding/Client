@@ -205,14 +205,14 @@ const IDE = () => {
       timestamp: Date.now(),
     });
 
-    setSaveFileName(filename => {
-      setCodeValue(code => {
+    setSaveFileName((filename) => {
+      setCodeValue((code) => {
         saveCodeDeferred(filename, code);
-        return code
-      })
-      return filename
-    })
-  }
+        return code;
+      });
+      return filename;
+    });
+  };
 
   let modCodeTimeout;
   const modDelay = 500;
@@ -549,8 +549,8 @@ const IDE = () => {
       ]);*/
     });
     socket.on("PROJECT_PERM", (args) => {
-      setAccessedByStu(prev => {
-        let copied = { ...prev }
+      setAccessedByStu((prev) => {
+        let copied = { ...prev };
         copied[args.userId].permission = args.permission;
         return copied;
       });
@@ -647,7 +647,7 @@ const IDE = () => {
   };
 
   return (
-    <div>
+    <div className="HOME-IDE" style={{ overflow: "hidden" }}>
       {/*--------------navbar--------------*/}
       <div className="container"></div>
       <div className="nav-bar">
