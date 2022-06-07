@@ -177,7 +177,7 @@ const IDE = () => {
       timestamp: Date.now(),
     });
 
-    saveCodeDeferred();
+    saveCodeDeferred(saveFileName);
   }
 
   const realTimeCodeSend = (e, lineNum, colNum) => {
@@ -208,12 +208,12 @@ const IDE = () => {
   let saveCodeTimeout;
   const saveDelay = 500;
 
-  function saveCodeDeferred() {
+  function saveCodeDeferred(filename) {
     clearTimeout(saveCodeTimeout);
     saveCodeTimeout = setTimeout(() => {
       socketio.current.emit("FILE_SAVE", {
         ownerId: userId,
-        file: saveFileName,
+        file: filename,
         content: codeValue, // TODO: 확인 필요
       });
     }, saveDelay);
