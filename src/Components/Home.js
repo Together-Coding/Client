@@ -2,6 +2,7 @@ import React from "react";
 import { Link, Switch, Route } from "react-router-dom";
 import { useHistory } from "react-router-dom";
 import "../styles/Home.scss";
+import HOME_IMAGE from "../images/home-image.png";
 function Home() {
   console.log(localStorage.getItem("access_token"));
   const history = useHistory();
@@ -40,7 +41,9 @@ function Home() {
         </div>
       </div>
       <div className="home-container">
-        <h1>Home</h1>
+        <div className="home-image-container">
+        <img src={HOME_IMAGE} alt="home" />
+        </div>
       </div>
     </>
   );

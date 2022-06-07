@@ -7,20 +7,25 @@ import { useHistory } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCirclePlus } from "@fortawesome/free-solid-svg-icons";
 import { api } from "../utils/http";
+import axios from "axios";
 
 function MyInfo() {
+  let headers = {
+    Authorization: "Bearer " + localStorage.getItem("access_token") || "",
+  };
+
   const [myInfo, setMyInfo] = useState("");
   const [myClass, setMyClass] = useState([]);
 
   useEffect(() => {
-    api
+    axios
       .all([
-        api.get(`${API_URL}/api/user`),
-        api.get(`${API_URL}/api/course/teacher`),
-        api.get(`${API_URL}/api/course/student`),
+        axios.get(`${API_URL}/api/user`, {headers}),
+        axios.get(`${API_URL}/api/course/teacher`,  {headers}),
+        axios.get(`${API_URL}/api/course/student`,  {headers}),
       ])
       .then(
-        api.spread((res1, res2, res3) => {
+        axios.spread((res1, res2, res3) => {
           setMyInfo(res1.data);
           setMyClass(res2.data);
           setParticipantClass(res3.data);

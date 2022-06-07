@@ -1,5 +1,9 @@
+  body{
+     overflow: hidden;
+  }
   .nav-bar {
       display: flex;
+      width: 100%;
       flex-direction: column;
       justify-content: space-between;
       background-color: #2f3336;
@@ -85,7 +89,7 @@
       align-items: center;
       background-color: #2f3336;
       width: 50px;
-      height: 100vh;
+      height: 98vh;
       border-right: 1px solid #181a1c;
 
       .side-btn {
@@ -124,7 +128,7 @@
 
   .side-explorer {
       width: 300px;
-      height: 100vh;
+      height: 98vh;
       flex-shrink: 0;
       background-color: #202427
   }
@@ -169,7 +173,7 @@
       display: flex;
       flex-direction: column;
       width: 100%;
-      overflow: hidden;
+      background-color: #1e1e1e;
   }
 
   .bottom-bar {

@@ -9,6 +9,7 @@ import {
   faPeopleArrowsLeftRight,
   faSquarePlus,
   faFileArrowUp,
+  faMicrophoneLines,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
@@ -18,14 +19,14 @@ import TeacherDashBoard from "./TeacherDashBoard";
 import StudentDashBoard from "./StudentDashBoard";
 
 import io from "socket.io-client";
-import {API_URL, WS_MONITOR, WS_URL} from "../constants";
+import { API_URL, WS_MONITOR, WS_URL } from "../constants";
 
 const IDE = () => {
   let location = useLocation();
   let courseId = useRef(location.state ? location.state.classId : 0);
   let lessonId = useRef(location.state ? location.state.lessonId : 0);
-  let className_ = useRef(location.state ? location.state.class : '');
-  let classDesc = useRef(location.state ? location.state.classDes : '');
+  let className_ = useRef(location.state ? location.state.class : "");
+  let classDesc = useRef(location.state ? location.state.classDes : "");
 
   const [initId, setInitId] = useState(0);
 
@@ -41,12 +42,12 @@ const IDE = () => {
 
   useEffect(() => {
     if (location.state == null) {
-      let m = location.pathname.match(/^\/course\/(\d+)\/lesson\/(\d+).*/)
+      let m = location.pathname.match(/^\/course\/(\d+)\/lesson\/(\d+).*/);
       courseId.current = parseInt(m[1]);
       lessonId.current = parseInt(m[2]);
     }
     localStorage.setItem("lessonId", lessonId.current); // FIXME: TerminalMenu.js 로의 상태 전송을 위한 임시 코드
-    
+
     runSocket();
     console.log("render");
   }, []);
@@ -62,6 +63,7 @@ const IDE = () => {
   const socketio = useRef();
 
   let [codeValue, setCodeValue] = useState("");
+  let [copyCodeVal, setCopyCodeVal] = useState("");
   let [codeLang, setCodeLang] = useState("");
 
   let [realTimeCode, setRealTimeCode] = useState([]);
@@ -86,11 +88,13 @@ const IDE = () => {
   };
 
   //현재 라인, 코드 보여줌
-  function handleEditorChange(value, e) {
+  const handleEditorChange = (value, e) => {
     setOutFocus((prev) => {
       return false;
     });
-    setCodeValue(value);
+    setCodeValue((prev) => {
+      return value;
+    });
 
     let lineNum = monacoRef.current.getPosition().lineNumber;
     let colNum = monacoRef.current.getPosition().column;
@@ -112,7 +116,10 @@ const IDE = () => {
     });
 
     saveCodeDeferred();
-  }
+  };
+
+  let modCodeTimeout;
+  const modDelay = 1000;
 
   const realTimeCodeSend = (e, lineNum, colNum) => {
     let inputStr;
@@ -127,7 +134,8 @@ const IDE = () => {
     copy.push(inputStr);
     setRealTimeCode(copy);
 
-    setTimeout(() => {
+    clearTimeout(modCodeTimeout);
+    modCodeTimeout = setTimeout(() => {
       socketio.current.emit("FILE_MOD", {
         ownerId: userId,
         file: saveFileName,
@@ -135,7 +143,8 @@ const IDE = () => {
         change: realTimeCode,
         timestamp: inputTime,
       });
-    }, 1000);
+    }, modDelay);
+
     console.log(realTimeCode);
   };
 
@@ -401,10 +410,49 @@ const IDE = () => {
       console.log(args);
     });
     socket.on("FILE_MOD", (args) => {
-      if (args.success === true) {
-        setRealTimeCode([]);
+      let codeVal=monacoRef.current.getValue();
+      let splitCode=codeVal.split("\n");
+
+      if (args.change.length>0) {
+        
+      
+        let str;
+        let cursorPostion = args.cursor.split(".");
+        console.log(args);
+        
+        str = args.change
+          .map((i) => {
+            if (i === 13) {
+              return "\n";
+            } else {
+              return String.fromCharCode(i);
+            }
+          })
+          .join("");
+       
+        let findLine=splitCode[cursorPostion[0]-1];
+        console.log(findLine);
+        let newStr=findLine.substr(0,cursorPostion[1]-1)+str
+        console.log(newStr)
+        splitCode.splice(cursorPostion[0]-1,0,newStr);
+
+        console.log(splitCode)
+        
       }
-      console.log(args);
+      setCodeValue(splitCode)
+      setRealTimeCode([]);
+      /*monacoRef.current.executeEdits("", [
+        {
+          range: {
+            startLineNumber: cursorPostion[0],
+            //startColumn: cursorPostion[1],
+           // endLineNumber: cursorPostion[0],
+            endColumn: cursorPostion[1],
+          },
+          text: str,
+          forceMoveMarkers: true,
+        },
+      ]);*/
     });
   };
 
@@ -423,38 +471,47 @@ const IDE = () => {
 
     // 서버측의 웹소켓 모니터링 지원
     if (WS_MONITOR) {
-      const filter = ["connect", 'echo', 'TIMESTAMP_ACK', 'TIME_SYNC', 'TIME_SYNC_ACK']
+      const filter = [
+        "connect",
+        "echo",
+        "TIMESTAMP_ACK",
+        "TIME_SYNC",
+        "TIME_SYNC_ACK",
+      ];
       // Timestamp 값을 주입하여 emit 한다.
       const origEmit = socketio.current.emit;
       socketio.current.emit = (ev, data, ...args) => {
         // if (!filter.includes(ev)) return;
         if (data == null) data = {};
-        if (isObject(data) && ev !== 'TIMESTAMP_ACK') {
-          data['_ts_1'] = new Date().getTime();
-          data['uuid'] = uuidv4();
+        if (isObject(data) && ev !== "TIMESTAMP_ACK") {
+          data["_ts_1"] = new Date().getTime();
+          data["uuid"] = uuidv4();
         }
-        return origEmit.call(socketio.current, ev, data, ...args)
-      }
+        return origEmit.call(socketio.current, ev, data, ...args);
+      };
 
       const origOn = socketio.current.on;
       socketio.current.on = (ev, listener) => {
         return origOn.call(socketio.current, ev, (data = null) => {
-          if (isObject(data) && data.hasOwnProperty('_ts_3')) {
-            let _data = Object.assign({}, data)
-            _data['_ts_4'] = new Date().getTime();
-            socketio.current.emit('TIMESTAMP_ACK', _data);
+          if (isObject(data) && data.hasOwnProperty("_ts_3")) {
+            let _data = Object.assign({}, data);
+            _data["_ts_4"] = new Date().getTime();
+            socketio.current.emit("TIMESTAMP_ACK", _data);
           }
           return listener(data);
-        })
-      }
+        });
+      };
 
-      socketio.current.on('connect', () => {
-        socketio.current.emit('TIME_SYNC', {ts1: new Date().getTime()})
-      })
+      socketio.current.on("connect", () => {
+        socketio.current.emit("TIME_SYNC", { ts1: new Date().getTime() });
+      });
 
-      socketio.current.on('TIME_SYNC_ACK', (data) => {
-        socketio.current.emit('TIME_SYNC_ACK', {...data, ts2: new Date().getTime()})
-      })
+      socketio.current.on("TIME_SYNC_ACK", (data) => {
+        socketio.current.emit("TIME_SYNC_ACK", {
+          ...data,
+          ts2: new Date().getTime(),
+        });
+      });
     }
 
     subsCommonEvents(socketio.current);
@@ -463,13 +520,13 @@ const IDE = () => {
     clearTimeout(interval_1sec);
     interval_1sec = setInterval(() => {
       if (!timeout_activityPing) {
-      timeout_activityPing = setTimeout(() => {
-        socketio.current.emit('ACTIVITY_PING', {targetId: userId})
-        clearTimeout(timeout_activityPing);
-        timeout_activityPing = null;
-      }, 1000 * 10)
+        timeout_activityPing = setTimeout(() => {
+          socketio.current.emit("ACTIVITY_PING", { targetId: userId });
+          clearTimeout(timeout_activityPing);
+          timeout_activityPing = null;
+        }, 1000 * 10);
       }
-    }, 1000)
+    }, 1000);
   };
 
   return (
@@ -778,7 +835,7 @@ const IDE = () => {
               }}
             >
               <Editor
-                height="70vh"
+                height="68vh"
                 theme="vs-dark"
                 language={codeLang}
                 value={codeValue}

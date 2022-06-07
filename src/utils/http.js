@@ -10,3 +10,10 @@ api.interceptors.request.use(function (config) {
 }, function (error) {
     return Promise.reject(error);
 })
+
+api.interceptors.response.use(function (res) {
+
+    return res;
+}, function (error) {
+    return Promise.reject(error);
+})
