@@ -97,6 +97,7 @@
 
     p {
         display: flex;
+        font-size: 20px;
         justify-content: space-between;
         font-weight: bold;
         margin-left: 10px;
@@ -109,6 +110,7 @@
         justify-content: space-between;
         font-size: 15px;
         color: gray;
+        font-weight: bold;
         margin-left: 10px;
     }
 
@@ -139,7 +141,7 @@
 }
 
 .class-participants {
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid #d3d3d3;
 
     p {
         font-size: 20px;
@@ -193,6 +195,9 @@
     display: flex;
     flex-direction: column;
 
+    label{
+        margin-bottom: 5px;
+    }
     button {
         border: none;
         margin-top: 20px;
@@ -202,6 +207,7 @@
         height: 35px;
         cursor: pointer;
         font-weight: bold;
+        margin-bottom: 5px;
     }
 
     input {
@@ -213,7 +219,9 @@
 .add-lesson-modal {
     display: flex;
     flex-direction: column;
-
+    label{
+        margin-bottom: 10px;
+    }
     input {
         height: 25px;
         margin-bottom: 15px;
@@ -226,13 +234,14 @@
 
 .add-lesson-btn {
     border: none;
-    margin-top: 20px;
+    margin-top: 40px;
     border-radius: 12px;
     background-color: #0d6efd;
     color: white;
     height: 35px;
     cursor: pointer;
     font-weight: bold;
+    
 }
 
 .change-lesson-name-modal {
@@ -247,7 +256,7 @@
     display: flex;
     justify-content: space-around;
     align-items: center;
-    border-bottom: 1px solid gray;
+    border-bottom: 1px solid #d3d3d3;
 
     button {
         margin-top: 5px;

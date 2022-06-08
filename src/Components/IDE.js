@@ -89,6 +89,9 @@ const StudentList = (idx, item, acc, accBy, myId, showOtherDir, togglePerm) => {
 };
 
 const IDE = () => {
+  let blockRender = useRef({});
+  let foo = useRef("");
+  
   let location = useLocation();
   let courseId = useRef(location.state ? location.state.classId : 0);
   let lessonId = useRef(location.state ? location.state.lessonId : 0);
@@ -118,6 +121,10 @@ const IDE = () => {
 
     runSocket();
     console.log("render");
+
+    // return () => {
+    // socketio.current.removeAllListeners()
+    // }
   }, []);
 
   useEffect(() => {
@@ -127,6 +134,10 @@ const IDE = () => {
   useEffect(() => {
     localStorage.setItem("currFileName", saveFileName);
   }, [saveFileName]);
+
+  useEffect(() => {
+    localStorage.setItem("currMyPtcId", myPtcId);
+  }, [myPtcId])
 
   let [sidebarBtn, setSidebarBtn] = useState("IDE");
   let [sidebarBtn2, setSidebarBtn2] = useState("");
@@ -140,7 +151,6 @@ const IDE = () => {
 
   const explorerStu = useRef();
   const explorerDirectory = useRef();
-
 
   let [codeValue, setCodeValue] = useState("");
   let [copyCodeVal, setCopyCodeVal] = useState("");
@@ -161,30 +171,68 @@ const IDE = () => {
 
   let [readForTeacherId, setReadForTeacherId] = useState(0);
 
+  useEffect(() => {
+    blockRender.current[codeValue] = 1;
+  }, [codeValue])
+
   // 실시간 커서
   let [cursorMove, setCursorMove] = useState([]);
-  let [currentLine, setCurrentLine]=useState(0);
-  let [currentCol, setCurrentCol]=useState(0);
+  let [currentLine, setCurrentLine] = useState(0);
+  let [currentCol, setCurrentCol] = useState(0);
 
   let interval_1sec = null;
   let timeout_activityPing = null;
 
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
-  };
+    editor.addAction({
+      // An unique identifier of the contributed action.
+      id: "my-id",
 
+      // A label of the action that will be presented to the user.
+      label: "",
+
+      // An optional array of keybindings for the action.
+      keybindings: [
+        monaco.KeyCode.F8,
+        // chord
+      ],
+
+      run: function (ed) {
+        addQuestion(ed, monaco);
+      },
+    });
+  };
+  const addQuestion = (ed, monaco) => {
+    let currentLine = ed.getPosition().lineNumber;
+    let currentCol = ed.getPosition().column;
+
+    console.log(currentLine, currentCol);
+
+    ed.deltaDecorations(
+      [],
+      [
+        {
+          range: new monaco.Range(currentLine, 1, currentLine, 1),
+          options: {
+            linesDecorationsClassName: "myLineDecoration",
+          },
+        },
+      ]
+    );
+  };
   const explorerResizeHandler = (ref) => {
     return function (e) {
       let rect = ref.current.getBoundingClientRect();
-      let newWidth = e.clientX - rect.left
-      ref.current.style.width = parseInt(newWidth) + "px"
-    }
-  }
+      let newWidth = e.clientX - rect.left;
+      ref.current.style.width = parseInt(newWidth) + "px";
+    };
+  };
 
   const explorerResizeEndHandler = (e) => {
     document.onmousemove = null;
     document.onmouseup = null;
-  }
+  };
 
   // 특정 유저의 디렉터리 보여줌
   function showOtherDir(ptc) {
@@ -201,6 +249,10 @@ const IDE = () => {
 
   //현재 라인, 코드 보여줌
   const handleEditorChange = (value, e) => {
+    if (blockRender.current[e.changes.text] != null) {
+      blockRender.current[e.changes.text] = null;
+      return;
+    }
     setOutFocus((prev) => {
       return false;
     });
@@ -215,55 +267,70 @@ const IDE = () => {
     realTimeCodeSend(e, lineNum, colNum);
 
     console.log(lineNum, colNum, fullLine);
-
-    socketio.current.emit("CURSOR_MOVE", {
-      fileInfo: {
-        ownerId: userId, // 파일 소유자 ID
-        file: saveFileName, // 현재 보고있는 파일
-        line: fullLine, // 전체 라인 수
-        cursor: lineNum + "." + colNum, // Line 10의 2번째 글짜 ~ Line 11의 10번째 글자
-      },
-      event: "", // 파일을 열었을 때에만 `open` 으로 전송. 이외에는 필요 없음
-      timestamp: Date.now(),
-    });
-
-    setSaveFileName((filename) => {
-      setCodeValue((code) => {
-        saveCodeDeferred(filename, code);
-        return code;
+    
+    if (saveFileName !== null && saveFileName !== "") {
+      socketio.current.emit("CURSOR_MOVE", {
+        fileInfo: {
+          ownerId: userId, // 파일 소유자 ID
+          file: saveFileName, // 현재 보고있는 파일
+          line: fullLine, // 전체 라인 수
+          cursor: lineNum + "." + colNum, // Line 10의 2번째 글짜 ~ Line 11의 10번째 글자
+        },
+        event: "", // 파일을 열었을 때에만 `open` 으로 전송. 이외에는 필요 없음
+        timestamp: Date.now(),
       });
-      return filename;
+    }
+
+    const _saveFileName = localStorage.getItem('currFileName');
+    setCodeValue((code) => {
+      saveCodeDeferred(_saveFileName, code);
+      return code;
     });
   };
 
-  let modCodeTimeout;
+  let modCodeTimeout = null;
   const modDelay = 1000;
 
   const realTimeCodeSend = (e, lineNum, colNum) => {
     let inputStr;
     let inputTime = Date.now();
-    if (e.changes[0].text === "") {
-      inputStr = 8;
-    } else {
-      inputStr = e.changes[0].text.charCodeAt(0);
+
+    /**
+     * e.changes[0]
+     * .range
+     *  endCOlumn
+     *  endLineNumber
+     *  startColumn
+     *  startLineNumber
+     * .rangeLength
+     * .rangeOffset
+     * .text
+     */
+    let copy = []
+    for (let change of e.changes) {
+      if (change.text === "" && change.rangeLength === 1) inputStr = 8;
+      else if (change.text === "\r\n" || change.text === "\n") inputStr = 13;
+      else inputStr = change.text;
+
+      // copy = [...realTimeCode];
+      copy.push(inputStr);
+      // setRealTimeCode(copy);
     }
+    // clearTimeout(modCodeTimeout);
+    // modCodeTimeout = setTimeout(() => {
+    //   if (realTimeCode.length <= 0) return;
+    if (copy.length <= 0) return; // 빈 정보는 전송하지 않음
 
-    let copy = [...realTimeCode];
-    copy.push(inputStr);
-    setRealTimeCode(copy);
-
-    clearTimeout(modCodeTimeout);
-    modCodeTimeout = setTimeout(() => {
-      socketio.current.emit("FILE_MOD", {
-        ownerId: userId,
-        file: saveFileName,
-        cursor: lineNum + "." + colNum,
-        change: realTimeCode,
-        timestamp: inputTime,
-      });
-    }, modDelay);
-
-    console.log(realTimeCode);
+    socketio.current.emit("FILE_MOD", {
+      ownerId: userId,
+      file: localStorage.getItem('currFileName'),
+      cursor: lineNum + "." + colNum,
+      // change: realTimeCode,
+      change: copy,
+      timestamp: inputTime,
+    });
+    // setRealTimeCode([]);
+    // }, saveDelay);
   };
 
   let saveCodeTimeout;
@@ -272,12 +339,12 @@ const IDE = () => {
   function saveCodeDeferred(filename, content) {
     clearTimeout(saveCodeTimeout);
     saveCodeTimeout = setTimeout(() => {
-      if (codeValue.trim().length == 0) return; // fix bug
+      if (content.trim().length === 0) return; // fix bug
 
       socketio.current.emit("FILE_SAVE", {
         ownerId: userId,
         file: filename,
-        content: codeValue,
+        content: content,
       });
     }, saveDelay);
   }
@@ -432,7 +499,11 @@ const IDE = () => {
 
     socket.on("ALL_PARTICIPANT", (args) => {
       let allPtc = {};
-      args.participants.forEach((item) => (allPtc[item.id] = item));
+      try {
+        args.participants.forEach((item) => (allPtc[item.id] = item));
+      } catch (e) {
+        args.forEach((item) => (allPtc[item.id] = item));
+      }
       setStuInfo(allPtc);
     });
 
@@ -523,36 +594,49 @@ const IDE = () => {
       console.log(args);
     });
     socket.on("CURSOR_MOVE", (args) => {
+      console.log(args);
       setCursorMove((prev) => {
         return args;
       });
-      let lineInfo=args.fileInfo.cursor.split(".");
-      setCurrentLine(lineInfo[0]);
-      setCurrentCol(lineInfo[1]);
+
+      try {
+        let lineInfo = args.fileInfo.cursor.split(".");
+        setCurrentLine(lineInfo[0]);
+        setCurrentCol(lineInfo[1]);
+      } catch (e) {}
     });
     socket.on("FILE_SAVE", (args) => {
-      console.log(args);
+      // console.log(args);
     });
     socket.on("FILE_MOD", (args) => {
+      
       let codeVal = monacoRef.current.getValue();
-      //let splitCode = codeVal.split("\n");
 
-      if (args.change && args.change.length > 0) {
+      const _myPtcId = parseInt(localStorage.getItem('currMyPtcId'))
+      const _userId = parseInt(localStorage.getItem('currUserId'))
+      const _saveFileName = localStorage.getItem('currFileName')
+        // 여기서 return 안해줌
+
+        // 자신이 수정한 것은 무시
+        // 현재 보고있는 파일의 주인에 대한 것이 아니면 무시
+        // 현재 보고있는 파일이 아니면 무시
+        // 빈 응답은 무시
+        if (
+          args.ptcId === _myPtcId ||
+          args.ownerId !== parseInt(_userId) || // 왜인지 몰라도, string 값임
+          args.file !== _saveFileName ||
+          (args.change && args.change.length <= 0)
+        )
+          return _saveFileName;
+
         let str;
         //let cursorPostion = args.cursor.split(".");
         console.log(args);
 
         str = args.change
           .map((i) => {
-            if (i === 13) {
-              return "\n";
-            } 
-            else if (i===8){
-              return "\b";
-            }
-            else {
-              return String.fromCharCode(i);
-            }
+            if (i === 13) return "\n";
+            else return i; // FIXME:
           })
           .join("");
 
@@ -560,14 +644,25 @@ const IDE = () => {
         //console.log(findLine);
         //let newStr = findLine.substr(0, cursorPostion[1] - 1) + str;
         //console.log(newStr);
-        //splitCode.splice(cursorPostion[0] - 1, 0, newStr);
+
         //console.log(splitCode);
         //codeVal=codeVal+str;
-        setRealTimeCode([]);
-        setCodeValue((prev) => {
-          return codeVal+str;
-        });
-      }
+
+        setCodeValue(prev => {
+          foo.current = prev;
+          return prev;
+        })
+
+        setTimeout(() => {
+          setCodeValue((prev) => {
+            return foo.current + str
+          })
+          // setCodeValue((prev) => {
+          //   return foo.current;
+          // });
+        }, 10)
+
+
 
       /*monacoRef.current.executeEdits("", [
         {
@@ -582,6 +677,7 @@ const IDE = () => {
         },
       ]);*/
     });
+
     socket.on("PROJECT_PERM", (args) => {
       setAccessedByStu((prev) => {
         let copied = { ...prev };
@@ -722,9 +818,20 @@ const IDE = () => {
           <div className="real-time-cursor-bar">
             {cursorMove.fileInfo && cursorMove.fileInfo ? (
               <>
-              <div className="blink-dot"/>
-                <span>{cursorMove.nickname} <span className="cursor-file-name">({cursorMove.fileInfo.file})</span>입력중... </span>{" "}
-                <span>lineNum : <span className="line-num">{currentLine&&currentLine}</span> colNum : <span className="col-num">{currentCol&&currentCol}</span></span>
+                <div className="blink-dot" />
+                <span>
+                  {cursorMove.nickname}{" "}
+                  <span className="cursor-file-name">
+                    ({cursorMove.fileInfo.file})
+                  </span>
+                  입력중...{" "}
+                </span>{" "}
+                <span>
+                  lineNum :{" "}
+                  <span className="line-num">{currentLine && currentLine}</span>{" "}
+                  colNum :{" "}
+                  <span className="col-num">{currentCol && currentCol}</span>
+                </span>
               </>
             ) : null}
           </div>
@@ -892,10 +999,13 @@ const IDE = () => {
                   );
                 })}
             </div>
-            <div className="resizer" onMouseDown={e => {
-              document.onmousemove = explorerResizeHandler(explorerDirectory);
-              document.onmouseup = explorerResizeEndHandler;
-            }}></div>
+            <div
+              className="resizer"
+              onMouseDown={(e) => {
+                document.onmousemove = explorerResizeHandler(explorerDirectory);
+                document.onmouseup = explorerResizeEndHandler;
+              }}
+            ></div>
           </div>
         ) : (
           <div className="side-explorer" ref={explorerStu}>
@@ -933,10 +1043,13 @@ const IDE = () => {
                     togglePerm
                   );
               })}
-            <div className="resizer" onMouseDown={e => {
-              document.onmousemove = explorerResizeHandler(explorerStu);
-              document.onmouseup = explorerResizeEndHandler;
-            }}></div>
+            <div
+              className="resizer"
+              onMouseDown={(e) => {
+                document.onmousemove = explorerResizeHandler(explorerStu);
+                document.onmouseup = explorerResizeEndHandler;
+              }}
+            ></div>
           </div>
         )}
         {sidebarBtn === "IDE" ? (
@@ -958,6 +1071,11 @@ const IDE = () => {
                 onChange={handleEditorChange}
                 onMount={editorDidMount}
                 keepCurrentModel={true}
+                onKeyPress={(e) => {
+                  if (e.key === "enter") {
+                    console.log("enter");
+                  }
+                }}
               />
             </div>
             <div

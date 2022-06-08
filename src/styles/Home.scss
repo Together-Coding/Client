@@ -1,49 +1,55 @@
 .Info-nav-bar {
     display: flex;
     height: 80px;
-    background-color:#0d6efd;
+    background-color: #0d6efd;
     justify-content: space-between;
     align-items: center;
-    p{
+
+    p {
         color: white;
         margin-left: 10px;
         font-size: 30px;
         font-weight: bold;
     }
-    a{
+
+    a {
         color: white;
         text-decoration: none;
     }
-    
+
 }
-.home-container{
+
+.home-container {
     display: flex;
     justify-content: center;
     align-items: center;
     margin-left: 5%;
     margin-right: 5%;
-    img{
+
+    img {
         width: 50%;
         height: 60vh;
         margin-top: 10%;
     }
 
 }
-    
-.login-info-container{
+
+.login-info-container {
     display: flex;
     flex-direction: column;
-   border: 1px solid #dbe0e2;
-   background-color: #f8f9fb;
+    border: 1px solid #dbe0e2;
+    background-color: #f8f9fb;
+    min-width: 300px;
     width: 40%;
     height: 50vh;
     align-items: center;
     justify-content: center;
     margin-top: 10%;
     margin-left: 3%;
-    
+
 }
-.login-logout{
+
+.login-logout {
     width: 70%;
     text-align: center;
     font-size: 23px;
@@ -52,23 +58,28 @@
     border-radius: 12px;
     padding: 20px;
     background-color: RGB(120, 180, 234, 0.9);
-    a{
+
+    a {
         color: white;
         text-decoration: none;
     }
 }
-.register{
-    color:#758c9d;
-    a{
+
+.register {
+    color: #758c9d;
+
+    a {
         margin-left: 2px;
         color: #758c9d;
         text-decoration: none;
     }
 }
-.home-my-class-info{
+
+.home-my-class-info {
     @extend.login-logout;
 }
-.home-logout-btn{
+
+.home-logout-btn {
     color: #758c9d;
     cursor: pointer;
     font-size: 15px;

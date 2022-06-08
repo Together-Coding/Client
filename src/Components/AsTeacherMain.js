@@ -380,7 +380,7 @@ function AsTeacherMain() {
                       <p>질문수 :</p>
                       <p>전체 피드백 수</p>
 
-                      <div style={{ borderTop: "1px solid gray" }}>
+                      <div style={{ borderTop: "1px solid #d3d3d3" }}>
                         <p>과제 개수: </p>
                         <p>과제 완료 학생: </p>
                         <div className="class-box-btns">
