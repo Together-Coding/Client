@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useState } from "react";
 import "../styles/IDE.scss";
-import Editor from "@monaco-editor/react";
+import Editor, {KeyCode}  from "@monaco-editor/react";
 import {
   faWindowMaximize,
   faFolderOpen,
@@ -17,7 +17,6 @@ import { Terminal } from "./Terminal";
 import { isObject, uuidv4 } from "../utils/etc";
 import { useLocation } from "react-router-dom";
 import TeacherDashBoard from "./TeacherDashBoard";
-
 import io from "socket.io-client";
 import { API_URL, WS_MONITOR, WS_URL } from "../constants";
 
@@ -90,7 +89,6 @@ const StudentList = (idx, item, acc, accBy, myId, showOtherDir, togglePerm) => {
 
 const IDE = () => {
   let blockRender = useRef({});
-  let foo = useRef("");
   
   let location = useLocation();
   let courseId = useRef(location.state ? location.state.classId : 0);
@@ -147,6 +145,9 @@ const IDE = () => {
   const [socketResponse, setSocketResponse] = useState("");
 
   const monacoRef = useRef();
+  const monacomonacoRef = useRef();
+  let monacoPreventHandler = useRef(false);
+
   const socketio = useRef();
 
   const explorerStu = useRef();
@@ -171,10 +172,6 @@ const IDE = () => {
 
   let [readForTeacherId, setReadForTeacherId] = useState(0);
 
-  useEffect(() => {
-    blockRender.current[codeValue] = 1;
-  }, [codeValue])
-
   // 실시간 커서
   let [cursorMove, setCursorMove] = useState([]);
   let [currentLine, setCurrentLine] = useState(0);
@@ -185,6 +182,7 @@ const IDE = () => {
 
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
+    monacomonacoRef.current = monaco;
     editor.addAction({
       // An unique identifier of the contributed action.
       id: "my-id",
@@ -249,8 +247,9 @@ const IDE = () => {
 
   //현재 라인, 코드 보여줌
   const handleEditorChange = (value, e) => {
-    if (blockRender.current[e.changes.text] != null) {
-      blockRender.current[e.changes.text] = null;
+    if (monacoPreventHandler.current == true) return;
+    if (blockRender.current[value] != null) {
+      blockRender.current[value] = null;
       return;
     }
     setOutFocus((prev) => {
@@ -308,29 +307,22 @@ const IDE = () => {
      */
     let copy = []
     for (let change of e.changes) {
-      if (change.text === "" && change.rangeLength === 1) inputStr = 8;
-      else if (change.text === "\r\n" || change.text === "\n") inputStr = 13;
+      if (change.text === "") inputStr = 8;
       else inputStr = change.text;
-
-      // copy = [...realTimeCode];
       copy.push(inputStr);
-      // setRealTimeCode(copy);
     }
-    // clearTimeout(modCodeTimeout);
-    // modCodeTimeout = setTimeout(() => {
-    //   if (realTimeCode.length <= 0) return;
     if (copy.length <= 0) return; // 빈 정보는 전송하지 않음
+
+    // FIXME: 테스트용 임시
+    monacoRef.current.setPosition({lineNumber: 3, column: 3})  // col : 0부터, line : 1부터
 
     socketio.current.emit("FILE_MOD", {
       ownerId: userId,
       file: localStorage.getItem('currFileName'),
       cursor: lineNum + "." + colNum,
-      // change: realTimeCode,
       change: copy,
       timestamp: inputTime,
     });
-    // setRealTimeCode([]);
-    // }, saveDelay);
   };
 
   let saveCodeTimeout;
@@ -609,13 +601,9 @@ const IDE = () => {
       // console.log(args);
     });
     socket.on("FILE_MOD", (args) => {
-      
-      let codeVal = monacoRef.current.getValue();
-
       const _myPtcId = parseInt(localStorage.getItem('currMyPtcId'))
       const _userId = parseInt(localStorage.getItem('currUserId'))
       const _saveFileName = localStorage.getItem('currFileName')
-        // 여기서 return 안해줌
 
         // 자신이 수정한 것은 무시
         // 현재 보고있는 파일의 주인에 대한 것이 아니면 무시
@@ -629,16 +617,34 @@ const IDE = () => {
         )
           return _saveFileName;
 
-        let str;
-        //let cursorPostion = args.cursor.split(".");
         console.log(args);
+        let [lineNum, colNum] = args.cursor.split('.');
+        console.log('Insert', lineNum, colNum)
+        try {
+          monacoPreventHandler.current = true;
+          for (let c of args.change) {
+            if (c == 8) {
+              monacoRef.current.trigger(c, 'deleteLeft')
+            } else { 
+              monacoRef.current.trigger(null, 'type', {text: c});
+            }
 
-        str = args.change
-          .map((i) => {
-            if (i === 13) return "\n";
-            else return i; // FIXME:
-          })
-          .join("");
+            //  monacoRef.current.executeEdits("FILE_MOD", [
+            //   {
+            //       range: new monacomonacoRef.current.Range(
+            //         colNum+1, // end col
+            //         lineNum+3, // end line
+            //         colNum+1, // start col
+            //         lineNum+2, // start line
+            //       ),
+            //     text: 'hello',
+            //     forceMoveMarkers: true,
+            //   },
+            // ]);
+          }
+        } finally {
+          monacoPreventHandler.current = false;
+        }
 
         //let findLine = splitCode[cursorPostion[0] - 1];
         //console.log(findLine);
@@ -648,34 +654,18 @@ const IDE = () => {
         //console.log(splitCode);
         //codeVal=codeVal+str;
 
-        setCodeValue(prev => {
-          foo.current = prev;
-          return prev;
-        })
-
-        setTimeout(() => {
-          setCodeValue((prev) => {
-            return foo.current + str
-          })
-          // setCodeValue((prev) => {
-          //   return foo.current;
-          // });
-        }, 10)
-
-
-
-      /*monacoRef.current.executeEdits("", [
-        {
-          range: {
-            startLineNumber: cursorPostion[0],
-            //startColumn: cursorPostion[1],
-           // endLineNumber: cursorPostion[0],
-            endColumn: cursorPostion[1],
+        /*monacoRef.current.executeEdits("", [
+          {
+            range: {
+              startLineNumber: cursorPostion[0],
+              //startColumn: cursorPostion[1],
+            // endLineNumber: cursorPostion[0],
+              endColumn: cursorPostion[1],
+            },
+            text: str,
+            forceMoveMarkers: true,
           },
-          text: str,
-          forceMoveMarkers: true,
-        },
-      ]);*/
+        ]);*/
     });
 
     socket.on("PROJECT_PERM", (args) => {
