@@ -1057,14 +1057,9 @@ const IDE = () => {
                 }}
               />
             </div>
-            <div
-              onClick={() => {
-                setOutFocus(true);
-                console.log(outFocus);
-              }}
-            >
-              <Terminal />
-            </div>
+            <Terminal onClick={() => {
+              setOutFocus(true);
+            }}/>
           </div>
         ) : location.state.asTeacher === "teacher" ? (
           <TeacherDashBoard socketio={socketio} />

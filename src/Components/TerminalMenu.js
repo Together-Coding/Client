@@ -23,7 +23,7 @@ export function TerminalMenu({ termFunc, runtimeInfo, onFooterResize }) {
   let [loaded, setLoaded] = useState(false);
 
   // FitAddon: xtermRef 를 부모 요소 크기에 맞게 조정
-  const fitAddon = new FitAddon();
+  const fitAddon = useRef(new FitAddon());
 
   // Terminal options
   let [ptyCols, setPtyCols] = useState(0);
@@ -40,6 +40,11 @@ export function TerminalMenu({ termFunc, runtimeInfo, onFooterResize }) {
   let sshClient = useRef();
   useEffect(() => {
     initRuntime();
+    fitAddon.current.activate(xtermRef.current.terminal);
+
+    setTimeout(() => {
+      onContainerResize();
+    }, 1000)
 
     termFunc.current = sendSSHMessage;
     onFooterResize.current = onContainerResize;
@@ -49,8 +54,8 @@ export function TerminalMenu({ termFunc, runtimeInfo, onFooterResize }) {
     // xterm 초기화
     terminalWrapper.current =
       document.getElementsByClassName("terminal-wrapper")[0];
-    window.onresize = resizeTerminal;
-    fitAddon.fit();
+    window.addEventListener('resize', resizeTerminal);
+    resizeTerminal();
   };
 
   /**
@@ -92,7 +97,7 @@ export function TerminalMenu({ termFunc, runtimeInfo, onFooterResize }) {
    */
   let resizeTerminal = () => {
     // 부모 요소 크기 변경 후 항상 호출
-    fitAddon.fit();
+    onContainerResize();
 
     // 새로운 pty 크기 계산
     let cols = parseInt(
@@ -111,6 +116,10 @@ export function TerminalMenu({ termFunc, runtimeInfo, onFooterResize }) {
     setPtyCols(cols);
     setPtyRows(rows);
   };
+
+  let onContainerResize = () => {
+    fitAddon.current.fit();
+  }
 
   /**
    * pty 크기 조정
@@ -194,7 +203,6 @@ export function TerminalMenu({ termFunc, runtimeInfo, onFooterResize }) {
         ref={xtermRef}
         className={"xterm-terminal"}
         options={xtermOptions}
-        addons={[fitAddon]}
         onData={onData}
         onResize={onResize}
         onScroll={onScroll}
