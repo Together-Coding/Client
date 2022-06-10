@@ -1,13 +1,11 @@
-import axios from "axios";
 import { useRef, useEffect, useState } from "react";
 import { SSHClient } from "../utils/websocket";
 import { XTerm } from "xterm-for-react";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
 import "../styles/terminal.scss";
-import { API_URL, RUNTIME_BRIDGE_URL, RUNTIME_URL, WS_URL } from "../constants";
+import { RUNTIME_BRIDGE_URL, RUNTIME_URL, WS_URL } from "../constants";
 import { api } from "../utils/http";
-import { Socket } from "socket.io-client";
 
 
 /**
@@ -16,7 +14,7 @@ import { Socket } from "socket.io-client";
  * @return {JSX.Element}
  * @constructor
  */
-export function TerminalMenu({ termFunc, runtimeInfo }) {
+export function TerminalMenu({ termFunc, runtimeInfo, onFooterResize }) {
   let token = localStorage.getItem("access_token");
 
   // xterm Terminal
@@ -44,6 +42,7 @@ export function TerminalMenu({ termFunc, runtimeInfo }) {
     initRuntime();
 
     termFunc.current = sendSSHMessage;
+    onFooterResize.current = onContainerResize;
   }, []);
 
   let initTerminal = () => {

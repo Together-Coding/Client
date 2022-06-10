@@ -19,6 +19,7 @@ import { useLocation } from "react-router-dom";
 import TeacherDashBoard from "./TeacherDashBoard";
 import io from "socket.io-client";
 import { API_URL, WS_MONITOR, WS_URL } from "../constants";
+import {resizeStartHandler, resizeEndHandler} from "../utils/etc"
 
 /**
  * ``현황`` 탭에서 학생들 리스트를 보여줍니다.
@@ -218,18 +219,6 @@ const IDE = () => {
         },
       ]
     );
-  };
-  const explorerResizeHandler = (ref) => {
-    return function (e) {
-      let rect = ref.current.getBoundingClientRect();
-      let newWidth = e.clientX - rect.left;
-      ref.current.style.width = parseInt(newWidth) + "px";
-    };
-  };
-
-  const explorerResizeEndHandler = (e) => {
-    document.onmousemove = null;
-    document.onmouseup = null;
   };
 
   // 특정 유저의 디렉터리 보여줌
@@ -992,8 +981,8 @@ const IDE = () => {
             <div
               className="resizer"
               onMouseDown={(e) => {
-                document.onmousemove = explorerResizeHandler(explorerDirectory);
-                document.onmouseup = explorerResizeEndHandler;
+                document.onmousemove = resizeStartHandler(explorerDirectory);
+                document.onmouseup = resizeEndHandler;
               }}
             ></div>
           </div>
@@ -1036,8 +1025,8 @@ const IDE = () => {
             <div
               className="resizer"
               onMouseDown={(e) => {
-                document.onmousemove = explorerResizeHandler(explorerStu);
-                document.onmouseup = explorerResizeEndHandler;
+                document.onmousemove = resizeStartHandler(explorerStu);
+                document.onmouseup = resizeEndHandler;
               }}
             ></div>
           </div>

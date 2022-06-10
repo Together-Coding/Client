@@ -5,6 +5,8 @@ import { TerminalMenu } from "./TerminalMenu";
 import { API_URL, RUNTIME_URL, WS_MONITOR, WS_URL } from "../constants";
 import { api } from "../utils/http"
 import { DEBUG } from "../constants"
+import { resizeStartHandler, resizeEndHandler } from "../utils/etc"
+
 
 export function Terminal() {
   // 현재 보고있는 유저 ptc ID 전송
@@ -14,7 +16,9 @@ export function Terminal() {
   // 준비 응답을 받은 클라는 ssh 으로 특정 실행 명령을 실행
 
   const termFunc = useRef(null);
+  const onFooterResize = useRef(null);
   const runtimeInfo = useRef(null);
+  const layoutRef = useRef(null);
 
   const execCode = () => {
     let m = window.location.pathname.match(/^\/course\/(\d+)\/lesson\/(\d+).*/)
@@ -36,7 +40,11 @@ export function Terminal() {
   }
 
   return (
-    <div>
+    <div className="editor-footer" ref={layoutRef}>
+      <div className="resizer top" onMouseDown={(e) => {
+        document.onmousemove = resizeStartHandler(layoutRef, true, onFooterResize.current);
+        document.onmouseup = resizeEndHandler;
+      }}></div>
       <div className="bottom-bar">
         <span>
           터미널&nbsp;
@@ -49,7 +57,7 @@ export function Terminal() {
         </span>
       </div>
       <div className="terminal-wrapper">
-        <TerminalMenu termFunc={termFunc} runtimeInfo={runtimeInfo} />
+        <TerminalMenu termFunc={termFunc} runtimeInfo={runtimeInfo} onFooterResize={onFooterResize}/>
       </div>
     </div>
   );
