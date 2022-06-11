@@ -147,6 +147,8 @@ const IDE = () => {
 
   const monacoRef = useRef();
   const monacomonacoRef = useRef();
+  const footerRef = useRef();
+  const onFooterResize = useRef(); 
   let monacoPreventHandler = useRef(false);
 
   const socketio = useRef();
@@ -755,6 +757,15 @@ const IDE = () => {
     }, 1000);
   };
 
+  /**
+   * 에디터 하단 터미널 resize 이벤트 리스터
+   */
+  const resizeEditorOnResizeFooter = () => {
+    let rect = monacoRef.current._domElement.getBoundingClientRect()
+    let newHeight = footerRef.current.getBoundingClientRect().top - rect.top
+    monacoRef.current._domElement.style.height = newHeight + "px"
+  }
+
   return (
     <div className="HOME-IDE" style={{ overflow: "hidden" }}>
       {/*--------------navbar--------------*/}
@@ -1039,11 +1050,9 @@ const IDE = () => {
                 setOutFocus((prev) => {
                   return false;
                 });
-                console.log(outFocus);
               }}
             >
               <Editor
-                height="68vh"
                 theme="vs-dark"
                 language={codeLang}
                 value={codeValue}
@@ -1057,9 +1066,19 @@ const IDE = () => {
                 }}
               />
             </div>
-            <Terminal onClick={() => {
-              setOutFocus(true);
-            }}/>
+            <div className="relative">
+              <Terminal 
+                footerRef={footerRef}
+                onClick={() => {
+                  setOutFocus(true);
+                }} onFooterResize={onFooterResize}>
+                  <div className="resizer top" onMouseDown={(e) => {
+                    document.onmousemove = resizeStartHandler(footerRef, true,
+                       resizeEditorOnResizeFooter, onFooterResize.current);
+                    document.onmouseup = resizeEndHandler;
+                  }}/>
+              </Terminal>
+            </div>
           </div>
         ) : location.state.asTeacher === "teacher" ? (
           <TeacherDashBoard socketio={socketio} />

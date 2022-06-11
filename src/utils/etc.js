@@ -7,13 +7,15 @@ export const uuidv4 = () => {
   );
 }
 
-export const resizeStartHandler = (ref, updown=false, callback) => {
+export const resizeStartHandler = (ref, updown=false, ...callback) => {
   if (updown) {
     return function (e) {
       let rect = ref.current.getBoundingClientRect();
       let newHeight = rect.bottom - e.clientY;
       ref.current.style.height = parseInt(newHeight) + "px";
-      if (callback != null) callback();
+      if (callback != null) {
+        for (let cb of callback) cb();
+      }
     };
   } else {
     return function (e) {
