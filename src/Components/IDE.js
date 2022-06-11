@@ -20,6 +20,7 @@ import TeacherDashBoard from "./TeacherDashBoard";
 import io from "socket.io-client";
 import { API_URL, WS_MONITOR, WS_URL } from "../constants";
 import Modal from "react-modal";
+import { resizeStartHandler, resizeEndHandler } from "../utils/etc";
 
 /**
  * ``현황`` 탭에서 학생들 리스트를 보여줍니다.
@@ -154,6 +155,8 @@ const IDE = () => {
 
   const monacoRef = useRef();
   const monacomonacoRef = useRef();
+  const footerRef = useRef();
+  const onFooterResize = useRef();
   let monacoPreventHandler = useRef(false);
 
   const socketio = useRef();
@@ -234,18 +237,6 @@ const IDE = () => {
       ]
     );
     setSubmitFeedbackModalIsOpen(true);
-  };
-  const explorerResizeHandler = (ref) => {
-    return function (e) {
-      let rect = ref.current.getBoundingClientRect();
-      let newWidth = e.clientX - rect.left;
-      ref.current.style.width = parseInt(newWidth) + "px";
-    };
-  };
-
-  const explorerResizeEndHandler = (e) => {
-    document.onmousemove = null;
-    document.onmouseup = null;
   };
 
   // 특정 유저의 디렉터리 보여줌
@@ -782,6 +773,15 @@ const IDE = () => {
     }, 1000);
   };
 
+  /**
+   * 에디터 하단 터미널 resize 이벤트 리스터
+   */
+  const resizeEditorOnResizeFooter = () => {
+    let rect = monacoRef.current._domElement.getBoundingClientRect();
+    let newHeight = footerRef.current.getBoundingClientRect().top - rect.top;
+    monacoRef.current._domElement.style.height = newHeight + "px";
+  };
+
   return (
     <div className="HOME-IDE" style={{ overflow: "hidden" }}>
       {/*--------------navbar--------------*/}
@@ -1011,8 +1011,8 @@ const IDE = () => {
             <div
               className="resizer"
               onMouseDown={(e) => {
-                document.onmousemove = explorerResizeHandler(explorerDirectory);
-                document.onmouseup = explorerResizeEndHandler;
+                document.onmousemove = resizeStartHandler(explorerDirectory);
+                document.onmouseup = resizeEndHandler;
               }}
             ></div>
           </div>
@@ -1055,8 +1055,8 @@ const IDE = () => {
             <div
               className="resizer"
               onMouseDown={(e) => {
-                document.onmousemove = explorerResizeHandler(explorerStu);
-                document.onmouseup = explorerResizeEndHandler;
+                document.onmousemove = resizeStartHandler(explorerStu);
+                document.onmouseup = resizeEndHandler;
               }}
             ></div>
           </div>
@@ -1072,7 +1072,6 @@ const IDE = () => {
               }}
             >
               <Editor
-                height="68vh"
                 theme="vs-dark"
                 language={codeLang}
                 value={codeValue}
@@ -1086,13 +1085,27 @@ const IDE = () => {
                 }}
               />
             </div>
-            <div
-              onClick={() => {
-                setOutFocus(true);
-                console.log(outFocus);
-              }}
-            >
-              <Terminal />
+            <div className="relative">
+              <Terminal
+                footerRef={footerRef}
+                onClick={() => {
+                  setOutFocus(true);
+                }}
+                onFooterResize={onFooterResize}
+              >
+                <div
+                  className="resizer top"
+                  onMouseDown={(e) => {
+                    document.onmousemove = resizeStartHandler(
+                      footerRef,
+                      true,
+                      resizeEditorOnResizeFooter,
+                      onFooterResize.current
+                    );
+                    document.onmouseup = resizeEndHandler;
+                  }}
+                />
+              </Terminal>
             </div>
           </div>
         ) : location.state.asTeacher === "teacher" ? (

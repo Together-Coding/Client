@@ -1,14 +1,11 @@
-import axios from "axios";
 import { useRef, useEffect, useState } from "react";
 import { SSHClient } from "../utils/websocket";
 import { XTerm } from "xterm-for-react";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
 import "../styles/terminal.scss";
-import { API_URL, RUNTIME_BRIDGE_URL, RUNTIME_URL, WS_URL } from "../constants";
+import { RUNTIME_BRIDGE_URL, RUNTIME_URL, WS_URL } from "../constants";
 import { api } from "../utils/http";
-import { Socket } from "socket.io-client";
-
 
 /**
  * 터미널 메뉴
@@ -16,7 +13,7 @@ import { Socket } from "socket.io-client";
  * @return {JSX.Element}
  * @constructor
  */
-export function TerminalMenu({ termFunc, runtimeInfo }) {
+export function TerminalMenu({ termFunc, runtimeInfo, onFooterResize }) {
   let token = localStorage.getItem("access_token");
 
   // xterm Terminal
@@ -25,7 +22,7 @@ export function TerminalMenu({ termFunc, runtimeInfo }) {
   let [loaded, setLoaded] = useState(false);
 
   // FitAddon: xtermRef 를 부모 요소 크기에 맞게 조정
-  const fitAddon = new FitAddon();
+  const fitAddon = useRef(new FitAddon());
 
   // Terminal options
   let [ptyCols, setPtyCols] = useState(0);
@@ -42,16 +39,22 @@ export function TerminalMenu({ termFunc, runtimeInfo }) {
   let sshClient = useRef();
   useEffect(() => {
     initRuntime();
+    fitAddon.current.activate(xtermRef.current.terminal);
+
+    setTimeout(() => {
+      onContainerResize();
+    }, 1000);
 
     termFunc.current = sendSSHMessage;
+    onFooterResize.current = onContainerResize;
   }, []);
 
   let initTerminal = () => {
     // xterm 초기화
     terminalWrapper.current =
       document.getElementsByClassName("terminal-wrapper")[0];
-    window.onresize = resizeTerminal;
-    fitAddon.fit();
+    window.addEventListener("resize", resizeTerminal);
+    resizeTerminal();
   };
 
   /**
@@ -93,24 +96,28 @@ export function TerminalMenu({ termFunc, runtimeInfo }) {
    */
   let resizeTerminal = () => {
     // 부모 요소 크기 변경 후 항상 호출
-    fitAddon.fit();
+    onContainerResize();
 
     // 새로운 pty 크기 계산
     let cols = parseInt(
       terminalWrapper.current.clientWidth /
-      xtermRef.current.terminal._core._renderService._renderer.dimensions
-        .actualCellWidth
+        xtermRef.current.terminal._core._renderService._renderer.dimensions
+          .actualCellWidth
     );
     let rows = parseInt(
       terminalWrapper.current.clientHeight /
-      xtermRef.current.terminal._core._renderService._renderer.dimensions
-        .actualCellHeight
+        xtermRef.current.terminal._core._renderService._renderer.dimensions
+          .actualCellHeight
     );
 
     if (ptyCols === cols && ptyRows === rows) return;
     onResize({ cols, rows });
     setPtyCols(cols);
     setPtyRows(rows);
+  };
+
+  let onContainerResize = () => {
+    fitAddon.current.fit();
   };
 
   /**
@@ -128,12 +135,12 @@ export function TerminalMenu({ termFunc, runtimeInfo }) {
   function sendSSHMessage(filename) {
     if (!filename) return;
 
-    sshClient.current.emit("SSH", "cd /usr/src/app\n")
+    sshClient.current.emit("SSH", "cd /usr/src/app\n");
 
     if (filename.endsWith(".py")) {
-      sshClient.current.emit("SSH", `python ${filename}\n`)
+      sshClient.current.emit("SSH", `python ${filename}\n`);
     } else if (filename.endsWith(".c")) {
-      sshClient.current.emit("SSH", `gcc ${filename} -o _.out && ./_.out\n`)
+      sshClient.current.emit("SSH", `gcc ${filename} -o _.out && ./_.out\n`);
     }
   }
 
@@ -145,11 +152,16 @@ export function TerminalMenu({ termFunc, runtimeInfo }) {
     let contInfo = {};
 
     // 수업의 image id 값 요청
-    let res0 = await api.get(`${WS_URL}/api/lesson/${localStorage.getItem("lessonId")}`)
+    let res0 = await api.get(
+      `${WS_URL}/api/lesson/${localStorage.getItem("lessonId")}`
+    );
 
     // 새로운 컨테이너 할당 요청
     let payload = { image_id: res0.data.lang_image_id };
-    let res = await api.post(`${RUNTIME_BRIDGE_URL}/api/containers/launch`, payload);
+    let res = await api.post(
+      `${RUNTIME_BRIDGE_URL}/api/containers/launch`,
+      payload
+    );
     contInfo.url = res.data.url;
     contInfo.port = res.data.port;
     runtimeInfo.current = contInfo;
@@ -159,19 +171,15 @@ export function TerminalMenu({ termFunc, runtimeInfo }) {
     }
 
     // 컨테이너에 SSH relay 웹소켓 연결
-    sshClient.current = new SSHClient(
-      RUNTIME_URL,
-      token,
-      {
-        transports: ['websocket', 'polling'],
-        path: `/${contInfo.url}/${contInfo.port}/socket.io/`
-      },
-    );
+    sshClient.current = new SSHClient(RUNTIME_URL, token, {
+      transports: ["websocket", "polling"],
+      path: `/${contInfo.url}/${contInfo.port}/socket.io/`,
+    });
 
-    sshClient.current.on('connect', () => {
+    sshClient.current.on("connect", () => {
       initTerminal();
       setLoaded(true);
-    })
+    });
 
     // 웹소켓 연결 상태에서 추가적인 인증 정보를 전송합니다.
     sshClient.current.on("AUTHENTICATE", (data) => {
@@ -188,14 +196,17 @@ export function TerminalMenu({ termFunc, runtimeInfo }) {
 
   return (
     <>
-      {loaded === false ? <div className="loading-modal">
-        <div className="square-spinner"></div>
-      </div> : ""}
+      {loaded === false ? (
+        <div className="loading-modal">
+          <div className="square-spinner"></div>
+        </div>
+      ) : (
+        ""
+      )}
       <XTerm
         ref={xtermRef}
         className={"xterm-terminal"}
         options={xtermOptions}
-        addons={[fitAddon]}
         onData={onData}
         onResize={onResize}
         onScroll={onScroll}

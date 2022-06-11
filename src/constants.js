@@ -2,7 +2,7 @@
 //  dev/prod 환경에 따라 설정을 나눌 수 있으면 좋을 것 같습니다.
 
 export const DEBUG = false;
-export const WS_MONITOR = false;
+export const WS_MONITOR = true;
 
 export const API_URL = 'https://api.together-coding.com'
 export const WS_URL = DEBUG ? 'http://localhost:8001' : 'https://ide-ws.together-coding.com'
