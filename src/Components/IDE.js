@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useState } from "react";
 import "../styles/IDE.scss";
-import Editor, {KeyCode}  from "@monaco-editor/react";
+import Editor from "@monaco-editor/react";
 import {
   faWindowMaximize,
   faFolderOpen,
@@ -19,6 +19,7 @@ import { useLocation } from "react-router-dom";
 import TeacherDashBoard from "./TeacherDashBoard";
 import io from "socket.io-client";
 import { API_URL, WS_MONITOR, WS_URL } from "../constants";
+import Modal from "react-modal";
 
 /**
  * ``현황`` 탭에서 학생들 리스트를 보여줍니다.
@@ -89,7 +90,7 @@ const StudentList = (idx, item, acc, accBy, myId, showOtherDir, togglePerm) => {
 
 const IDE = () => {
   let blockRender = useRef({});
-  
+
   let location = useLocation();
   let courseId = useRef(location.state ? location.state.classId : 0);
   let lessonId = useRef(location.state ? location.state.lessonId : 0);
@@ -108,6 +109,13 @@ const IDE = () => {
 
   let [initLineNum, setInitLineNum] = useState(0);
   let [initCursor, setInitCursor] = useState(0);
+
+  /*
+  const watchFeedBack=document.querySelector(".myLineDecoration");
+  watchFeedBack.addEventListener("click",(()=>{
+    //console.log(watchFeedBack);
+  }))
+  */
 
   useEffect(() => {
     if (location.state == null) {
@@ -135,7 +143,7 @@ const IDE = () => {
 
   useEffect(() => {
     localStorage.setItem("currMyPtcId", myPtcId);
-  }, [myPtcId])
+  }, [myPtcId]);
 
   let [sidebarBtn, setSidebarBtn] = useState("IDE");
   let [sidebarBtn2, setSidebarBtn2] = useState("");
@@ -177,18 +185,21 @@ const IDE = () => {
   let [currentLine, setCurrentLine] = useState(0);
   let [currentCol, setCurrentCol] = useState(0);
 
+  let [submitFeedbackModalIsOpen, setSubmitFeedbackModalIsOpen] =
+    useState(false);
+
   let interval_1sec = null;
   let timeout_activityPing = null;
 
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
     monacomonacoRef.current = monaco;
-    editor.addAction({
+    /*editor.addAction({
       // An unique identifier of the contributed action.
       id: "my-id",
 
       // A label of the action that will be presented to the user.
-      label: "",
+      label: "label",
 
       // An optional array of keybindings for the action.
       keybindings: [
@@ -199,6 +210,9 @@ const IDE = () => {
       run: function (ed) {
         addQuestion(ed, monaco);
       },
+    });*/
+    editor.addCommand(monaco.KeyCode.F8, function () {
+      addQuestion(editor, monaco);
     });
   };
   const addQuestion = (ed, monaco) => {
@@ -213,11 +227,13 @@ const IDE = () => {
         {
           range: new monaco.Range(currentLine, 1, currentLine, 1),
           options: {
-            linesDecorationsClassName: "myLineDecoration",
+            isWholeLine: true,
+            firstLineDecorationClassName: "myLineDecoration",
           },
         },
       ]
     );
+    setSubmitFeedbackModalIsOpen(true);
   };
   const explorerResizeHandler = (ref) => {
     return function (e) {
@@ -266,7 +282,7 @@ const IDE = () => {
     realTimeCodeSend(e, lineNum, colNum);
 
     console.log(lineNum, colNum, fullLine);
-    
+
     if (saveFileName !== null && saveFileName !== "") {
       socketio.current.emit("CURSOR_MOVE", {
         fileInfo: {
@@ -280,7 +296,7 @@ const IDE = () => {
       });
     }
 
-    const _saveFileName = localStorage.getItem('currFileName');
+    const _saveFileName = localStorage.getItem("currFileName");
     setCodeValue((code) => {
       saveCodeDeferred(_saveFileName, code);
       return code;
@@ -305,7 +321,7 @@ const IDE = () => {
      * .rangeOffset
      * .text
      */
-    let copy = []
+    let copy = [];
     for (let change of e.changes) {
       if (change.text === "") inputStr = 8;
       else inputStr = change.text;
@@ -314,11 +330,11 @@ const IDE = () => {
     if (copy.length <= 0) return; // 빈 정보는 전송하지 않음
 
     // FIXME: 테스트용 임시
-    monacoRef.current.setPosition({lineNumber: 3, column: 3})  // col : 0부터, line : 1부터
+    // monacoRef.current.setPosition({lineNumber: 3, column: 3})  // col : 0부터, line : 1부터
 
     socketio.current.emit("FILE_MOD", {
       ownerId: userId,
-      file: localStorage.getItem('currFileName'),
+      file: localStorage.getItem("currFileName"),
       cursor: lineNum + "." + colNum,
       change: copy,
       timestamp: inputTime,
@@ -601,60 +617,60 @@ const IDE = () => {
       // console.log(args);
     });
     socket.on("FILE_MOD", (args) => {
-      const _myPtcId = parseInt(localStorage.getItem('currMyPtcId'))
-      const _userId = parseInt(localStorage.getItem('currUserId'))
-      const _saveFileName = localStorage.getItem('currFileName')
+      const _myPtcId = parseInt(localStorage.getItem("currMyPtcId"));
+      const _userId = parseInt(localStorage.getItem("currUserId"));
+      const _saveFileName = localStorage.getItem("currFileName");
 
-        // 자신이 수정한 것은 무시
-        // 현재 보고있는 파일의 주인에 대한 것이 아니면 무시
-        // 현재 보고있는 파일이 아니면 무시
-        // 빈 응답은 무시
-        if (
-          args.ptcId === _myPtcId ||
-          args.ownerId !== parseInt(_userId) || // 왜인지 몰라도, string 값임
-          args.file !== _saveFileName ||
-          (args.change && args.change.length <= 0)
-        )
-          return _saveFileName;
+      // 자신이 수정한 것은 무시
+      // 현재 보고있는 파일의 주인에 대한 것이 아니면 무시
+      // 현재 보고있는 파일이 아니면 무시
+      // 빈 응답은 무시
+      if (
+        args.ptcId === _myPtcId ||
+        args.ownerId !== parseInt(_userId) || // 왜인지 몰라도, string 값임
+        args.file !== _saveFileName ||
+        (args.change && args.change.length <= 0)
+      )
+        return _saveFileName;
 
-        console.log(args);
-        let [lineNum, colNum] = args.cursor.split('.');
-        console.log('Insert', lineNum, colNum)
-        try {
-          monacoPreventHandler.current = true;
-          for (let c of args.change) {
-            if (c == 8) {
-              monacoRef.current.trigger(c, 'deleteLeft')
-            } else { 
-              monacoRef.current.trigger(null, 'type', {text: c});
-            }
-
-            //  monacoRef.current.executeEdits("FILE_MOD", [
-            //   {
-            //       range: new monacomonacoRef.current.Range(
-            //         colNum+1, // end col
-            //         lineNum+3, // end line
-            //         colNum+1, // start col
-            //         lineNum+2, // start line
-            //       ),
-            //     text: 'hello',
-            //     forceMoveMarkers: true,
-            //   },
-            // ]);
+      console.log(args);
+      let [lineNum, colNum] = args.cursor.split(".");
+      console.log("Insert", lineNum, colNum);
+      try {
+        monacoPreventHandler.current = true;
+        for (let c of args.change) {
+          if (c == 8) {
+            monacoRef.current.trigger(c, "deleteLeft");
+          } else {
+            monacoRef.current.trigger(null, "type", { text: c });
           }
-        } finally {
-          monacoPreventHandler.current = false;
+
+          //  monacoRef.current.executeEdits("FILE_MOD", [
+          //   {
+          //       range: new monacomonacoRef.current.Range(
+          //         colNum+1, // end col
+          //         lineNum+3, // end line
+          //         colNum+1, // start col
+          //         lineNum+2, // start line
+          //       ),
+          //     text: 'hello',
+          //     forceMoveMarkers: true,
+          //   },
+          // ]);
         }
+      } finally {
+        monacoPreventHandler.current = false;
+      }
 
-        //let findLine = splitCode[cursorPostion[0] - 1];
-        //console.log(findLine);
-        //let newStr = findLine.substr(0, cursorPostion[1] - 1) + str;
-        //console.log(newStr);
+      //let findLine = splitCode[cursorPostion[0] - 1];
+      //console.log(findLine);
+      //let newStr = findLine.substr(0, cursorPostion[1] - 1) + str;
+      //console.log(newStr);
 
-        //console.log(splitCode);
-        //codeVal=codeVal+str;
+      //console.log(splitCode);
+      //codeVal=codeVal+str;
 
-        /*monacoRef.current.executeEdits("", [
+      /*monacoRef.current.executeEdits("", [
           {
             range: {
               startLineNumber: cursorPostion[0],
@@ -782,6 +798,9 @@ const IDE = () => {
           >
             내 프로젝트 불러오기
           </button>
+          <p style={{ color: "#b9c3dd", fontSize: 15, marginLeft: "35%" }}>
+            질문 하기 (F8){" "}
+          </p>
         </div>
         <div className="second-nav">
           <span>
@@ -1050,7 +1069,6 @@ const IDE = () => {
                 setOutFocus((prev) => {
                   return false;
                 });
-                console.log(outFocus);
               }}
             >
               <Editor
@@ -1093,9 +1111,100 @@ const IDE = () => {
           </div>
         )}
       </div>
+      <Modal
+        isOpen={submitFeedbackModalIsOpen}
+        onRequestClose={() => setSubmitFeedbackModalIsOpen(false)}
+        style={{
+          overlay: {
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(15, 15, 15, 0.79)",
+          },
+          content: {
+            position: "absolute",
+            top: "40px",
+            left: "25%",
+            width: "45%",
+            height: "60%",
+            border: "1px solid #ccc",
+            background: "#fff",
+            overflow: "auto",
+            WebkitOverflowScrolling: "touch",
+            borderRadius: "4px",
+            outline: "none",
+            padding: "20px",
+          },
+        }}
+      >
+        <SendFeedback monacoRef={monacoRef} saveFileName={saveFileName} />
+      </Modal>
     </div>
   );
 };
+
+function SendFeedback({ monacoRef, saveFileName }) {
+  let lineNum = monacoRef.current.getPosition().lineNumber;
+
+  let colNum = monacoRef.current.getPosition().column;
+
+  let codeVal = monacoRef.current.getValue().split("\n");
+  console.log(codeVal);
+  if (lineNum > 3) {
+    codeVal = codeVal.slice(lineNum - 4, lineNum + 3);
+  } else {
+    codeVal = codeVal.slice(0, 4);
+  }
+  console.log(codeVal);
+  return (
+    <div className="send-feedback-modal">
+      <div className="send-feedback-file">{saveFileName}</div>
+      <p style={{ color: "gray" }}>
+        질문 할 라인 :{" "}
+        <span style={{ color: "blue", fontWeight: "bold" }}>{lineNum}</span>
+      </p>
+      <div
+        className="code-container"
+        style={{
+          backgroundColor: "#fafafa",
+          width: "100%",
+          height: "auto",
+          alignItems: "baseline",
+        }}
+      >
+        <pre style={{ backgroundColor: "#fafafa" }}>
+          <code>
+            <div style={{ marginBottom: 10 }}>...</div>
+
+            {codeVal.map((i, idx) => {
+              if (i === "\r") {
+                return <div> </div>;
+              }
+              return (
+                <>
+                  {(codeVal.length >= 7 && idx === 3) ||
+                  (codeVal.length < 7 && idx === lineNum - 1) ? (
+                    <div className="answer-line">{i}</div>
+                  ) : (
+                    <div>{i}</div>
+                  )}
+                </>
+              );
+            })}
+            <div style={{ marginTop: 10 }}>...</div>
+          </code>
+        </pre>
+      </div>
+      <textarea
+        className="send-feedback-input"
+        placeholder="내용을 입력 하세요"
+      />
+      <button className="send-feedback-btn">질문 하기</button>
+    </div>
+  );
+}
 /*
 function SideExplorer({ userFile, socketio, userId }) {
   console.log(userFile)
