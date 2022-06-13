@@ -22,6 +22,7 @@
 .first-nav {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   height: 31px;
 
   p {
@@ -577,4 +578,16 @@
   margin-top: 15px;
   border-radius: 10px;
   cursor: pointer;
+}
+
+.watch-answer-btn {
+  width: 90%;
+  height: 30px;
+  cursor: pointer;
+  margin-top: 10%;
+  margin-left: 15px;
+  border: 1px solid #b9c3dd;
+  border-radius: 7px;
+  background-color: transparent;
+  color: #b9c3dd;
 }

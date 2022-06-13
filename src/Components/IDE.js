@@ -103,6 +103,8 @@ const IDE = () => {
   let [userFile, setUserFile] = useState([]);
   const [myPtcId, setMyPtcId] = useState(0);
   const [userId, setUserId] = useState(0);
+  const [ownerId, setOwnerId] = useState(0);
+
   let [userNickName, setUserNickName] = useState("나");
 
   let [stuInfo, setStuInfo] = useState({});
@@ -590,7 +592,7 @@ const IDE = () => {
       });
     });
     socket.on("CURSOR_LAST", (args) => {
-      console.log(args);
+      setOwnerId(args.ownerId);
     });
     socket.on("CURSOR_MOVE", (args) => {
       console.log(args);
@@ -798,9 +800,12 @@ const IDE = () => {
           >
             내 프로젝트 불러오기
           </button>
-          <p style={{ color: "#b9c3dd", fontSize: 15, marginLeft: "35%" }}>
+          <span
+            className="answering"
+            style={{ color: "#b9c3dd", fontSize: 15, marginLeft: "35%" }}
+          >
             질문 하기 (F8){" "}
-          </p>
+          </span>
         </div>
         <div className="second-nav">
           <span>
@@ -1059,6 +1064,9 @@ const IDE = () => {
                 document.onmouseup = resizeEndHandler;
               }}
             ></div>
+            {location.state.asTeacher === "teacher" ? (
+              <button className="watch-answer-btn">질문 보기</button>
+            ) : null}
           </div>
         )}
         {sidebarBtn === "IDE" ? (
@@ -1152,25 +1160,58 @@ const IDE = () => {
           },
         }}
       >
-        <SendFeedback monacoRef={monacoRef} saveFileName={saveFileName} />
+        <SendFeedback
+          monacoRef={monacoRef}
+          saveFileName={saveFileName}
+          ownerId={ownerId}
+          socketio={socketio}
+          setSubmitFeedbackModalIsOpen={setSubmitFeedbackModalIsOpen}
+        />
       </Modal>
     </div>
   );
 };
 
-function SendFeedback({ monacoRef, saveFileName }) {
+function SendFeedback({
+  monacoRef,
+  saveFileName,
+  ownerId,
+  socketio,
+  setSubmitFeedbackModalIsOpen,
+}) {
   let lineNum = monacoRef.current.getPosition().lineNumber;
 
   let colNum = monacoRef.current.getPosition().column;
 
   let codeVal = monacoRef.current.getValue().split("\n");
   console.log(codeVal);
+
+  let [feedbackInput, setFeedbackInput] = useState("");
+
+  socketio.current.on("FEEDBACK_ADD", (args) => {
+    console.log(args);
+  });
+
   if (lineNum > 3) {
     codeVal = codeVal.slice(lineNum - 4, lineNum + 3);
   } else {
     codeVal = codeVal.slice(0, 4);
   }
   console.log(codeVal);
+
+  const sendFeedback = () => {
+    socketio.current.emit("FEEDBACK_ADD", {
+      ref: {
+        ownerId: ownerId, // 해당 파일의 소유자 ID
+        file: saveFileName,
+        line: lineNum + "-" + colNum,
+      },
+      acl: [], // 이 피드백을 볼 수 있는 유저 id
+      comment: feedbackInput,
+    });
+    alert("질문 완료");
+    setSubmitFeedbackModalIsOpen(false);
+  };
   return (
     <div className="send-feedback-modal">
       <div className="send-feedback-file">{saveFileName}</div>
@@ -1213,8 +1254,13 @@ function SendFeedback({ monacoRef, saveFileName }) {
       <textarea
         className="send-feedback-input"
         placeholder="내용을 입력 하세요"
+        onChange={(e) => {
+          setFeedbackInput(e.target.value);
+        }}
       />
-      <button className="send-feedback-btn">질문 하기</button>
+      <button className="send-feedback-btn" onClick={sendFeedback}>
+        질문 하기
+      </button>
     </div>
   );
 }
