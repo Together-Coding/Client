@@ -176,7 +176,7 @@ const IDE = () => {
   const explorerDirectory = useRef();
 
   let [codeValue, setCodeValue] = useState("");
-  let [copyCodeVal, setCopyCodeVal] = useState("");
+  let [copyCodeVal, setCopyCodeVal] = useState([]);
   let [codeLang, setCodeLang] = useState("");
 
   let [realTimeCode, setRealTimeCode] = useState([]);
@@ -617,7 +617,9 @@ const IDE = () => {
       setOwnerId(args.ownerId);
     });
     socket.on("CURSOR_MOVE", (args) => {
-      console.log(args);
+      let _myPtcId = localStorage.getItem("currMyPtcId");
+      if (_myPtcId == args.ptcId) return;
+
       setCursorMove((prev) => {
         return args;
       });
@@ -655,30 +657,40 @@ const IDE = () => {
       )
         return _saveFileName;
 
-      console.log(args);
-      let [lineNum, colNum] = args.cursor.split(".");
-      console.log("Insert", lineNum, colNum);
+      let [lineNum, colNum] = args.cursor.split(".").map(item => parseInt(item))
+      colNum = colNum - args.change.length + 1;
       try {
+        let procCnt = 0;
         monacoPreventHandler.current = true;
         for (let c of args.change) {
-          if (c == 8) {
-            monacoRef.current.trigger(c, "deleteLeft");
+          /*
+          Range: start line, start col, end line, end col
+          */
+          let range;
+          let op;
+          if (c === 8) {
+            range = new monacomonacoRef.current.Range(
+              lineNum, colNum - 1 + procCnt,
+              lineNum, colNum + procCnt,
+            );
+            op = {
+              range: range,
+              text: "",
+              forceMoveMarkers: true
+            };
           } else {
-            monacoRef.current.trigger(null, "type", { text: c });
+            range = new monacomonacoRef.current.Range(
+              lineNum, colNum + procCnt,
+              lineNum, colNum + procCnt,
+            );
+            op = {
+              range: range,
+              text: c,
+              forceMoveMarkers: true
+            };
           }
-
-          //  monacoRef.current.executeEdits("FILE_MOD", [
-          //   {
-          //       range: new monacomonacoRef.current.Range(
-          //         colNum+1, // end col
-          //         lineNum+3, // end line
-          //         colNum+1, // start col
-          //         lineNum+2, // start line
-          //       ),
-          //     text: 'hello',
-          //     forceMoveMarkers: true,
-          //   },
-          // ]);
+          monacoRef.current.executeEdits("my-source", [op]);
+          procCnt += 1;
         }
       } finally {
         monacoPreventHandler.current = false;
