@@ -11,6 +11,10 @@ import {
   faFileArrowUp,
   faBookOpenReader,
   faArrowDown,
+  faWindowMinimize,
+  faSave,
+  faEdit,
+  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
@@ -848,7 +852,7 @@ const IDE = () => {
           </span>
         </div>
         <div className="second-nav">
-          <span>
+          <span className="lesson-info">
             {className_.current} / {classDesc.current}
           </span>{" "}
           {saveFileName !== "" ? (
@@ -1007,8 +1011,8 @@ const IDE = () => {
                             }}
                           >
                             {inputToggle && fileTarget === i
-                              ? "Save"
-                              : "Rename"}
+                              ? <FontAwesomeIcon icon={faSave} />
+                              : <FontAwesomeIcon icon={faEdit} />}
                           </button>
                           <button
                             onClick={() => {
@@ -1034,7 +1038,7 @@ const IDE = () => {
                               }
                             }}
                           >
-                            X
+                            <FontAwesomeIcon icon={faTrash} />
                           </button>
                         </div>
                       </div>
@@ -1327,7 +1331,7 @@ function SendFeedback({
               return (
                 <>
                   {(codeVal.length >= 7 && idx === 3) ||
-                  (codeVal.length < 7 && idx === lineNum - 1) ? (
+                    (codeVal.length < 7 && idx === lineNum - 1) ? (
                     <div className="answer-line">{i}</div>
                   ) : (
                     <div>{i}</div>

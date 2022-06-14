@@ -132,7 +132,7 @@
 
 .side-explorer {
   padding-right: 6px;
-  width: 300px;
+  width: 200px;
   min-width: 200px;
   height: 98vh;
   flex-shrink: 0;
@@ -304,21 +304,27 @@
   }
 }
 
-.files-btns:hover {
-  background-color: black;
-}
 
 .files-btns {
   display: flex;
   justify-content: space-between;
 
   button {
+    display: none;
     cursor: pointer;
     border-radius: 5px;
-    color: #b9c3dd;
+    color: #5a637b;
     background-color: #2f3336;
     margin-right: 3px;
-    border: 1px solid #b9c3dd;
+    border: 1px solid #444855;
+  }
+
+  &:hover {
+    background-color: black;
+
+    button {
+        display: inline-block;
+    }
   }
 }
 
@@ -439,10 +445,20 @@
   cursor: pointer;
 }
 
+.lesson-info {
+    display: inline-block;
+    text-overflow:ellipsis;
+    word-break: break-all;
+    height: 16px;
+    overflow: hidden;
+    white-space: nowrap;
+}
 .real-time-cursor-bar {
-  display: flex;
-  align-items: center;
-  margin-left: 10%;
+    flex: 1 0 auto;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    margin-left: 10%;
 
   .cursor-file-name {
     font-weight: bold;
