@@ -94,6 +94,11 @@ const StudentList = (idx, item, acc, accBy, myId, showOtherDir, togglePerm) => {
 };
 
 const IDE = () => {
+  const saveDelay = 500;
+  let debounce_file_mod = useRef(null);
+  let debounce_file_save = useRef(null);
+  let debounce_cursor_move = useRef(null);
+  let timeout_cursor_move = useRef(null);
   let blockRender = useRef({});
 
   let location = useLocation();
@@ -288,18 +293,21 @@ const IDE = () => {
 
     console.log(lineNum, colNum, fullLine);
 
-    if (saveFileName !== null && saveFileName !== "") {
-      socketio.current.emit("CURSOR_MOVE", {
-        fileInfo: {
-          ownerId: userId, // 파일 소유자 ID
-          file: saveFileName, // 현재 보고있는 파일
-          line: fullLine, // 전체 라인 수
-          cursor: lineNum + "." + colNum, // Line 10의 2번째 글짜 ~ Line 11의 10번째 글자
-        },
-        event: "", // 파일을 열었을 때에만 `open` 으로 전송. 이외에는 필요 없음
-        timestamp: Date.now(),
-      });
-    }
+    clearTimeout(debounce_cursor_move.current);
+    debounce_cursor_move.current = setTimeout(() => {
+      if (saveFileName !== null && saveFileName !== "") {
+        socketio.current.emit("CURSOR_MOVE", {
+          fileInfo: {
+            ownerId: userId, // 파일 소유자 ID
+            file: saveFileName, // 현재 보고있는 파일
+            line: fullLine, // 전체 라인 수
+            cursor: lineNum + "." + colNum, // Line 10의 2번째 글짜 ~ Line 11의 10번째 글자
+          },
+          event: "", // 파일을 열었을 때에만 `open` 으로 전송. 이외에는 필요 없음
+          timestamp: Date.now(),
+        });
+      }
+    }, 500)
 
     const _saveFileName = localStorage.getItem("currFileName");
     setCodeValue((code) => {
@@ -308,8 +316,18 @@ const IDE = () => {
     });
   };
 
-  let modCodeTimeout = null;
-  const modDelay = 1000;
+  function saveCodeDeferred(filename, content) {
+    clearTimeout(debounce_file_save.current);
+    debounce_file_save.current = setTimeout(() => {
+      if (content.trim().length === 0) return; // fix bug
+
+      socketio.current.emit("FILE_SAVE", {
+        ownerId: userId,
+        file: filename,
+        content: content,
+      });
+    }, saveDelay);
+  }
 
   const realTimeCodeSend = (e, lineNum, colNum) => {
     let inputStr;
@@ -334,33 +352,25 @@ const IDE = () => {
     }
     if (copy.length <= 0) return; // 빈 정보는 전송하지 않음
 
-    // FIXME: 테스트용 임시
-    // monacoRef.current.setPosition({lineNumber: 3, column: 3})  // col : 0부터, line : 1부터
+    setCopyCodeVal(_copyCodeVal => {
+      _copyCodeVal.push(...copy)
 
-    socketio.current.emit("FILE_MOD", {
-      ownerId: userId,
-      file: localStorage.getItem("currFileName"),
-      cursor: lineNum + "." + colNum,
-      change: copy,
-      timestamp: inputTime,
-    });
-  };
+      clearTimeout(debounce_file_mod.current);
+      debounce_file_mod.current = setTimeout(() => {
+        socketio.current.emit("FILE_MOD", {
+          ownerId: userId,
+          file: localStorage.getItem("currFileName"),
+          cursor: lineNum + "." + colNum,
+          change: _copyCodeVal,
+          timestamp: inputTime,
+        })
+        setCopyCodeVal(_ => []);
+      }, 100);
 
-  let saveCodeTimeout;
-  const saveDelay = 500;
-
-  function saveCodeDeferred(filename, content) {
-    clearTimeout(saveCodeTimeout);
-    saveCodeTimeout = setTimeout(() => {
-      if (content.trim().length === 0) return; // fix bug
-
-      socketio.current.emit("FILE_SAVE", {
-        ownerId: userId,
-        file: filename,
-        content: content,
-      });
-    }, saveDelay);
+      return _copyCodeVal;
+    })
   }
+
 
   const clickHandler = (e) => {
     setSidebarBtn(e.currentTarget.value);
@@ -616,7 +626,14 @@ const IDE = () => {
         let lineInfo = args.fileInfo.cursor.split(".");
         setCurrentLine(lineInfo[0]);
         setCurrentCol(lineInfo[1]);
-      } catch (e) {}
+      } catch (e) { }
+
+      clearTimeout(timeout_cursor_move.current)
+      timeout_cursor_move.current = setTimeout(() => {
+        setCursorMove((prev) => {
+          return {};
+        });
+      }, 3000)
     });
     socket.on("FILE_SAVE", (args) => {
       // console.log(args);
