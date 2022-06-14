@@ -10,7 +10,7 @@ import {
   faSquarePlus,
   faFileArrowUp,
   faBookOpenReader,
-  faWindowMinimize,
+  faArrowDown,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
@@ -192,6 +192,14 @@ const IDE = () => {
 
   let [submitFeedbackModalIsOpen, setSubmitFeedbackModalIsOpen] =
     useState(false);
+
+  let [watchFeedbackModal, setWatchFeedbackModal] = useState(false);
+
+  let [feedbackList, setFeedbackList] = useState([]);
+  let [commentList, setCommentList] = useState([]);
+
+  let [feedbackFile, setFeedbackFile] = useState("");
+  let [feedbackLine, setFeedbackLine] = useState("");
 
   let interval_1sec = null;
   let timeout_activityPing = null;
@@ -684,6 +692,28 @@ const IDE = () => {
         return copied;
       });
     });
+
+    socket.on("FEEDBACK_ADD", (args) => {
+      console.log(args);
+    });
+
+    socket.on("FEEDBACK_LIST", (args) => {
+      console.log(args);
+      setFeedbackList((prev) => {
+        return args;
+      });
+      setCommentList((prev) => {
+        return args[0].comments;
+      });
+      if (args) {
+        setWatchFeedbackModal((prev) => {
+          return true;
+        });
+      }
+    });
+    socket.on("FEEDBACK_COMMENT", (args) => {
+      console.log(args);
+    });
   };
 
   const getDirectory = (socket, _userId = null) => {
@@ -800,9 +830,19 @@ const IDE = () => {
           >
             내 프로젝트 불러오기
           </button>
+          {location.state.asTeacher === "teacher" ? (
+            <button
+              className="watch-answer-btn"
+              onClick={() => {
+                socketio.current.emit("FEEDBACK_LIST");
+              }}
+            >
+              질문 보기
+            </button>
+          ) : null}
           <span
             className="answering"
-            style={{ color: "#b9c3dd", fontSize: 15, marginLeft: "35%" }}
+            style={{ color: "#b9c3dd", fontSize: 15, marginLeft: "10%" }}
           >
             질문 하기 (F8){" "}
           </span>
@@ -1057,6 +1097,22 @@ const IDE = () => {
                     togglePerm
                   );
               })}
+            <p className="side-navbar offline-stus">
+              <div className="side-navbar-answer"></div>
+              <span>질문 라인 도우미</span>
+            </p>
+            {feedbackLine && feedbackFile ? (
+              <div className="file-line-helper">
+                <div>
+                  File :{" "}
+                  <span className="feedback-file-span">{feedbackFile}</span>
+                </div>
+                <div>
+                  질문 라인(lineNum-colNum) :{" "}
+                  <span className="feedback-line-span">{feedbackLine}</span>
+                </div>
+              </div>
+            ) : null}
             <div
               className="resizer"
               onMouseDown={(e) => {
@@ -1064,9 +1120,6 @@ const IDE = () => {
                 document.onmouseup = resizeEndHandler;
               }}
             ></div>
-            {location.state.asTeacher === "teacher" ? (
-              <button className="watch-answer-btn">질문 보기</button>
-            ) : null}
           </div>
         )}
         {sidebarBtn === "IDE" ? (
@@ -1168,6 +1221,45 @@ const IDE = () => {
           setSubmitFeedbackModalIsOpen={setSubmitFeedbackModalIsOpen}
         />
       </Modal>
+
+      <Modal
+        isOpen={watchFeedbackModal}
+        onRequestClose={() => setWatchFeedbackModal(false)}
+        style={{
+          overlay: {
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(15, 15, 15, 0.79)",
+          },
+          content: {
+            position: "absolute",
+            top: "40px",
+            left: "15%",
+            width: "65%",
+            height: "60%",
+            border: "1px solid #ccc",
+            background: "#fff",
+            overflow: "auto",
+            WebkitOverflowScrolling: "touch",
+            borderRadius: "4px",
+            outline: "none",
+            padding: "20px",
+          },
+        }}
+      >
+        <WatchFeedback
+          socketio={socketio}
+          feedbackList={feedbackList}
+          commentList={commentList}
+          setFeedbackLine={setFeedbackLine}
+          setFeedbackFile={setFeedbackFile}
+          setSidebarBtn2={setSidebarBtn2}
+          setWatchFeedbackModal={setWatchFeedbackModal}
+        />
+      </Modal>
     </div>
   );
 };
@@ -1187,10 +1279,6 @@ function SendFeedback({
   console.log(codeVal);
 
   let [feedbackInput, setFeedbackInput] = useState("");
-
-  socketio.current.on("FEEDBACK_ADD", (args) => {
-    console.log(args);
-  });
 
   if (lineNum > 3) {
     codeVal = codeVal.slice(lineNum - 4, lineNum + 3);
@@ -1261,6 +1349,125 @@ function SendFeedback({
       <button className="send-feedback-btn" onClick={sendFeedback}>
         질문 하기
       </button>
+    </div>
+  );
+}
+
+function WatchFeedback({
+  socketio,
+  feedbackList,
+  commentList,
+  setSidebarBtn2,
+  setFeedbackFile,
+  setFeedbackLine,
+  setWatchFeedbackModal,
+}) {
+  console.log(feedbackList);
+  console.log(commentList);
+  const ownerId = feedbackList[0].ownerId;
+  let [inputTarget, setInputTarget] = useState(0);
+  let [inputToggle, setInputToggle] = useState(false);
+
+  let [sendFeedbackInput, setSendFeedbackInput] = useState("");
+  return (
+    <div>
+      {feedbackList[0].feedbacks &&
+        feedbackList[0].feedbacks.map((item, idx) => {
+          return (
+            <>
+              <div className="feedback-list-bar">
+                <p className="feedback-name" style={{ fontWeight: "bold" }}>
+                  {item.nickname}
+                </p>{" "}
+                <p
+                  className="feedback-file"
+                  onClick={() => {
+                    socketio.current.emit("FILE_READ", {
+                      ownerId: ownerId,
+                      file: item.file,
+                    });
+                    setFeedbackFile(item.file);
+                    setFeedbackLine(item.line);
+                    setSidebarBtn2("학생");
+                    setWatchFeedbackModal(false);
+
+                    /* 작동 안함
+                    let splitLine = item.line.split("-");
+                    console.log(splitLine);
+                    monacoRef.current.focus();
+                    monacoRef.current.setPosition({
+                      column: Number(splitLine[1]),
+                      lineNumber: Number(splitLine[0]),
+                    });
+                    monacoRef.current.deltaDecorations(
+                      [],
+                      [
+                        {
+                          range: new monacoRef.current.Range(
+                            Number(splitLine[0]),
+                            1,
+                            Number(splitLine[0]),
+                            1
+                          ),
+                          options: {
+                            isWholeLine: true,
+                            firstLineDecorationClassName: "myLineDecoration",
+                          },
+                        },
+                      ]
+                    );*/
+                  }}
+                >
+                  {item.file}
+                </p>{" "}
+                <p className="feedback-line">
+                  line : <span>{item.line}</span>
+                </p>
+                {commentList &&
+                  commentList.map((comment, i) => {
+                    if (comment.feedbackId === item.id) {
+                      return (
+                        <>
+                          <p className="feedback-content">{comment.content}</p>
+                        </>
+                      );
+                    }
+                  })}
+                <button
+                  className="send-feedback-toggle-btn"
+                  value={item.id}
+                  onClick={(e) => {
+                    setInputToggle(!inputToggle);
+                    setInputTarget(e.currentTarget.value);
+                    console.log(inputTarget);
+                  }}
+                >
+                  <FontAwesomeIcon icon={faArrowDown} />
+                </button>
+              </div>
+              {inputToggle && inputTarget == item.id ? (
+                <div className="send-feedback-input-container">
+                  <input
+                    onChange={(e) => {
+                      setSendFeedbackInput(e.target.value);
+                    }}
+                  />
+                  <button
+                    className="send-feedback-input-btn"
+                    onClick={() => {
+                      socketio.current.emit("FEEDBACK_COMMENT", {
+                        feedbackId: item.id,
+                        content: sendFeedbackInput,
+                      });
+                    }}
+                  >
+                    전송
+                  </button>
+                </div>
+              ) : null}
+            </>
+          );
+        })}
     </div>
   );
 }
