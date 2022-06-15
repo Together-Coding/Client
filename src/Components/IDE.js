@@ -201,6 +201,8 @@ const IDE = () => {
   let [feedbackFile, setFeedbackFile] = useState("");
   let [feedbackLine, setFeedbackLine] = useState("");
 
+  let [feedbackComment, setFeedbackComment] = useState([]);
+
   let interval_1sec = null;
   let timeout_activityPing = null;
 
@@ -1099,9 +1101,15 @@ const IDE = () => {
               })}
             <p className="side-navbar offline-stus">
               <div className="side-navbar-answer"></div>
-              <span>질문 라인 도우미</span>
+              {location.state.asTeacher === "teacher" ? (
+                <span>질문 라인 도우미</span>
+              ) : (
+                <span>피드백 현황</span>
+              )}
             </p>
-            {feedbackLine && feedbackFile ? (
+            {location.state.asTeacher === "teacher" &&
+            feedbackLine &&
+            feedbackFile ? (
               <div className="file-line-helper">
                 <div>
                   File :{" "}
@@ -1113,6 +1121,15 @@ const IDE = () => {
                 </div>
               </div>
             ) : null}
+            {feedbackComment &&
+              feedbackComment.map((i) => {
+                console.log(feedbackComment);
+                return (
+                  <>
+                    <p>{i.content}</p>
+                  </>
+                );
+              })}
             <div
               className="resizer"
               onMouseDown={(e) => {
@@ -1218,6 +1235,7 @@ const IDE = () => {
           saveFileName={saveFileName}
           ownerId={ownerId}
           socketio={socketio}
+          location={location}
           setSubmitFeedbackModalIsOpen={setSubmitFeedbackModalIsOpen}
         />
       </Modal>
@@ -1239,7 +1257,7 @@ const IDE = () => {
             top: "40px",
             left: "15%",
             width: "65%",
-            height: "60%",
+            height: "90%",
             border: "1px solid #ccc",
             background: "#fff",
             overflow: "auto",
@@ -1258,6 +1276,8 @@ const IDE = () => {
           setFeedbackFile={setFeedbackFile}
           setSidebarBtn2={setSidebarBtn2}
           setWatchFeedbackModal={setWatchFeedbackModal}
+          feedbackComment={feedbackComment}
+          setFeedbackComment={setFeedbackComment}
         />
       </Modal>
     </div>
@@ -1361,6 +1381,8 @@ function WatchFeedback({
   setFeedbackFile,
   setFeedbackLine,
   setWatchFeedbackModal,
+  feedbackComment,
+  setFeedbackComment,
 }) {
   console.log(feedbackList);
   console.log(commentList);
@@ -1369,6 +1391,16 @@ function WatchFeedback({
   let [inputToggle, setInputToggle] = useState(false);
 
   let [sendFeedbackInput, setSendFeedbackInput] = useState("");
+
+  const filterComment = () => {
+    commentList = commentList.filter((item, i) => {
+      return (
+        commentList.findIndex((item2, j) => {
+          return item.feedbackId === item2.feedbackId;
+        }) === i
+      );
+    });
+  };
   return (
     <div>
       {feedbackList[0].feedbacks &&
@@ -1423,6 +1455,7 @@ function WatchFeedback({
                 <p className="feedback-line">
                   line : <span>{item.line}</span>
                 </p>
+                {commentList && filterComment()}
                 {commentList &&
                   commentList.map((comment, i) => {
                     if (comment.feedbackId === item.id) {
@@ -1455,10 +1488,17 @@ function WatchFeedback({
                   <button
                     className="send-feedback-input-btn"
                     onClick={() => {
-                      socketio.current.emit("FEEDBACK_COMMENT", {
+                      let comment = {
+                        ptcId: item.ptcId,
                         feedbackId: item.id,
+                        feedbackFileName: item.file,
+                        feedbackline: item.line,
                         content: sendFeedbackInput,
-                      });
+                      };
+                      let copy = [...feedbackComment];
+                      copy.push(comment);
+                      setFeedbackComment(copy);
+                      console.log(feedbackComment);
                     }}
                   >
                     전송
