@@ -180,12 +180,12 @@ function MyInfo() {
                     >
                       {x.name}
                     </Link>
-                    <span>description</span>
-                    <span>마지막 수업</span>
+                    <span>{x.description}</span>
+                    {/* <span>마지막 수업</span> */}
                   </div>
                   <div className="des-right">
-                    <span>개 수업</span>
-                    <span>명 참여</span>
+                    {/* <span>개 수업</span>
+                    <span>명 참여</span> */}
                   </div>
                 </div>
               );
