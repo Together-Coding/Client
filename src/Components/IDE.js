@@ -309,7 +309,7 @@ const IDE = () => {
           timestamp: Date.now(),
         });
       }
-    }, 500)
+    }, 500);
 
     const _saveFileName = localStorage.getItem("currFileName");
     setCodeValue((code) => {
@@ -354,8 +354,8 @@ const IDE = () => {
     }
     if (copy.length <= 0) return; // 빈 정보는 전송하지 않음
 
-    setCopyCodeVal(_copyCodeVal => {
-      _copyCodeVal.push(...copy)
+    setCopyCodeVal((_copyCodeVal) => {
+      _copyCodeVal.push(...copy);
 
       clearTimeout(debounce_file_mod.current);
       debounce_file_mod.current = setTimeout(() => {
@@ -365,14 +365,13 @@ const IDE = () => {
           cursor: lineNum + "." + colNum,
           change: _copyCodeVal,
           timestamp: inputTime,
-        })
-        setCopyCodeVal(_ => []);
+        });
+        setCopyCodeVal((_) => []);
       }, 100);
 
       return _copyCodeVal;
-    })
-  }
-
+    });
+  };
 
   const clickHandler = (e) => {
     setSidebarBtn(e.currentTarget.value);
@@ -630,14 +629,14 @@ const IDE = () => {
         let lineInfo = args.fileInfo.cursor.split(".");
         setCurrentLine(lineInfo[0]);
         setCurrentCol(lineInfo[1]);
-      } catch (e) { }
+      } catch (e) {}
 
-      clearTimeout(timeout_cursor_move.current)
+      clearTimeout(timeout_cursor_move.current);
       timeout_cursor_move.current = setTimeout(() => {
         setCursorMove((prev) => {
           return {};
         });
-      }, 3000)
+      }, 3000);
     });
     socket.on("FILE_SAVE", (args) => {
       // console.log(args);
@@ -659,7 +658,9 @@ const IDE = () => {
       )
         return _saveFileName;
 
-      let [lineNum, colNum] = args.cursor.split(".").map(item => parseInt(item))
+      let [lineNum, colNum] = args.cursor
+        .split(".")
+        .map((item) => parseInt(item));
       colNum = colNum - args.change.length + 1;
       try {
         let procCnt = 0;
@@ -672,23 +673,27 @@ const IDE = () => {
           let op;
           if (c === 8) {
             range = new monacomonacoRef.current.Range(
-              lineNum, colNum - 1 + procCnt,
-              lineNum, colNum + procCnt,
+              lineNum,
+              colNum - 1 + procCnt,
+              lineNum,
+              colNum + procCnt
             );
             op = {
               range: range,
               text: "",
-              forceMoveMarkers: true
+              forceMoveMarkers: true,
             };
           } else {
             range = new monacomonacoRef.current.Range(
-              lineNum, colNum + procCnt,
-              lineNum, colNum + procCnt,
+              lineNum,
+              colNum + procCnt,
+              lineNum,
+              colNum + procCnt
             );
             op = {
               range: range,
               text: c,
-              forceMoveMarkers: true
+              forceMoveMarkers: true,
             };
           }
           monacoRef.current.executeEdits("my-source", [op]);
@@ -1041,9 +1046,11 @@ const IDE = () => {
                               inputCtrl(i);
                             }}
                           >
-                            {inputToggle && fileTarget === i
-                              ? <FontAwesomeIcon icon={faSave} />
-                              : <FontAwesomeIcon icon={faEdit} />}
+                            {inputToggle && fileTarget === i ? (
+                              <FontAwesomeIcon icon={faSave} />
+                            ) : (
+                              <FontAwesomeIcon icon={faEdit} />
+                            )}
                           </button>
                           <button
                             onClick={() => {
@@ -1154,7 +1161,8 @@ const IDE = () => {
                 </div>
               </div>
             ) : null}
-            {feedbackComment &&
+            {location.state.asTeacher === "teacher" &&
+              feedbackComment &&
               feedbackComment.map((i) => {
                 console.log(feedbackComment);
                 return (
@@ -1380,7 +1388,7 @@ function SendFeedback({
               return (
                 <>
                   {(codeVal.length >= 7 && idx === 3) ||
-                    (codeVal.length < 7 && idx === lineNum - 1) ? (
+                  (codeVal.length < 7 && idx === lineNum - 1) ? (
                     <div className="answer-line">{i}</div>
                   ) : (
                     <div>{i}</div>
