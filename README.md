@@ -114,8 +114,8 @@ UI는 goormIDE를 참고 하였습니다.
 
 ## Contributor
 
-[권광민 (a2tt)](https://github.com/a2tt)  
-[권순용 (boyfromthewell)](https://github.com/boyfromthewell)
+* [a2tt](https://github.com/a2tt)  
+* [권순용 (boyfromthewell)](https://github.com/boyfromthewell)
 
 ***
 
