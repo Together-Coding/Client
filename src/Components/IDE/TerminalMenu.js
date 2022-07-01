@@ -1,11 +1,11 @@
 import { useRef, useEffect, useState } from "react";
-import { SSHClient } from "../utils/websocket";
+import { SSHClient } from "../../utils/websocket";
 import { XTerm } from "xterm-for-react";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
-import "../styles/terminal.scss";
-import { RUNTIME_BRIDGE_URL, RUNTIME_URL, WS_URL } from "../constants";
-import { api } from "../utils/http";
+import "../../styles/terminal.scss";
+import { RUNTIME_BRIDGE_URL, RUNTIME_URL, WS_URL } from "../../constants";
+import { api } from "../../utils/http";
 
 /**
  * 터미널 메뉴

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
 import { Link } from "react-router-dom";
-import "../styles/myInfo.scss";
-import { API_URL } from "../constants.js";
+import "../../styles/myInfo.scss";
+import { API_URL } from "../../constants.js";
 import { useHistory } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCirclePlus } from "@fortawesome/free-solid-svg-icons";
-import { api } from "../utils/http";
+import { api } from "../../utils/http";
 import axios from "axios";
 
 function MyInfo() {
@@ -20,9 +20,9 @@ function MyInfo() {
   useEffect(() => {
     axios
       .all([
-        axios.get(`${API_URL}/api/user`, {headers}),
-        axios.get(`${API_URL}/api/course/teacher`,  {headers}),
-        axios.get(`${API_URL}/api/course/student`,  {headers}),
+        axios.get(`${API_URL}/api/user`, { headers }),
+        axios.get(`${API_URL}/api/course/teacher`, { headers }),
+        axios.get(`${API_URL}/api/course/student`, { headers }),
       ])
       .then(
         axios.spread((res1, res2, res3) => {
@@ -55,7 +55,6 @@ function MyInfo() {
   const [courseName, setCourseName] = useState("");
   const [coursePwd, setCoursePwd] = useState("");
   const [courseDescription, setCourseDescription] = useState("");
-
 
   const courseNameEvent = (e) => {
     setCourseName(e.target.value);

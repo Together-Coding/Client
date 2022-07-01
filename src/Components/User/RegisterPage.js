@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import { API_URL } from "../constants";
+import { API_URL } from "../../constants";
 import { useHistory } from "react-router-dom";
-import "../styles/Register.scss";
+import "../../styles/Register.scss";
 
 // POST /auth/signup
 function RegisterPage() {

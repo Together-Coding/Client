@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useHistory, useLocation } from "react-router-dom";
-import "../styles/MyCourseFix.scss";
-import { API_URL } from "../constants.js";
-import {api} from "../utils/http"
+import "../../styles/MyCourseFix.scss";
+import { API_URL } from "../../constants.js";
+import { api } from "../../utils/http";
 
 function MyCourseFix() {
   let history = useHistory();
@@ -34,16 +34,14 @@ function MyCourseFix() {
         courseId: courseId,
         teacherEmail: teacherEmail,
       };
-      api
-        .put(`${API_URL}/api/course/teacher`, body)
-        .then((res) => {
-          if (res.status === 200) {
-            alert(
-              "강사가 정상적으로 변경 되었습니다.\n내 강의 정보 화면으로 돌아갑니다."
-            );
-            history.push("/me");
-          }
-        });
+      api.put(`${API_URL}/api/course/teacher`, body).then((res) => {
+        if (res.status === 200) {
+          alert(
+            "강사가 정상적으로 변경 되었습니다.\n내 강의 정보 화면으로 돌아갑니다."
+          );
+          history.push("/me");
+        }
+      });
     } else {
       return false;
     }
@@ -58,14 +56,12 @@ function MyCourseFix() {
       courseId: courseId,
       password: coursePwd,
     };
-    api
-      .put(`${API_URL}/api/course/password`, body)
-      .then((res) => {
-        if (res.status === 200) {
-          alert("변경 완료");
-          setCoursePwd("");
-        }
-      });
+    api.put(`${API_URL}/api/course/password`, body).then((res) => {
+      if (res.status === 200) {
+        alert("변경 완료");
+        setCoursePwd("");
+      }
+    });
   };
 
   const changeCourseInfoBtn = () => {
@@ -77,16 +73,14 @@ function MyCourseFix() {
       name: newCourseName,
       description: newCourseDes,
     };
-    api
-      .put(`${API_URL}/api/course/${courseId}`, body)
-      .then((res) => {
-        if (res.status === 200) {
-          alert("변경 완료");
-          window.location.reload();
-          setNewCourseName("");
-          setNewCourseDes("");
-        }
-      });
+    api.put(`${API_URL}/api/course/${courseId}`, body).then((res) => {
+      if (res.status === 200) {
+        alert("변경 완료");
+        window.location.reload();
+        setNewCourseName("");
+        setNewCourseDes("");
+      }
+    });
   };
 
   return (

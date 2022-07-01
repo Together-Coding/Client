@@ -3,22 +3,23 @@ import { useState } from "react";
 import { useLocation, useHistory } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
-import "../styles/AsTeacherMain.scss";
+import "../../styles/AsTeacherMain.scss";
 import Modal from "react-modal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCirclePlus, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
-import { API_URL } from "../constants";
-import {api} from "../utils/http";
+import { API_URL } from "../../constants";
+import { api } from "../../utils/http";
 
 function AsTeacherMain() {
   const location = useLocation();
-  console.log(location);
   const history = useHistory();
   let courseID = useParams();
   const realCourseID = Number(courseID.id);
 
   let [courseInfo, setCourseInfo] = useState([]);
   let [lessonInfo, setLessonInfo] = useState([]);
+
+  const [Lang, setLang] = useState([]);
 
   let fileUrl;
   // 수업정보, 레슨정보 가져오기
@@ -55,9 +56,6 @@ function AsTeacherMain() {
       });
   }, []);
 */
-  const [Lang, setLang] = useState([]);
-  console.log(courseInfo);
-  console.log(lessonInfo);
 
   // 사용 가능 언어 get 요청
   useEffect(() => {
@@ -77,13 +75,11 @@ function AsTeacherMain() {
       emails: participants,
     };
     if (window.confirm("참여자를 등록하시겠습니까?")) {
-      api
-        .post(`${API_URL}/api/course/student`, body)
-        .then((res) => {
-          if (res.status === 200) {
-            alert("등록 완료");
-          }
-        });
+      api.post(`${API_URL}/api/course/student`, body).then((res) => {
+        if (res.status === 200) {
+          alert("등록 완료");
+        }
+      });
       setAddStuIsOpen(false);
       setParticipants([]);
       window.location.reload();
@@ -120,14 +116,12 @@ function AsTeacherMain() {
   // 코스 삭제 컨트롤
   const closeClassBtn = () => {
     if (window.confirm("정말 코스를 종료 시키겠습니까?")) {
-      api
-        .delete(`${API_URL}/api/course/${realCourseID}`)
-        .then((res) => {
-          if (res.status === 200) {
-            alert("코스 종료 완료");
-            history.goBack();
-          }
-        });
+      api.delete(`${API_URL}/api/course/${realCourseID}`).then((res) => {
+        if (res.status === 200) {
+          alert("코스 종료 완료");
+          history.goBack();
+        }
+      });
     } else {
       return false;
     }
@@ -153,7 +147,7 @@ function AsTeacherMain() {
       courseId: realCourseID,
       lang_image_id: Number(addlessonLang),
     };
-    console.log(body);
+
     if (window.confirm(addlessonName + " 수업을 등록하시겠습니까?")) {
       api.post(`${API_URL}/api/lesson`, body).then((res) => {
         if (res.status === 200) {
@@ -175,17 +169,15 @@ function AsTeacherMain() {
   // 레슨 이름 변경
   const changeLessonNameBtn = () => {
     let body = { name: changeLessonName };
-    console.log(body);
-    api
-      .put(`${API_URL}/api/lesson/name/${saveLessonID}`, body)
-      .then((res) => {
-        if (res.status === 200) {
-          alert("변경 완료");
-          setModalChangeLessonName(false);
-          setChangeLessonName("");
-          window.location.reload();
-        }
-      });
+
+    api.put(`${API_URL}/api/lesson/name/${saveLessonID}`, body).then((res) => {
+      if (res.status === 200) {
+        alert("변경 완료");
+        setModalChangeLessonName(false);
+        setChangeLessonName("");
+        window.location.reload();
+      }
+    });
   };
   // 레슨 설명 변경 모달 컨트롤
   const changeLessonDesInput = (e) => {
@@ -194,7 +186,7 @@ function AsTeacherMain() {
   // 레슨 설명 변경
   const changeLessonDesBtn = () => {
     let body = { description: changeLessonDes };
-    console.log(body);
+
     api
       .put(`${API_URL}/api/lesson/description/${saveLessonID}`, body)
       .then((res) => {
@@ -219,18 +211,15 @@ function AsTeacherMain() {
   const delLessonBtn = (e) => {
     let lessonID = e.target.value;
     if (window.confirm("해당 레슨을 정말 종료 시키겠습니까?")) {
-      api
-        .delete(`${API_URL}/api/lesson/${lessonID}`)
-        .then((res) => {
-          if (res.status === 200) {
-            alert("레슨 삭제 완료");
-            window.location.reload();
-          }
-        });
+      api.delete(`${API_URL}/api/lesson/${lessonID}`).then((res) => {
+        if (res.status === 200) {
+          alert("레슨 삭제 완료");
+          window.location.reload();
+        }
+      });
     } else {
       return false;
     }
-    console.log(`${API_URL}/api/lesson/${lessonID}`);
   };
   // 템플릿 업로드
   const templateUploadCtrl = (e) => {
@@ -248,10 +237,10 @@ function AsTeacherMain() {
       const val = JSON.stringify(body);
       const blob = new Blob([val], { type: "application/json" });
       formData.append("uploadDTO", blob);
-      //디버그용 for문
+      /*  //디버그용 for문
       for (let value of formData.values()) {
         console.log(value);
-      }
+      } */
       api
         .post(`${API_URL}/api/file`, formData, {
           headers: {
@@ -408,13 +397,10 @@ function AsTeacherMain() {
                               value={x.fileUrl}
                               onClick={(e) => {
                                 api
-                                  .post(
-                                    `${API_URL}/api/file/url`,
-                                    {
-                                      fileUrl: x.fileUrl,
-                                      lessonId: x.lessonId,
-                                    },
-                                  )
+                                  .post(`${API_URL}/api/file/url`, {
+                                    fileUrl: x.fileUrl,
+                                    lessonId: x.lessonId,
+                                  })
                                   .then((res) => {
                                     if (res.status === 200) {
                                       fileUrl = res.data;

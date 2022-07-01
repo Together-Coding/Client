@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useState } from "react";
-import "../styles/IDE.scss";
+import "../../styles/IDE.scss";
 import Editor from "@monaco-editor/react";
 import {
   faWindowMaximize,
@@ -11,20 +11,19 @@ import {
   faFileArrowUp,
   faBookOpenReader,
   faArrowDown,
-  faWindowMinimize,
   faSave,
   faEdit,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Terminal } from "./Terminal";
-import { isObject, uuidv4 } from "../utils/etc";
+import { isObject, uuidv4 } from "../../utils/etc";
 import { useLocation } from "react-router-dom";
-import TeacherDashBoard from "./TeacherDashBoard";
+import TeacherDashBoard from "../DashBoard/TeacherDashBoard";
 import io from "socket.io-client";
-import { API_URL, WS_MONITOR, WS_URL } from "../constants";
+import { WS_MONITOR, WS_URL } from "../../constants";
 import Modal from "react-modal";
-import { resizeStartHandler, resizeEndHandler } from "../utils/etc";
+import { resizeStartHandler, resizeEndHandler } from "../../utils/etc";
 
 /**
  * ``현황`` 탭에서 학생들 리스트를 보여줍니다.
@@ -119,16 +118,6 @@ const IDE = () => {
   let [stuInfo, setStuInfo] = useState({});
   let [saveFileName, setSaveFileName] = useState("");
 
-  let [initLineNum, setInitLineNum] = useState(0);
-  let [initCursor, setInitCursor] = useState(0);
-
-  /*
-  const watchFeedBack=document.querySelector(".myLineDecoration");
-  watchFeedBack.addEventListener("click",(()=>{
-    //console.log(watchFeedBack);
-  }))
-  */
-
   useEffect(() => {
     if (location.state == null) {
       let m = location.pathname.match(/^\/course\/(\d+)\/lesson\/(\d+).*/);
@@ -138,8 +127,6 @@ const IDE = () => {
     localStorage.setItem("lessonId", lessonId.current); // FIXME: TerminalMenu.js 로의 상태 전송을 위한 임시 코드
 
     runSocket();
-    console.log("render");
-
     // return () => {
     // socketio.current.removeAllListeners()
     // }
@@ -162,8 +149,6 @@ const IDE = () => {
 
   let [AddFileToggle, setAddFileToggle] = useState(false);
 
-  const [socketResponse, setSocketResponse] = useState("");
-
   const monacoRef = useRef();
   const monacomonacoRef = useRef();
   const footerRef = useRef();
@@ -179,8 +164,6 @@ const IDE = () => {
   let [copyCodeVal, setCopyCodeVal] = useState([]);
   let [codeLang, setCodeLang] = useState("");
 
-  let [realTimeCode, setRealTimeCode] = useState([]);
-
   let [inputToggle, setInputToggle] = useState(false);
   let [fileTarget, setFileTarget] = useState("");
 
@@ -191,8 +174,6 @@ const IDE = () => {
   let [accessedByStu, setAccessedByStu] = useState({});
 
   let [outFocus, setOutFocus] = useState(false);
-
-  let [readForTeacherId, setReadForTeacherId] = useState(0);
 
   // 실시간 커서
   let [cursorMove, setCursorMove] = useState([]);
@@ -218,32 +199,13 @@ const IDE = () => {
   const editorDidMount = (editor, monaco) => {
     monacoRef.current = editor;
     monacomonacoRef.current = monaco;
-    /*editor.addAction({
-      // An unique identifier of the contributed action.
-      id: "my-id",
 
-      // A label of the action that will be presented to the user.
-      label: "label",
-
-      // An optional array of keybindings for the action.
-      keybindings: [
-        monaco.KeyCode.F8,
-        // chord
-      ],
-
-      run: function (ed) {
-        addQuestion(ed, monaco);
-      },
-    });*/
     editor.addCommand(monaco.KeyCode.F8, function () {
       addQuestion(editor, monaco);
     });
   };
   const addQuestion = (ed, monaco) => {
     let currentLine = ed.getPosition().lineNumber;
-    let currentCol = ed.getPosition().column;
-
-    console.log(currentLine, currentCol);
 
     ed.deltaDecorations(
       [],
@@ -262,7 +224,6 @@ const IDE = () => {
 
   // 특정 유저의 디렉터리 보여줌
   function showOtherDir(ptc) {
-    console.log(ptc);
     setUserId(ptc.id);
     setUserNickName(ptc.nickname);
     setCodeValue("");
@@ -293,19 +254,17 @@ const IDE = () => {
 
     realTimeCodeSend(e, lineNum, colNum);
 
-    console.log(lineNum, colNum, fullLine);
-
     clearTimeout(debounce_cursor_move.current);
     debounce_cursor_move.current = setTimeout(() => {
       if (saveFileName !== null && saveFileName !== "") {
         socketio.current.emit("CURSOR_MOVE", {
           fileInfo: {
-            ownerId: userId, // 파일 소유자 ID
-            file: saveFileName, // 현재 보고있는 파일
-            line: fullLine, // 전체 라인 수
-            cursor: lineNum + "." + colNum, // Line 10의 2번째 글짜 ~ Line 11의 10번째 글자
+            ownerId: userId,
+            file: saveFileName,
+            line: fullLine,
+            cursor: lineNum + "." + colNum,
           },
-          event: "", // 파일을 열었을 때에만 `open` 으로 전송. 이외에는 필요 없음
+          event: "",
           timestamp: Date.now(),
         });
       }
@@ -379,9 +338,6 @@ const IDE = () => {
   const stuAndDirBtnHandler = (e) => {
     setSidebarBtn2(e.currentTarget.value);
   };
-  const saveCodeBtn = () => {
-    console.log(monacoRef.current.setModel(null));
-  };
 
   const inputCtrl = (file) => {
     if (inputToggle === true && renameCode !== "") {
@@ -414,7 +370,6 @@ const IDE = () => {
 
   // todo: 디렉토리 있을때 처리
   const saveCode = (data) => {
-    console.log(data);
     if (data.file.slice(-1) === "c") {
       setCodeLang("c");
       setCodeValue((prev) => {
@@ -505,7 +460,6 @@ const IDE = () => {
 
   let subsEvents = (socket) => {
     socket.on("INIT_LESSON", (data) => {
-      console.log(data);
       // 수업 정보 저장
       className_.current = data.lesson.name;
       classDesc.current = data.lesson.description;
@@ -532,7 +486,6 @@ const IDE = () => {
     });
 
     socket.on("PARTICIPANT_STATUS", (args) => {
-      console.log(args);
       setStuInfo((stuInfo) => {
         stuInfo[args.id] = args;
         return Object.assign({}, stuInfo);
@@ -541,7 +494,6 @@ const IDE = () => {
 
     socket.on("PROJECT_ACCESSIBLE", (data) => {
       let newAcc = {};
-      console.log(data);
       data.accessible_to.forEach((item) => (newAcc[item.userId] = item));
       setAccessibleStu(newAcc);
 
@@ -557,7 +509,7 @@ const IDE = () => {
 
         return false;
       }
-      console.log(args);
+
       filterFile(args);
     });
 
@@ -565,14 +517,12 @@ const IDE = () => {
       saveCode(data);
     });
     socket.on("FILE_CREATE", (data) => {
-      console.log(data);
       if (data) {
         setCreateFile("");
         setAddFileToggle(false);
 
         setUserFile((userFile) => {
           if (userFile.length > 0) {
-            console.log(userFile);
             let copy = [...userFile];
             copy.push(data.name);
             return [...copy];
@@ -582,11 +532,9 @@ const IDE = () => {
       }
     });
     socket.on("FILE_DELETE", (data) => {
-      console.log(data);
       if (data) {
         setUserFile((userFile) => {
           if (userFile.length > 0) {
-            console.log(userFile);
             let copy = [...userFile];
             let findIndex = copy.findIndex((i) => i === data.name);
             if (findIndex !== -1) {
@@ -602,7 +550,6 @@ const IDE = () => {
     socket.on("FILE_UPDATE", (data) => {
       setUserFile((userFile) => {
         if (userFile.length > 0) {
-          console.log(userFile);
           let copy = [...userFile];
           let findIndex = copy.findIndex((i) => i === data.name);
           if (findIndex !== -1) {
@@ -738,7 +685,6 @@ const IDE = () => {
     });
 
     socket.on("FEEDBACK_LIST", (args) => {
-      console.log(args);
       setFeedbackList((prev) => {
         return args;
       });
@@ -939,7 +885,6 @@ const IDE = () => {
             setOutFocus((prev) => {
               return true;
             });
-            console.log(outFocus);
           }}
         >
           <div className="side-btn">
@@ -971,7 +916,6 @@ const IDE = () => {
               setOutFocus((prev) => {
                 return true;
               });
-              console.log(outFocus);
             }}
             ref={explorerDirectory}
           >
@@ -1552,155 +1496,5 @@ function WatchFeedback({
     </div>
   );
 }
-/*
-function SideExplorer({ userFile, socketio, userId }) {
-  console.log(userFile)
-  let [inputToggle, setInputToggle] = useState(false);
-  let [fileTarget, setFileTarget] = useState("");
-
-  let [renameCode, setRenameCode] = useState("");
-
-  const inputCtrl = (file) => {
-    if (inputToggle === true && renameCode !== "") {
-      socketio.current.emit("FILE_UPDATE", {
-        ownerId: userId,
-        type: "file",
-        name: file,
-        rename: renameCode,
-      });
-    }
-    setRenameCode("");
-  };
-  return (
-    <div className="side-explorer">
-      <p className="side-navbar">
-        <span>내 파일</span>
-      </p>
-      <div className="file-container">
-        {userFile &&
-          userFile.map((i, idx) => {
-            return (
-              <div className="file-bar" key={idx}>
-                <div className="files-btns">
-                  <span
-                    value={i}
-                    onClick={() => {
-                      socketio.current.emit("FILE_READ", {
-                        ownerId: userId,
-                        file: i,
-                      });
-                    }}
-                  >
-                    {i}
-                  </span>
-                  <div>
-                    <button
-                      value={i}
-                      onClick={(e) => {
-                        setInputToggle(!inputToggle);
-                        setFileTarget(e.currentTarget.value);
-                        inputCtrl(i);
-                      }}
-                    >
-                      {inputToggle && fileTarget === i ? "저장" : "수정"}
-                    </button>
-                    <button>삭제</button>
-                  </div>
-                </div>
-                {inputToggle && fileTarget === i ? (
-                  <div className="input-file">
-                    <input
-                      spellCheck="false"
-                      onChange={(e) => {
-                        setRenameCode(e.target.value);
-                      }}
-                    />
-                  </div>
-                ) : null}
-              </div>
-            );
-          })}
-      </div>
-    </div>
-  );
-}
-function SideExplorer2({ activeStu, notActiveStu }) {
-  return (
-    <div className="side-explorer">
-      <p className="side-navbar">
-        <div className="online-stu"></div>
-        <span>온라인</span>
-      </p>
-      {activeStu &&
-        activeStu.map((item, idx) => {
-          return (
-            <div className="stu-list" key={idx}>
-              <span>{item.nickname}</span>
-            </div>
-          );
-        })}
-      <p className="side-navbar">
-        <div className="offline-stu"></div>
-        <span>오프라인</span>
-      </p>
-      {notActiveStu &&
-        notActiveStu.map((item, idx) => {
-          return (
-            <div className="stu-list" style={{ color: "grey" }} key={idx}>
-              <span>{item.nickname}</span>
-            </div>
-          );
-        })}
-    </div>
-  );
-}
-/*
-}
-function SideExplorer2(props) {
-  return (
-    <div className="side-explorer">
-      <p className="side-navbar">
-        <span>명령어</span>
-      </p>
-      <div
-        className="files"
-        onClick={() => {
-          props.setFile(!props.file);
-        }}
-      >
-        test2
-      </div>
-      {props.file ? <div className="files"> &gt; 파일들</div> : null}
-    </div>
-  );
-}
-function SideExplorer3(props) {
-  return (
-    <div className="side-explorer">
-      <p className="side-navbar">
-        <span>git</span>
-      </p>
-      <div style={{ color: "#b9c3dd" }}>연결된 저장소가 없습니다</div>
-    </div>
-  );
-}
-function SideExplorer4(props) {
-  return (
-    <div className="side-explorer">
-      <p className="side-navbar">
-        <span>디버그</span>
-      </p>
-      <div
-        className="files"
-        onClick={() => {
-          props.setFile(!props.file);
-        }}
-      >
-        조사식
-      </div>
-      {props.file ? <div className="files"> &gt; 파일들</div> : null}
-    </div>
-  );
-}*/
 
 export default IDE;

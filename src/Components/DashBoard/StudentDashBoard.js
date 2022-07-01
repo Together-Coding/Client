@@ -1,9 +1,9 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
-import "../styles/StudentDashBoard.scss";
+import "../../styles/StudentDashBoard.scss";
 
 function StudentDashBoard() {
-  const location=useLocation();
+  const location = useLocation();
   return (
     <div>
       <h1>학생 대쉬보드 페이지</h1>

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { API_URL } from "../constants";
+import { API_URL } from "../../constants";
 import { Link, useHistory } from "react-router-dom";
-import "../styles/Login.scss";
-import {api} from "../utils/http"
+import "../../styles/Login.scss";
+import { api } from "../../utils/http";
 
 function LoginPage() {
   let history = useHistory();

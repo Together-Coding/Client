@@ -2,19 +2,19 @@ import "./App.css";
 import React, { useState } from "react";
 import { Link, Route, Switch } from "react-router-dom";
 import Editor from "@monaco-editor/react";
-import Home from "./Components/Home";
-import IDE_HOME from "./Components/IDE";
-import RegisterPage from "./Components/RegisterPage";
-import LoginPage from "./Components/LoginPage";
-import TeacherDashBoard from "./Components/TeacherDashBoard";
-import StudentDashBoard from "./Components/StudentDashBoard";
-import MyInfo from "./Components/MyInfo";
-import CodeModal from "./Components/CodeModal";
-import AsTeacherMain from "./Components/AsTeacherMain";
-import AsStudentMain from "./Components/AsStudentMain";
-import MyInfoFix from "./Components/MyInfoFix";
+import Home from "./Components/Home/Home";
+import IDE_HOME from "./Components/IDE/IDE";
+import RegisterPage from "./Components/User/RegisterPage";
+import LoginPage from "./Components/User/LoginPage";
+import TeacherDashBoard from "./Components/DashBoard/TeacherDashBoard";
+import StudentDashBoard from "./Components/DashBoard/StudentDashBoard";
+import MyInfo from "./Components/UserInfo/MyInfo";
+import CodeModal from "./Components/DashBoard/CodeModal";
+import AsTeacherMain from "./Components/ClassMain/AsTeacherMain";
+import AsStudentMain from "./Components/ClassMain/AsStudentMain";
+import MyInfoFix from "./Components/UserInfo/MyInfoFix";
 import Modal from "react-modal";
-import MyCourseFix from "./Components/MyCourseFix";
+import MyCourseFix from "./Components/ClassMain/MyCourseFix";
 function App() {
   return (
     <div className="App">

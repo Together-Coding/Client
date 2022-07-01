@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import "../styles/Home.scss";
-import HOME_IMAGE from "../images/home-image.png";
+import "../../styles/Home.scss";
+import HOME_IMAGE from "../../images/home-image.png";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 function Home() {

@@ -2,11 +2,9 @@ import React, { useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlay } from "@fortawesome/free-solid-svg-icons";
 import { TerminalMenu } from "./TerminalMenu";
-import { API_URL, RUNTIME_URL, WS_MONITOR, WS_URL } from "../constants";
-import { api } from "../utils/http"
-import { DEBUG } from "../constants"
-import { resizeStartHandler, resizeEndHandler } from "../utils/etc"
-
+import { RUNTIME_URL } from "../../constants";
+import { api } from "../../utils/http";
+import { DEBUG } from "../../constants";
 
 export function Terminal({ footerRef, onFooterResize, children }) {
   // 현재 보고있는 유저 ptc ID 전송
@@ -19,40 +17,48 @@ export function Terminal({ footerRef, onFooterResize, children }) {
   const runtimeInfo = useRef(null);
 
   const execCode = () => {
-    let m = window.location.pathname.match(/^\/course\/(\d+)\/lesson\/(\d+).*/)
+    let m = window.location.pathname.match(/^\/course\/(\d+)\/lesson\/(\d+).*/);
     let courseId = parseInt(m[1]);
     let lessonId = parseInt(m[2]);
 
-    let targetPtcId = localStorage.getItem("currUserId")
-    let currFileName = localStorage.getItem("currFileName")
+    let targetPtcId = localStorage.getItem("currUserId");
+    let currFileName = localStorage.getItem("currFileName");
 
-    const url = DEBUG ? `http://${runtimeInfo.current.url}:${runtimeInfo.current.port}/run/start` : `${RUNTIME_URL}${runtimeInfo.current.url}/${runtimeInfo.current.port}/run/start`
+    const url = DEBUG
+      ? `http://${runtimeInfo.current.url}:${runtimeInfo.current.port}/run/start`
+      : `${RUNTIME_URL}${runtimeInfo.current.url}/${runtimeInfo.current.port}/run/start`;
 
-    api.post(url, {
-      target_ptc_id: targetPtcId,
-      course_id: courseId,
-      lesson_id: lessonId,
-    }).then(res => {
-      termFunc.current(currFileName)
-    })
-  }
+    api
+      .post(url, {
+        target_ptc_id: targetPtcId,
+        course_id: courseId,
+        lesson_id: lessonId,
+      })
+      .then((res) => {
+        termFunc.current(currFileName);
+      });
+  };
 
   return (
     <div className="editor-footer" ref={footerRef}>
       {children}
       <div className="bottom-bar">
-        <span>
-          터미널&nbsp;
-        </span>
-        <span onClick={e => {
-          execCode()
-        }}>
+        <span>터미널&nbsp;</span>
+        <span
+          onClick={(e) => {
+            execCode();
+          }}
+        >
           실행&nbsp;
           <FontAwesomeIcon icon={faPlay} color="#00912c" />
         </span>
       </div>
       <div className="terminal-wrapper">
-        <TerminalMenu termFunc={termFunc} runtimeInfo={runtimeInfo} onFooterResize={onFooterResize} />
+        <TerminalMenu
+          termFunc={termFunc}
+          runtimeInfo={runtimeInfo}
+          onFooterResize={onFooterResize}
+        />
       </div>
     </div>
   );

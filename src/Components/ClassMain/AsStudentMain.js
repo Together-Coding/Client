@@ -1,19 +1,17 @@
-import axios from "axios";
 import React, { useEffect } from "react";
 import { useState } from "react";
 import { useParams, useHistory } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
-import { API_URL } from "../constants";
-import "../styles/AsStudentMain.scss";
-import {api} from "../utils/http";
+import { API_URL } from "../../constants";
+import "../../styles/AsStudentMain.scss";
+import { api } from "../../utils/http";
 
 function AsStudentMain() {
   const location = useLocation();
   const history = useHistory();
   const courseID = useParams();
   const realCourseID = Number(courseID.id);
-  console.log(location)
 
   let [courseInfo, setCourseInfo] = useState([]);
   let [lessonInfo, setLessonInfo] = useState([]);
@@ -64,13 +62,13 @@ function AsStudentMain() {
                         to={{
                           pathname:
                             "/course/" + x.courseId + "/lesson/" + x.lessonId,
-                            state: {
-                              class: x.name,
-                              classDes: x.description,
-                              classId: realCourseID,
-                              lessonId: x.lessonId,
-                              asTeacher: location.state.asTeacher,
-                            },
+                          state: {
+                            class: x.name,
+                            classDes: x.description,
+                            classId: realCourseID,
+                            lessonId: x.lessonId,
+                            asTeacher: location.state.asTeacher,
+                          },
                         }}
                       >
                         <p>{x.name}</p>

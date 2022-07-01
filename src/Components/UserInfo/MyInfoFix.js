@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import "../styles/MyInfoFix.scss";
-import { API_URL } from "../constants";
+import "../../styles/MyInfoFix.scss";
+import { API_URL } from "../../constants";
 import { Link } from "react-router-dom";
-import { api } from "../utils/http"
+import { api } from "../../utils/http";
 
 function MyInfoFix() {
   let [changeName, setChangeName] = useState("");
@@ -34,11 +34,9 @@ function MyInfoFix() {
   // 이름 변경 요청 함수
   const changeNameBtn = () => {
     api
-      .put(
-        `${API_URL}/api/user`, {
+      .put(`${API_URL}/api/user`, {
         name: changeName,
-      },
-      )
+      })
       .then((res) => {
         console.log(res);
       });
